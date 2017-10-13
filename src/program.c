@@ -11,6 +11,7 @@
 #include "cdraw.h"
 #include "cutil.h"
 #include "cfontsimple.h"
+#include "ctimer.h"
 
 const char* CLASS_NAME = "Adventure";
 
@@ -35,9 +36,17 @@ int buffer_height;
 int window_width;
 int window_height;
 
+int x_test = 0;
+int y_test = 0;
+
+float x_vel = 0;
+float y_vel = 0;
+
+float char_angle = 0.0f;
+
 const int BYTES_PER_PIXEL = 1;
 
-double TARGET_FPS = 100.0f;
+double TARGET_FPS = 60.0f;
 
 // prototypes
 static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam);
@@ -54,20 +63,10 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
 
 	srand(time(NULL));
 
-    // init_timer
-	LARGE_INTEGER freq;
-	LARGE_INTEGER t0, t1;
-
-	QueryPerformanceFrequency(&freq);
-
-	double seconds_per_tick = 1.0f / (double)freq.QuadPart;
-	double target_spf = 1.0f / TARGET_FPS;
-	double accum_time = 0.0;
-
-	QueryPerformanceCounter(&t0);
-    // end
-    
+    timer_init(TARGET_FPS); 
     is_running = TRUE;
+
+    //dev_generate_palette_file("16_color_palette.png");
 
 	MSG msg;
 	while (is_running)
@@ -79,43 +78,41 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
 			DispatchMessage(&msg);
 		}
         
-        // timer query
-		QueryPerformanceCounter(&t1);
-		__int64 interval = t1.QuadPart - t0.QuadPart;
-		double seconds_gone_by = seconds_per_tick * (double)interval;
+        timer_tick();
 
-		accum_time += seconds_gone_by;
-
-		if (accum_time >= target_spf)
+		if (timer_ready())
 		{
-			accum_time -= target_spf;
-
             update_scene();
             draw_scene();
-
-            // Blit to screen
-            StretchDIBits(dc, 0, 0, window_width, window_height, 0, 0, window_width, window_height, back_buffer, (BITMAPINFO*)&bmi, DIB_RGB_COLORS, SRCCOPY);
         }
-
-		QueryPerformanceCounter(&t0);
 	}
 
-	free_font();
+    // OS should free memory so don't worry about this stuff
+	//free_font();
 	//free(back_buffer);
-	ReleaseDC(main_window, dc);
+	//ReleaseDC(main_window, dc);
 
 	return EXIT_SUCCESS;
 }
 
 static void update_scene()
 {
-
+    x_test += x_vel;
+    y_test += y_vel;
 }
 
 static void draw_scene()
 {
     // Clear buffer to bg_color 
-    memset(back_buffer,0, buffer_width*buffer_height*BYTES_PER_PIXEL);
+    memset(back_buffer,1, buffer_width*buffer_height*BYTES_PER_PIXEL);
+
+    // draw stuff to buffer
+    // ...
+
+    draw_char_scaled(CHAR_MISSILE,x_test,y_test,4.0f,9);
+
+    // Blit buffer to screen
+    StretchDIBits(dc, 0, 0, window_width, window_height, 0, 0, window_width, window_height, back_buffer, (BITMAPINFO*)&bmi, DIB_RGB_COLORS, SRCCOPY);
 }
 
 static BOOL set_working_directory()
@@ -202,14 +199,37 @@ static void setup_window(HINSTANCE hInstance)
 
 	back_buffer = malloc(buffer_width*buffer_height * BYTES_PER_PIXEL);
 
-    // generate palette colors
-    for (int i = 0; i < 256; ++i)
+    // open palette file
+	FILE *fp;
+    fp = fopen("palette","r");
+
+    if(fp != NULL)
     {
-        bmi.acolors[i].rgbRed   = rand() % 256;
-        bmi.acolors[i].rgbGreen = rand() % 256; 
-        bmi.acolors[i].rgbBlue  = rand() % 256;
+        int color_index = 0;
+        while(1) {
+
+          bmi.acolors[color_index].rgbRed   = fgetc(fp);
+          bmi.acolors[color_index].rgbGreen = fgetc(fp);
+          bmi.acolors[color_index].rgbBlue  = fgetc(fp);
+
+          color_index++;
+          if(feof(fp))
+             break;
+        }
+    }
+    else
+    {
+        // randomly generate palette colors
+        for (int i = 0; i < 256; ++i)
+        {
+            bmi.acolors[i].rgbRed   = rand() % 256;
+            bmi.acolors[i].rgbGreen = rand() % 256; 
+            bmi.acolors[i].rgbBlue  = rand() % 256;
+        }
     }
 
+    fclose(fp);
+    
 	dc = GetDC(main_window);
 }
 
@@ -254,8 +274,26 @@ static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM 
         }
         case WM_KEYDOWN:
         {
+            switch(wparam)
+            {
+                case 'A':  x_vel = -1.0; break;
+				case 'D':  x_vel = +1.0; break;
+				case 'W':  y_vel = -1.0; break;
+				case 'S':  y_vel = +1.0; break;
+            }
             break;
         } 
+		case WM_KEYUP:
+		{
+			switch (wparam)
+			{
+                case 'A':  x_vel += +1.0; break;
+				case 'D':  x_vel += -1.0; break;
+				case 'W':  y_vel += +1.0; break;
+				case 'S':  y_vel += -1.0; break;
+			}
+
+		}
         case WM_SETCURSOR:
         {
             static BOOL HideCursor = FALSE;

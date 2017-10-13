@@ -38,8 +38,37 @@ static BOOL draw_image(const char* image_path,int x, int y,float scale)
             *dst++ = color;
         }
     }
+    stbi_image_free(imgdata);
 
     return TRUE;
+}
+
+static void dev_generate_palette_file(const char* image_path)
+{
+    int w,h,n;
+    unsigned char *imgdata = stbi_load(image_path,&w,&h,&n,0);
+
+    if(imgdata == NULL)
+        return FALSE;
+
+    unsigned char *p = imgdata;
+
+    FILE * fp;
+    fp = fopen ("palette", "w");
+
+    for(int j = 0; j < h; ++j)
+    {
+        for(int i = 0; i < w; ++i)
+        {
+            for(int k = 0; k < n; ++k)
+            {
+                fprintf(fp,"%c",*p++);
+            }
+        }
+    }
+    
+    fclose(fp);
+    stbi_image_free(imgdata);
 }
 
 static void draw_rect8(int x, int y, int w, int h, char color, BOOL filled)
