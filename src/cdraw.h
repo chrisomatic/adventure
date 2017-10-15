@@ -10,6 +10,8 @@
 //    // ... but 'n' will always be the number that it would have been if you said 0
 //    stbi_image_free(data)
 
+static int palette_num_channels;
+
 static BOOL draw_image(const char* image_path,int x, int y,float scale)
 {
     int w,h,n;
@@ -48,13 +50,15 @@ static void dev_generate_palette_file(const char* image_path)
     int w,h,n;
     unsigned char *imgdata = stbi_load(image_path,&w,&h,&n,0);
 
+	palette_num_channels = n;
+
     if(imgdata == NULL)
         return FALSE;
 
     unsigned char *p = imgdata;
 
     FILE * fp;
-    fp = fopen ("palette", "w");
+    fp = fopen ("data\\palette", "w");
 
     for(int j = 0; j < h; ++j)
     {
@@ -64,6 +68,47 @@ static void dev_generate_palette_file(const char* image_path)
             {
                 fprintf(fp,"%c",*p++);
             }
+        }
+    }
+    
+    fclose(fp);
+    stbi_image_free(imgdata);
+}
+
+static void generate_indexed_tileset(const char* rgb_image_path,RGBQUAD indexed_colors[256])
+{
+    int w,h,n;
+    unsigned char *imgdata = stbi_load(rgb_image_path,&w,&h,&n,0);
+
+    if(imgdata == NULL)
+        return FALSE;
+
+    unsigned char *p = imgdata;
+
+    FILE * fp;
+    fp = fopen ("data\\tileset", "w");
+
+    for(int j = 0; j < h; ++j)
+    {
+        for(int i = 0; i < w; ++i)
+        {
+            // find index for rgb pixel
+			BOOL color_found = FALSE;
+            for (int k = 0; k < 256; ++k)
+            {
+                if(indexed_colors[k].rgbRed   == *(p+0) &&
+                   indexed_colors[k].rgbGreen == *(p+1) &&
+                   indexed_colors[k].rgbBlue  == *(p+2))
+                {
+                    fputc(k,fp);
+					color_found = TRUE;
+                    break;
+                }
+            }
+
+			if(!color_found)
+				fputc(0, fp);
+            p+=n;
         }
     }
     

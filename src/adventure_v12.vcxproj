@@ -77,6 +77,11 @@
     <ClInclude Include="cdraw.h" />
     <ClInclude Include="cfontsimple.h" />
     <ClInclude Include="common.h" />
+</ItemGroup>
+  <ItemGroup>
+    <Content Include="data\font.png">
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

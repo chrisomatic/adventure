@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="program.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="cdraw.h" />
+    <ClInclude Include="cfontsimple.h" />
+    <ClInclude Include="common.h" />
+    <ClInclude Include="ctile.h" />
+    <ClInclude Include="ctimer.h" />
+    <ClInclude Include="cutil.h" />
+    <ClInclude Include="cworld.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="data">
+      <UniqueIdentifier>{ce31da93-d607-47aa-9b96-e739c9cf88cd}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="data\16_color_palette.png">
+      <Filter>data</Filter>
+    </Image>
+    <Image Include="data\font.png">
+      <Filter>data</Filter>
+    </Image>
+    <Image Include="data\tileset0.png">
+      <Filter>data</Filter>
+    </Image>
+  </ItemGroup>
+</Project>

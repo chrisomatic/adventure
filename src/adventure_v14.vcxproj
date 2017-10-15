@@ -77,6 +77,15 @@
     <ClInclude Include="cdraw.h" />
     <ClInclude Include="cfontsimple.h" />
     <ClInclude Include="common.h" />
+    <ClInclude Include="ctile.h" />
+    <ClInclude Include="ctimer.h" />
+    <ClInclude Include="cutil.h" />
+    <ClInclude Include="cworld.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="data\16_color_palette.png" />
+    <Image Include="data\font.png" />
+    <Image Include="data\tileset0.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
