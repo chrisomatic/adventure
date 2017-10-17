@@ -160,6 +160,11 @@ static void update_scene()
     x_test += x_vel;
     y_test += y_vel;
 
+    if(x_test < 0) x_test = 0;
+    if(y_test < 0) y_test = 0;
+    if(x_test > buffer_width - TILE_WIDTH) x_test = buffer_width - TILE_WIDTH;
+    if(y_test > buffer_height - TILE_HEIGHT) x_test = buffer_height - TILE_HEIGHT;
+
     // handle player animation
     if(x_vel != 0 || y_vel != 0)
     {
