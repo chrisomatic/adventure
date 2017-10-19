@@ -18,13 +18,13 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="data\16_color_palette.png">
+    <Image Include="..\data\16_color_palette.png">
       <Filter>data</Filter>
     </Image>
-    <Image Include="data\font.png">
+    <Image Include="..\data\font.png">
       <Filter>data</Filter>
     </Image>
-    <Image Include="data\tileset0.png">
+    <Image Include="..\data\tileset0.png">
       <Filter>data</Filter>
     </Image>
   </ItemGroup>

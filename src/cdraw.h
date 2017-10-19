@@ -58,7 +58,7 @@ static void dev_generate_palette_file(const char* image_path)
     unsigned char *p = imgdata;
 
     FILE * fp;
-    fp = fopen ("data\\palette", "w");
+    fp = fopen ("data\\palette", "wb");
 
     for(int j = 0; j < h; ++j)
     {
@@ -86,28 +86,36 @@ static void generate_indexed_tileset(const char* rgb_image_path,RGBQUAD indexed_
     unsigned char *p = imgdata;
 
     FILE * fp;
-    fp = fopen ("data\\tileset", "w");
+    fp = fopen ("data\\tileset", "wb");
 
     for(int j = 0; j < h; ++j)
     {
         for(int i = 0; i < w; ++i)
         {
-            // find index for rgb pixel
+            // find closest index for rgb pixel
+            
+            int  color_delta = 0;
+            int  min_color_delta = 256*255*255;
+            int  min_delta_index = 255;
+
 			BOOL color_found = FALSE;
             for (int k = 0; k < 256; ++k)
             {
-                if(indexed_colors[k].rgbRed   == *(p+0) &&
-                   indexed_colors[k].rgbGreen == *(p+1) &&
-                   indexed_colors[k].rgbBlue  == *(p+2))
+                color_delta = 0;
+
+                color_delta += abs(indexed_colors[k].rgbRed   - *(p+0));
+                color_delta += abs(indexed_colors[k].rgbGreen - *(p+1));
+                color_delta += abs(indexed_colors[k].rgbBlue  - *(p+2));
+
+                if(color_delta < min_color_delta)
                 {
-                    fputc(k,fp);
-					color_found = TRUE;
-                    break;
+                    min_color_delta = color_delta;
+                    min_delta_index = k;
                 }
             }
 
-			if(!color_found)
-				fputc(0, fp);
+            fputc(min_delta_index,fp);
+
             p+=n;
         }
     }
@@ -152,6 +160,22 @@ static void draw_rect8(int x, int y, int w, int h, char color, BOOL filled)
         memset(dst,color,w);
     }
 }
+
+static void shade_pixel8(int x, int y,int shade_amount)
+{
+	// c is brightness. 0 <= c <= 1
+	unsigned char* dst = (unsigned char*)back_buffer;
+	dst = dst + (buffer_width*y) + x;
+
+	if (dst < (unsigned char*)back_buffer)
+		return;
+
+	if (dst > (unsigned char*)back_buffer + (buffer_width*buffer_height))
+		return;
+
+	*dst = *dst + (16*shade_amount);
+}
+
 static void draw_pixel8(int x, int y, unsigned char color)
 {
 	// c is brightness. 0 <= c <= 1

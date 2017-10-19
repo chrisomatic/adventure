@@ -3,16 +3,18 @@
 #define TILES_PER_ROW 16
 #define MAX_INDEX   256
 
-unsigned char tileset[256*256] = {0};
+unsigned char *tileset;
 
 static void load_tileset(const char* tile_map_path)
 {
-    FILE* fp_tileset = fopen(tile_map_path,"r");
+    tileset = (unsigned char *)malloc(256*256);
+
+    FILE* fp_tileset = fopen(tile_map_path,"rb");
     unsigned char* d = tileset;
 	
-	char c;
+	int c;
 	while((c = fgetc(fp_tileset)) != EOF)
-		*d++ = c;
+		*d++ = (unsigned char)c;
 
     fclose(fp_tileset);
 }
@@ -35,14 +37,17 @@ static void draw_tile(int x, int y, int tile_index)
         {
 			if (dst > (unsigned char*)back_buffer + (buffer_width*(buffer_height))) return;
 
-			if(*p_tileset != 16)
+			if(*p_tileset != 0xFF)
             {
-                if (dst >= (unsigned char*)back_buffer)
+                if (dst >= (unsigned char*)back_buffer && x+j >= 0 && x+j <= buffer_width)
                     *dst = *p_tileset;
             }
 
 			++dst;
 			++p_tileset;
+
+            if(p_tileset > (tileset + 256*256))
+                return;
         }
 
         dst += (buffer_width - TILE_HEIGHT);

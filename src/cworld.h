@@ -1,15 +1,15 @@
 #define WORLD_TILE_WIDTH  256
 #define WORLD_TILE_HEIGHT 256
 
-static int world[WORLD_TILE_WIDTH][WORLD_TILE_HEIGHT] = {0};
+static int world[WORLD_TILE_WIDTH][WORLD_TILE_HEIGHT];
 
 static void init_world()
 {
-    for(int i = 0; i < WORLD_TILE_WIDTH; ++i)
-    {
-        for(int j = 0; j < WORLD_TILE_HEIGHT; ++j)
-        {
-            world[i][j] = 16;
+	for (int j = 0; j < WORLD_TILE_HEIGHT; ++j)
+	{
+		for(int i = 0; i < WORLD_TILE_WIDTH; ++i)
+		{
+            world[i][j] = 32;
         }
     }
 }

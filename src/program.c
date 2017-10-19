@@ -37,13 +37,57 @@ typedef enum
 
 typedef enum
 {
-	PLAYER_DIR_UP = 0,
-	PLAYER_DIR_DOWN = 3,
-	PLAYER_DIR_LEFT = 6,
-	PLAYER_DIR_RIGHT = 9
-} PlayerDirection;
+	DIR_UP = 0,
+	DIR_DOWN = 3,
+	DIR_LEFT = 6,
+	DIR_RIGHT = 9
+} Direction;
 
-PlayerDirection player_direction = PLAYER_DIR_DOWN;
+typedef struct
+{
+    int counter;
+    int max_count;
+    int frame;
+    int num_frames;
+    int frame_order[16];
+} Animation;
+
+typedef struct
+{
+    char* name;
+    int tile_index;
+    int lvl;
+    int xp;
+    int hp;
+    int max_hp;
+    int x;
+    int y;
+    int x_vel;
+    int y_vel;
+    Direction dir;
+    Animation anim;
+} Player;
+Player player;
+
+typedef struct
+{
+    char* name;
+    int tile_index;
+    int xp;
+    int hp;
+    int max_hp;
+    int x;
+    int y;
+    int x_vel;
+    int y_vel;
+    int action_counter;
+    Direction dir;
+    Animation anim;
+} Enemy;
+Enemy enemies[100];
+int num_enemies;
+
+int action_counter_max = 60;
 
 BOOL is_running;
 
@@ -58,18 +102,6 @@ int window_height;
 
 int keypress = 0x0000;
 
-int x_test = 0;
-int y_test = 0;
-
-float x_vel = 0;
-float y_vel = 0;
-
-int player_animation_counter = 0;
-int player_animation_max_count = 10;
-int player_animation_frame   = 0;
-int player_animation_num_frames = 4;
-int player_animation_frame_order[4] = { 0,1,0,2 };
-
 const int BYTES_PER_PIXEL = 1;
 
 double TARGET_FPS = 60.0f;
@@ -79,6 +111,8 @@ static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM 
 static void setup_window(HINSTANCE hInstance);
 static void update_scene();
 static void draw_scene();
+static void init_enemies();
+static void init_player();
 static BOOL set_working_directory();
 
 int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline, s32 nshowcmd)
@@ -90,15 +124,17 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
 
 	generate_indexed_tileset("data\\tileset0.png", bmi.acolors);
 
+	srand(time(NULL));
+
     init_font("data\\font.png");
 	load_tileset("data\\tileset");
-    init_world();
 
-	srand(time(NULL));
+    init_world();
+    init_enemies();
+    init_player();
 
     timer_init(TARGET_FPS); 
     is_running = TRUE;
-
 
 	MSG msg;
 	while (is_running)
@@ -133,80 +169,108 @@ static void update_scene()
     // handle player movement
 	if ((keypress & KEYPRESS_LEFT) == KEYPRESS_LEFT)
 	{
-		player_direction = PLAYER_DIR_LEFT;
-		x_vel = -1.0f;
+		player.dir = DIR_LEFT;
+		player.x_vel = -1.0f;
 	}
 	else if ((keypress & KEYPRESS_RIGHT) == KEYPRESS_RIGHT)
 	{
-		player_direction = PLAYER_DIR_RIGHT;
-		x_vel = +1.0f;
+		player.dir = DIR_RIGHT;
+		player.x_vel = +1.0f;
 	}
 	else
-		x_vel = 0.0f;
+		player.x_vel = 0.0f;
 
 	if ((keypress & KEYPRESS_UP) == KEYPRESS_UP)
 	{
-		player_direction = PLAYER_DIR_UP;
-		y_vel = -1.0f;
+		player.dir = DIR_UP;
+		player.y_vel = -1.0f;
 	}
 	else if ((keypress & KEYPRESS_DOWN) == KEYPRESS_DOWN)
 	{
-		player_direction = PLAYER_DIR_DOWN;
-		y_vel = +1.0f;
+		player.dir = DIR_DOWN;
+		player.y_vel = +1.0f;
 	}
 	else
-		y_vel = 0.0f;
+		player.y_vel = 0.0f;
 
-    x_test += x_vel;
-    y_test += y_vel;
+    player.x += player.x_vel;
+    player.y += player.y_vel;
 
-    if(x_test < 0) x_test = 0;
-    if(y_test < 0) y_test = 0;
-    if(x_test > buffer_width - TILE_WIDTH) x_test = buffer_width - TILE_WIDTH;
-    if(y_test > buffer_height - TILE_HEIGHT) x_test = buffer_height - TILE_HEIGHT;
+    if(player.x < 0) player.x = 0;
+    if(player.y < 0) player.y = 0;
+    if(player.x > buffer_width - TILE_WIDTH) player.x = buffer_width - TILE_WIDTH;
+    if(player.y > buffer_height - TILE_HEIGHT) player.x = buffer_height - TILE_HEIGHT;
 
     // handle player animation
-    if(x_vel != 0 || y_vel != 0)
+    if(player.x_vel != 0 || player.y_vel != 0)
     {
-        player_animation_counter++;
+        player.anim.counter++;
 
-        if(player_animation_counter == player_animation_max_count)
+        if(player.anim.counter == player.anim.max_count)
         {
             // cycle_animation
-            player_animation_counter = 0;
-            player_animation_frame += 1;
-            if(player_animation_frame >= player_animation_num_frames)
-                player_animation_frame = 0;
+            player.anim.counter = 0;
+            player.anim.frame += 1;
+            if(player.anim.frame >= player.anim.num_frames)
+                player.anim.frame = 0;
         }
     }
     else
     {
         // clear animation frame
-        player_animation_counter = 0;
-        player_animation_frame = 0;
+        player.anim.counter = 0;
+        player.anim.frame = 0;
+    }
+
+    // handle enemies
+    for(int i = 0; i < num_enemies;++i)
+    {
+        enemies[i].action_counter++;
+
+        if(enemies[i].action_counter >= action_counter_max)
+        {
+            enemies[i].action_counter = 0;
+            
+            // take an action
+            int d = rand() % 4;
+            switch (d)
+            {
+                case 0: 
+                    enemies[i].dir = DIR_UP;
+                    break;
+                case 1: 
+                    enemies[i].dir = DIR_DOWN;
+                    break;
+                case 2: 
+                    enemies[i].dir = DIR_LEFT;
+                    break;
+                case 3: 
+                    enemies[i].dir = DIR_RIGHT;
+                    break;
+            }
+        }
     }
 
     // handle camera
-
-	if (x_test != buffer_width / 2)
+	if (player.x != buffer_width / 2)
 	{
-		camera.x += (x_test - (buffer_width / 2));
+		camera.x += (player.x - (buffer_width / 2));
 		camera.x = max(camera.x, 0);
 
 		if (camera.x > 0)
 		{
-			x_test = buffer_width / 2;
+			player.x = buffer_width / 2;
 		}
 	}
 
-	if (y_test != buffer_height / 2)
+	if (player.y != buffer_height / 2)
 	{
-		camera.y += (y_test - (buffer_height / 2));
+		camera.y += (player.y - (buffer_height / 2));
 		camera.y = max(camera.y, 0);
 
 		if (camera.y > 0)
 		{
-			y_test = buffer_height / 2;
+			player.y = buffer_height / 2;
 		}
 	}
 
@@ -219,28 +283,97 @@ static void draw_scene()
     
     // draw world
     draw_world(camera);
+    
+     // draw player shadow
+    int shadow_y = player.y + TILE_HEIGHT - 3;
+
+    for(int i = 7; i > 0; --i)
+    {
+		for (int j = 1; j < 15; ++j)
+        {
+            shade_pixel8(player.x + j,shadow_y,i);
+        }
+        shadow_y++;
+    }
+    
+	// draw enemies
+	for (int i = 0; i < num_enemies; ++i)
+	{
+		draw_tile(enemies[i].x - camera.x, enemies[i].y - camera.y, enemies[i].tile_index + enemies[i].dir + enemies[i].anim.frame_order[enemies[i].anim.frame]);
+	}
 
     // draw player
-    draw_tile(x_test,y_test,player_direction+player_animation_frame_order[player_animation_frame]);
+    draw_tile(player.x,player.y,player.tile_index + player.dir+player.anim.frame_order[player.anim.frame]);
 
-    // draw debug stuff
-    char* button_presses_str = to_string((int)keypress);
-    draw_string(button_presses_str,0,buffer_height - 7,1.0f, 8);
-    free(button_presses_str);
+    // draw UI
+    draw_string(player.name,0,buffer_height - 7,1.0f,1);
 
-    char* x_vel_str = to_string((int)x_vel);
-    draw_string(x_vel_str,18,buffer_height - 7,1.0f, 8);
+    char* x_vel_str = to_string((int)player.hp);
+    draw_string(x_vel_str,26,buffer_height - 7,1.0f, 9);
     free(x_vel_str);
 
-    char* y_vel_str = to_string((int)y_vel);
-    draw_string(y_vel_str,36,buffer_height - 7,1.0f, 8);
+    char* y_vel_str = to_string((int)player.max_hp);
+    draw_string(y_vel_str,40,buffer_height - 7,1.0f, 9);
     free(y_vel_str);
 	//
 
     // Blit buffer to screen
     StretchDIBits(dc, 0, 0, window_width, window_height, 0, 0, buffer_width, buffer_height, back_buffer, (BITMAPINFO*)&bmi, DIB_RGB_COLORS, SRCCOPY);
 }
+static void init_player()
+{
+    player.name = "Hero";
+    player.tile_index = 0;
+    player.lvl = 1;
+    player.xp  = 0;
+    player.hp  = 10;
+    player.max_hp = 10;
+    player.x   = (buffer_width-TILE_WIDTH)/2;
+    player.y   = (buffer_height-TILE_HEIGHT)/2;
+    player.x_vel = 0;
+    player.y_vel = 0;
+    player.dir = DIR_DOWN;
+    player.anim.counter = 0;
+    player.anim.max_count = 10;
+    player.anim.frame = 0;
+    player.anim.num_frames = 4;
+    player.anim.frame_order[0] = 0;
+    player.anim.frame_order[1] = 1;
+    player.anim.frame_order[2] = 0;
+    player.anim.frame_order[3] = 2;
+}
 
+static void init_enemies()
+{
+
+    for (int i = 0; i < 100; ++i)
+    {
+        Enemy e = {0};
+
+        enemies[num_enemies].x = rand() % (TILE_WIDTH*(WORLD_TILE_WIDTH -1));
+        enemies[num_enemies].y = rand() % (TILE_HEIGHT*(WORLD_TILE_HEIGHT -1));
+        enemies[num_enemies].x_vel = 0;
+        enemies[num_enemies].y_vel = 0;
+        enemies[num_enemies].dir = DIR_DOWN;
+        enemies[num_enemies].name = "Rat";
+        enemies[num_enemies].tile_index = 16;
+        enemies[num_enemies].hp = 5;
+        enemies[num_enemies].max_hp = 5;
+        enemies[num_enemies].xp = 1;
+        enemies[num_enemies].action_counter = rand() % action_counter_max;
+        enemies[num_enemies].anim.counter = 0;
+        enemies[num_enemies].anim.max_count = 10;
+        enemies[num_enemies].anim.frame = 0;
+        enemies[num_enemies].anim.num_frames = 4;
+        enemies[num_enemies].anim.frame_order[0] = 0;
+        enemies[num_enemies].anim.frame_order[1] = 1;
+        enemies[num_enemies].anim.frame_order[2] = 0;
+        enemies[num_enemies].anim.frame_order[3] = 2;
+
+        num_enemies++;
+    }
+
+}
 static BOOL set_working_directory()
 {
 	char cwd[256] = { 0 };
@@ -327,7 +460,7 @@ static void setup_window(HINSTANCE hInstance)
 
     // open palette file
 	FILE *fp;
-    fp = fopen("data\\palette","r");
+    fp = fopen("data\\palette","rb");
 
     if(fp != NULL)
     {
@@ -346,13 +479,30 @@ static void setup_window(HINSTANCE hInstance)
              break;
         }
 
+        int percentage_decrease = 5;
+
 		while (color_index < 256)
 		{
-			bmi.acolors[color_index].rgbRed = 0;
-			bmi.acolors[color_index].rgbGreen = 0;
-			bmi.acolors[color_index].rgbBlue = 0;
+			if (color_index == 255)
+			{
+				// set transparent color...
+				bmi.acolors[color_index].rgbRed = 255;
+				bmi.acolors[color_index].rgbGreen = 0;
+				bmi.acolors[color_index].rgbBlue = 255;
+				break;
+			}
+
+			bmi.acolors[color_index].rgbRed = bmi.acolors[color_index % 16].rgbRed * (1.0f - (percentage_decrease/100.0f));
+			bmi.acolors[color_index].rgbGreen = bmi.acolors[color_index % 16].rgbGreen * (1.0f - (percentage_decrease/100.0f));
+			bmi.acolors[color_index].rgbBlue = bmi.acolors[color_index % 16].rgbBlue * (1.0f - (percentage_decrease/100.0f));
 
 			color_index++;
+
+			if (color_index % 16 == 0)
+			{
+				percentage_decrease += 7;
+				percentage_decrease = min(100, percentage_decrease);
+			}
 		}
     }
     else
