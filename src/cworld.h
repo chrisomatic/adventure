@@ -1,6 +1,13 @@
 #define WORLD_TILE_WIDTH  256
 #define WORLD_TILE_HEIGHT 256
 
+#define GRASS 32
+#define WATER 33
+#define SAND  34
+#define MUD   35
+#define STONE 36
+#define BRICK 37
+
 static int world[WORLD_TILE_WIDTH][WORLD_TILE_HEIGHT];
 
 static void init_world()
@@ -9,7 +16,7 @@ static void init_world()
 	{
 		for(int i = 0; i < WORLD_TILE_WIDTH; ++i)
 		{
-            world[i][j] = 32;
+            world[i][j] = (rand() % 6) + 32;
         }
     }
 }

@@ -1,8 +1,6 @@
 #define WIN32_LEAN_AND_MEAN
 
 #include <windows.h>
-#include <windowsx.h> // for GET_X_LPARAM,GET_Y_LPARAM
-
 #include <math.h>     // for abs,atan,cos,sin
 #include <time.h>     // for time function
 #include "common.h"
@@ -69,6 +67,19 @@ typedef struct
 } Player;
 Player player;
 
+typedef enum
+{
+    ENEMY_STATE_NONE,
+    ENEMY_STATE_MOVE_UP,
+    ENEMY_STATE_MOVE_DOWN,
+    ENEMY_STATE_MOVE_LEFT,
+    ENEMY_STATE_MOVE_RIGHT,
+    ENEMY_STATE_MOVE_UP_LEFT,
+    ENEMY_STATE_MOVE_UP_RIGHT,
+    ENEMY_STATE_MOVE_DOWN_LEFT,
+    ENEMY_STATE_MOVE_DOWN_RIGHT,
+    ENEMY_STATE_ATTACK
+} EnemyState;
 typedef struct
 {
     char* name;
@@ -81,17 +92,20 @@ typedef struct
     int x_vel;
     int y_vel;
     int action_counter;
+    int action_duration_counter;
+    int action_duration_counter_max;
+    EnemyState state;
     Direction dir;
     Animation anim;
 } Enemy;
-Enemy enemies[100];
+Enemy enemies[10000];
 int num_enemies;
 
 int action_counter_max = 60;
+int keypress = 0x0000;
 
 BOOL is_running;
 
-POINT curr_pt = {0};
 POINT camera  = {0};
 
 int buffer_width;
@@ -99,8 +113,6 @@ int buffer_height;
 
 int window_width;
 int window_height;
-
-int keypress = 0x0000;
 
 const int BYTES_PER_PIXEL = 1;
 
@@ -154,11 +166,6 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
             draw_scene();
         }
 	}
-
-    // OS should free memory so don't worry about this stuff
-	//free_font();
-	//free(back_buffer);
-	//ReleaseDC(main_window, dc);
 
 	return EXIT_SUCCESS;
 }
@@ -225,28 +232,129 @@ static void update_scene()
     // handle enemies
     for(int i = 0; i < num_enemies;++i)
     {
-        enemies[i].action_counter++;
-
-        if(enemies[i].action_counter >= action_counter_max)
+        if(enemies[i].state == ENEMY_STATE_NONE)
         {
-            enemies[i].action_counter = 0;
-            
-            // take an action
-            int d = rand() % 4;
-            switch (d)
+            enemies[i].action_counter++;
+
+            if(enemies[i].action_counter >= action_counter_max)
             {
-                case 0: 
-                    enemies[i].dir = DIR_UP;
+                enemies[i].action_counter = 0;
+                enemies[i].action_duration_counter_max = rand() % 60 + 1; // duration of action
+                
+                // take an action
+                int d = rand() % 9;
+                switch (d)
+                {
+                    case 0:
+                        enemies[i].state = ENEMY_STATE_NONE;
+                    case 1: 
+                        enemies[i].state = ENEMY_STATE_MOVE_UP;
+                        enemies[i].dir = DIR_UP;
+                        enemies[i].x_vel = +0;
+                        enemies[i].y_vel = -1;
+                        break;
+                    case 2: 
+                        enemies[i].state = ENEMY_STATE_MOVE_DOWN;
+                        enemies[i].dir = DIR_DOWN;
+                        enemies[i].x_vel = +0;
+                        enemies[i].y_vel = +1;
+                        break;
+                    case 3: 
+                        enemies[i].state = ENEMY_STATE_MOVE_LEFT;
+                        enemies[i].dir = DIR_LEFT;
+                        enemies[i].x_vel = -1;
+                        enemies[i].y_vel = +0;
+                        break;
+                    case 4: 
+                        enemies[i].state = ENEMY_STATE_MOVE_RIGHT;
+                        enemies[i].dir = DIR_RIGHT;
+                        enemies[i].x_vel = +1;
+                        enemies[i].y_vel = +0;
+                        break;
+                    case 5: 
+                        enemies[i].state = ENEMY_STATE_MOVE_UP_LEFT;
+                        enemies[i].dir = DIR_UP;
+                        enemies[i].x_vel = -1;
+                        enemies[i].y_vel = -1;
+                        break;
+                    case 6: 
+                        enemies[i].state = ENEMY_STATE_MOVE_UP_RIGHT;
+                        enemies[i].dir = DIR_UP;
+                        enemies[i].x_vel = +1;
+                        enemies[i].y_vel = -1;
+                        break;
+                    case 7: 
+                        enemies[i].state = ENEMY_STATE_MOVE_DOWN_LEFT;
+                        enemies[i].dir = DIR_DOWN;
+                        enemies[i].x_vel = -1;
+                        enemies[i].y_vel = +1;
+                        break;
+                    case 8: 
+                        enemies[i].state = ENEMY_STATE_MOVE_DOWN_RIGHT;
+                        enemies[i].dir = DIR_DOWN;
+                        enemies[i].x_vel = +1;
+                        enemies[i].y_vel = +1;
+                        break;
+                }
+            }
+        }
+        else
+        {
+            switch (enemies[i].state)
+            {
+                case ENEMY_STATE_MOVE_UP:
+                case ENEMY_STATE_MOVE_DOWN:
+                case ENEMY_STATE_MOVE_LEFT:
+                case ENEMY_STATE_MOVE_RIGHT:
+                case ENEMY_STATE_MOVE_UP_LEFT:
+                case ENEMY_STATE_MOVE_UP_RIGHT:
+                case ENEMY_STATE_MOVE_DOWN_LEFT:
+                case ENEMY_STATE_MOVE_DOWN_RIGHT:
+
+                    enemies[i].x += enemies[i].x_vel;
+                    enemies[i].y += enemies[i].y_vel;
+
+                    if(enemies[i].x < 0) enemies[i].x = 0;
+                    if(enemies[i].y < 0) enemies[i].y = 0;
+                    if(enemies[i].x >(TILE_WIDTH-1)*WORLD_TILE_WIDTH) enemies[i].x = (TILE_WIDTH-1)*WORLD_TILE_WIDTH;
+                    if(enemies[i].y >(TILE_HEIGHT-1)*WORLD_TILE_HEIGHT) enemies[i].y = (TILE_HEIGHT-1)*WORLD_TILE_HEIGHT;
+
                     break;
-                case 1: 
-                    enemies[i].dir = DIR_DOWN;
+                case ENEMY_STATE_ATTACK:
+                    // @TODO: handle enemy attack
                     break;
-                case 2: 
-                    enemies[i].dir = DIR_LEFT;
-                    break;
-                case 3: 
-                    enemies[i].dir = DIR_RIGHT;
-                    break;
+            }
+            
+            // handle enemy animation
+            if(enemies[i].x_vel != 0 || enemies[i].y_vel != 0)
+            {
+                enemies[i].anim.counter++;
+
+                if(enemies[i].anim.counter == enemies[i].anim.max_count)
+                {
+                    // cycle_animation
+                    enemies[i].anim.counter = 0;
+                    enemies[i].anim.frame += 1;
+                    if(enemies[i].anim.frame >= enemies[i].anim.num_frames)
+                        enemies[i].anim.frame = 0;
+                }
+            }
+            else
+            {
+                // clear animation frame
+                enemies[i].anim.counter = 0;
+                enemies[i].anim.frame = 0;
+            }
+
+
+            enemies[i].action_duration_counter++;
+
+            if(enemies[i].action_duration_counter >= enemies[i].action_duration_counter_max)
+            {
+                enemies[i].action_duration_counter = 0;
+                enemies[i].state = ENEMY_STATE_NONE; // return to neutral state
+                enemies[i].x_vel = +0;
+                enemies[i].y_vel = +0;
             }
         }
     }
@@ -299,11 +407,22 @@ static void draw_scene()
 	// draw enemies
 	for (int i = 0; i < num_enemies; ++i)
 	{
+        int enemy_x = enemies[i].x - camera.x;
+        int enemy_y = enemies[i].y - camera.y;
+
+        if (enemy_x+TILE_WIDTH < 0 || enemy_x > buffer_width)
+            continue;
+        if (enemy_y+TILE_HEIGHT < 0 || enemy_y > buffer_height)
+            continue;
+        
 		draw_tile(enemies[i].x - camera.x, enemies[i].y - camera.y, enemies[i].tile_index + enemies[i].dir + enemies[i].anim.frame_order[enemies[i].anim.frame]);
 	}
 
     // draw player
     draw_tile(player.x,player.y,player.tile_index + player.dir+player.anim.frame_order[player.anim.frame]);
+
+    // test rotation
+    //draw_tile_rotated(player.x, player.y,0,1.5);
 
     // draw UI
     draw_string(player.name,0,buffer_height - 7,1.0f,1);
@@ -346,7 +465,7 @@ static void init_player()
 static void init_enemies()
 {
 
-    for (int i = 0; i < 100; ++i)
+    for (int i = 0; i < 10000; ++i)
     {
         Enemy e = {0};
 
@@ -355,12 +474,14 @@ static void init_enemies()
         enemies[num_enemies].x_vel = 0;
         enemies[num_enemies].y_vel = 0;
         enemies[num_enemies].dir = DIR_DOWN;
+        enemies[num_enemies].state = ENEMY_STATE_NONE;
         enemies[num_enemies].name = "Rat";
         enemies[num_enemies].tile_index = 16;
         enemies[num_enemies].hp = 5;
         enemies[num_enemies].max_hp = 5;
         enemies[num_enemies].xp = 1;
         enemies[num_enemies].action_counter = rand() % action_counter_max;
+        enemies[num_enemies].action_duration_counter = 0;
         enemies[num_enemies].anim.counter = 0;
         enemies[num_enemies].anim.max_count = 10;
         enemies[num_enemies].anim.frame = 0;
@@ -526,28 +647,6 @@ static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM 
 {
 	switch (umsg)
 	{
-    
-        case WM_LBUTTONDOWN:
-        {
-            POINT pt;
-
-            pt.x = GET_X_LPARAM(lparam);
-            pt.y = GET_Y_LPARAM(lparam);
-
-            break;
-        } 
-        
-        case WM_MOUSEMOVE:
-        {
-            POINT pt;
-            pt.x = GET_X_LPARAM(lparam);
-            pt.y = GET_Y_LPARAM(lparam);
-
-            curr_pt.x = pt.x;
-            curr_pt.y = pt.y;
-
-            break;
-        } 
         case WM_CLOSE:
         {
             is_running = FALSE;
@@ -588,23 +687,6 @@ static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM 
 
 			break;
 		}
-        case WM_SETCURSOR:
-        {
-			/*
-            static BOOL HideCursor = FALSE;
-            if ((LOWORD(lparam) == HTCLIENT) && !HideCursor)
-            {
-                HideCursor = TRUE;
-                ShowCursor(FALSE);
-            }
-			else if ((LOWORD(lparam) != HTCLIENT) && HideCursor)
-            {
-                HideCursor = FALSE;
-                ShowCursor(TRUE);
-            }
-			*/
-            break;
-        } 
         
         default:
         {
