@@ -45,7 +45,59 @@ static BOOL draw_image(const char* image_path,int x, int y,float scale)
     return TRUE;
 }
 
-static void dev_generate_palette_file(const char* image_path)
+static void generate_world_file(const char* image_path)
+{
+    int w,h,n;
+    unsigned char *imgdata = stbi_load(image_path,&w,&h,&n,0);
+
+    if(imgdata == NULL)
+        return;
+
+    unsigned char *p = imgdata;
+
+    FILE * fp_world;
+    fp_world = fopen ("data\\world", "wb");
+
+	unsigned char r, g, b;
+	int val;
+
+    for(int j = 0; j < h; ++j)
+    {
+		for (int i = 0; i < w; ++i)
+		{
+			r = *(p + 0);
+			g = *(p + 1);
+			b = *(p + 2);
+
+			val = 0xFF;
+
+			if (r == 0 && g == 175 && b == 0) // grass
+				val = 32;
+			else if (r == 0 && g == 100 && b == 0) // marsh
+				val = 33;
+			else if (r == 0 && g == 150 && b == 175) // water 
+				val = 34;
+			else if (r == 255 && g == 200 && b == 0) // sand
+				val = 36;
+			else if (r == 100 && g == 75 && b == 50) // mud
+				val = 37;
+            else if (r == 100 && g == 100 && b == 100) // mountain
+                val = 38;
+            else if (r == 255 && g == 255 && b == 255) // snow
+				val = 39;
+                
+			if (fputc(val, fp_world) == EOF)
+				return;
+
+			p += n;
+		}
+    }
+    
+    fclose(fp_world);
+    stbi_image_free(imgdata);
+}
+
+static void generate_palette_file(const char* image_path)
 {
     int w,h,n;
     unsigned char *imgdata = stbi_load(image_path,&w,&h,&n,0);
@@ -53,7 +105,7 @@ static void dev_generate_palette_file(const char* image_path)
 	palette_num_channels = n;
 
     if(imgdata == NULL)
-        return FALSE;
+        return;
 
     unsigned char *p = imgdata;
 
@@ -81,7 +133,7 @@ static void generate_indexed_tileset(const char* rgb_image_path,RGBQUAD indexed_
     unsigned char *imgdata = stbi_load(rgb_image_path,&w,&h,&n,0);
 
     if(imgdata == NULL)
-        return FALSE;
+        return;
 
     unsigned char *p = imgdata;
 
@@ -173,7 +225,10 @@ static void shade_pixel8(int x, int y,int shade_amount)
 	if (dst > (unsigned char*)back_buffer + (buffer_width*buffer_height))
 		return;
 
-	*dst = *dst + (16*shade_amount);
+	int current = *dst;
+	int offset = (16 * shade_amount);
+
+	*dst = min(current + offset,254);
 }
 
 static void draw_pixel8(int x, int y, unsigned char color)

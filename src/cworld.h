@@ -1,24 +1,55 @@
 #define WORLD_TILE_WIDTH  256
 #define WORLD_TILE_HEIGHT 256
 
-#define GRASS 32
-#define WATER 33
-#define SAND  34
-#define MUD   35
-#define STONE 36
-#define BRICK 37
+#define GRASS    32
+#define MARSH    33
+#define WATER    34
+#define WATER2   35
+#define SAND     36
+#define MUD      37
+#define MOUNTAIN 38
+#define SNOW     39
+#define ST0NE    40
+#define BRICK    41 
+#define TREE     48
 
-static int world[WORLD_TILE_WIDTH][WORLD_TILE_HEIGHT];
+static int world[WORLD_TILE_HEIGHT][WORLD_TILE_WIDTH];
+static int world_collision[WORLD_TILE_HEIGHT][WORLD_TILE_WIDTH];
 
-static void init_world()
+static void init_world(const char* path_to_world_file)
 {
+    FILE* fp_world = fopen(path_to_world_file,"rb");
+
+	if (fp_world == NULL)
+		return;
+
+    int c;
+	unsigned char uc;
+
 	for (int j = 0; j < WORLD_TILE_HEIGHT; ++j)
 	{
 		for(int i = 0; i < WORLD_TILE_WIDTH; ++i)
 		{
-            world[i][j] = (rand() % 6) + 32;
+            c = fgetc(fp_world);
+            if(c == EOF) return;
+
+			uc = (unsigned char)c;
+
+			world[j][i] = uc;
+
+            switch(uc)
+            {
+                case GRASS: world_collision[i][j] = 1; break;
+                case SAND:  world_collision[i][j] = 2; break;
+                case MUD:   world_collision[i][j] = 3; break;
+                case MOUNTAIN: world_collision[i][j] = 5; break;
+                case TREE:  world_collision[i][j] = 5; break;
+                case WATER: world_collision[i][j] = 5; break;
+            }
         }
     }
+
+    fclose(fp_world);
 }
 
 static void draw_world(POINT camera)
@@ -36,7 +67,7 @@ static void draw_world(POINT camera)
     {
         for(int i = start_x; i < end_x; ++i)
         {
-            draw_tile(i*TILE_WIDTH - camera.x,j*TILE_HEIGHT - camera.y,world[i][j]);
+            draw_tile(i*TILE_WIDTH - camera.x,j*TILE_HEIGHT - camera.y,world[j][i]);
         }
     }
 }

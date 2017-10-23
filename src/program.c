@@ -1,4 +1,5 @@
 #define WIN32_LEAN_AND_MEAN
+#define PI 3.14159265359 
 
 #include <windows.h>
 #include <math.h>     // for abs,atan,cos,sin
@@ -10,6 +11,7 @@
 #include "ctimer.h"
 #include "ctile.h"
 #include "cworld.h"
+#include "cweapon.h"
 
 const char* CLASS_NAME = "Adventure";
 
@@ -40,6 +42,22 @@ typedef enum
 	DIR_LEFT = 6,
 	DIR_RIGHT = 9
 } Direction;
+typedef enum
+{
+    PLAYER_ATTACK_UP,
+    PLAYER_ATTACK_DOWN,
+    PLAYER_ATTACK_LEFT,
+    PLAYER_ATTACK_RIGHT
+} AttackDirection;
+
+typedef enum
+{
+	PLAYER_STATE_NONE = 0,
+	PLAYER_STATE_MOVE = 1,
+	PLAYER_STATE_ATTACK = 2,
+	PLAYER_STATE_HURT = 4,
+	PLAYER_STATE_DEAD = 8
+} PlayerState;
 
 typedef struct
 {
@@ -52,18 +70,37 @@ typedef struct
 
 typedef struct
 {
+    int number;
+    float x;
+    float y;
+    int float_duration_counter;
+    int float_duration_counter_max;
+} FloatingNumber;
+
+FloatingNumber floating_numbers[20];
+int num_floating_numbers;
+
+typedef struct
+{
     char* name;
     int tile_index;
     int lvl;
     int xp;
     int hp;
     int max_hp;
-    int x;
-    int y;
+    float x;
+    float y;
     int x_vel;
     int y_vel;
+    float speed;
+    float attack_angle;
+    int attack_frame_counter;
+    BOOL attack_hit;
+    Weapon weapon;
     Direction dir;
+    AttackDirection attack_dir;
     Animation anim;
+    PlayerState state;
 } Player;
 Player player;
 
@@ -78,8 +115,10 @@ typedef enum
     ENEMY_STATE_MOVE_UP_RIGHT,
     ENEMY_STATE_MOVE_DOWN_LEFT,
     ENEMY_STATE_MOVE_DOWN_RIGHT,
-    ENEMY_STATE_ATTACK
+    ENEMY_STATE_ATTACK,
+    ENEMY_STATE_HIT
 } EnemyState;
+
 typedef struct
 {
     char* name;
@@ -91,6 +130,7 @@ typedef struct
     int y;
     int x_vel;
     int y_vel;
+    float speed;
     int action_counter;
     int action_duration_counter;
     int action_duration_counter_max;
@@ -101,8 +141,14 @@ typedef struct
 Enemy enemies[10000];
 int num_enemies;
 
+// these 2 vars control how long enemy gets hit for
+int enemy_hit_counter = 0;
+int enemy_hit_counter_max = 15;
+
 int action_counter_max = 60;
-int keypress = 0x0000;
+int world_water_anim_counter = 0;
+int world_water_anim_counter_max = 5;
+KeyPress keypress = 0x0000;
 
 BOOL is_running;
 
@@ -125,23 +171,27 @@ static void update_scene();
 static void draw_scene();
 static void init_enemies();
 static void init_player();
+static void remove_enemy(int index);
+static void remove_floating_number(int index);
 static BOOL set_working_directory();
 
 int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline, s32 nshowcmd)
 {
 	set_working_directory();
 
-	dev_generate_palette_file("data\\16_color_palette.png");
+	generate_palette_file("data\\16_color_palette.png");
 	setup_window(hinstance);
 
 	generate_indexed_tileset("data\\tileset0.png", bmi.acolors);
-
+    generate_world_file("data\\world0.png");
+    
 	srand(time(NULL));
 
     init_font("data\\font.png");
 	load_tileset("data\\tileset");
 
-    init_world();
+    init_weapons();
+    init_world("data\\world");
     init_enemies();
     init_player();
 
@@ -172,15 +222,38 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
 
 static void update_scene()
 {
-    // handle player
-    // handle player movement
+    // update world
+    world_water_anim_counter++;
+
+	if (world_water_anim_counter == world_water_anim_counter_max)
+	{
+		world_water_anim_counter = 0;
+		for(int j = 0; j < WORLD_TILE_HEIGHT; ++j)
+		{
+			for(int i = 0; i < WORLD_TILE_WIDTH; ++i)
+			{
+				if(world[i][j] == WATER || world[i][j] == WATER2)
+				{
+					// animate
+                    if(world[i][j] == WATER) 
+                        world[i][j] = WATER2;
+                    else
+                        world[i][j] = WATER;
+                }
+            }
+        }
+    }
+   
+    // update player movement
 	if ((keypress & KEYPRESS_LEFT) == KEYPRESS_LEFT)
 	{
+        player.state |= PLAYER_STATE_MOVE;
 		player.dir = DIR_LEFT;
 		player.x_vel = -1.0f;
 	}
 	else if ((keypress & KEYPRESS_RIGHT) == KEYPRESS_RIGHT)
 	{
+        player.state |= PLAYER_STATE_MOVE;
 		player.dir = DIR_RIGHT;
 		player.x_vel = +1.0f;
 	}
@@ -189,31 +262,91 @@ static void update_scene()
 
 	if ((keypress & KEYPRESS_UP) == KEYPRESS_UP)
 	{
+        player.state |= PLAYER_STATE_MOVE;
 		player.dir = DIR_UP;
 		player.y_vel = -1.0f;
 	}
 	else if ((keypress & KEYPRESS_DOWN) == KEYPRESS_DOWN)
 	{
+        player.state |= PLAYER_STATE_MOVE;
 		player.dir = DIR_DOWN;
 		player.y_vel = +1.0f;
 	}
 	else
 		player.y_vel = 0.0f;
 
-    player.x += player.x_vel;
-    player.y += player.y_vel;
+    player.x += player.x_vel*player.speed;
+    player.y += player.y_vel*player.speed;
 
+    // handle player collision
+    // terrain collision
+    //
+    // 1            2
+    //  x----------x
+    //  |          |
+    //  |          |
+    //  x----------x
+    // 3            4
+    //
+
+    int player_check_x1 = (player.x + TILE_WIDTH/4) / TILE_WIDTH;
+    int player_check_y1 = (player.y + TILE_HEIGHT/2) / TILE_HEIGHT;
+
+    int player_check_x2 = (player.x + 3*TILE_WIDTH/4) / TILE_WIDTH;
+    int player_check_y2 = (player.y + TILE_HEIGHT/2) / TILE_HEIGHT;
+
+    int player_check_x3 = (player.x + TILE_WIDTH/4) / TILE_WIDTH;
+    int player_check_y3 = (player.y + TILE_HEIGHT) / TILE_HEIGHT;
+
+    int player_check_x4 = (player.x + 3*TILE_WIDTH/4) / TILE_WIDTH;
+    int player_check_y4 = (player.y + TILE_HEIGHT) / TILE_HEIGHT;
+
+    int collision_value_1 = world_collision[player_check_x1][player_check_y1];
+    int collision_value_2 = world_collision[player_check_x2][player_check_y2];
+    int collision_value_3 = world_collision[player_check_x3][player_check_y3];
+    int collision_value_4 = world_collision[player_check_x4][player_check_y4];
+
+
+    if(collision_value_1 == 5 || collision_value_2 == 5 || collision_value_3 == 5 || collision_value_4 == 5)
+    {
+        BOOL correct_x = FALSE;
+        BOOL correct_y = FALSE;
+
+        if((collision_value_1 == 5 && collision_value_3 == 5) || (collision_value_2 == 5 && collision_value_4 == 5))
+        {
+            //correct collision x
+            player.x -= player.x_vel*player.speed;
+            correct_x = TRUE;
+        }
+        if((collision_value_1 == 5 && collision_value_2 == 5) || (collision_value_3 == 5 && collision_value_4 == 5))
+        {
+            //correct collision y
+            player.y -= player.y_vel*player.speed;
+            correct_y = TRUE;
+        }
+        
+        if(!correct_x && !correct_y)
+        {
+            if(collision_value_1 == 5 || collision_value_3 == 5)
+				player.x += 1.0f*player.speed;
+            
+            if(collision_value_2 == 5 || collision_value_4 == 5)
+				player.x -= 1.0f*player.speed;
+        }
+    }
+
+    // keep player in world
     if(player.x < 0) player.x = 0;
     if(player.y < 0) player.y = 0;
-    if(player.x > buffer_width - TILE_WIDTH) player.x = buffer_width - TILE_WIDTH;
-    if(player.y > buffer_height - TILE_HEIGHT) player.x = buffer_height - TILE_HEIGHT;
+    if(player.x >TILE_WIDTH*(WORLD_TILE_WIDTH - 1)) player.x = TILE_WIDTH*(WORLD_TILE_WIDTH - 1);
+    if(player.y >TILE_HEIGHT*(WORLD_TILE_HEIGHT - 1)) player.y = TILE_HEIGHT*(WORLD_TILE_HEIGHT - 1);
 
-    // handle player animation
+    // update player movement animation
     if(player.x_vel != 0 || player.y_vel != 0)
     {
         player.anim.counter++;
 
-        if(player.anim.counter == player.anim.max_count)
+        if(player.anim.counter >= 10/player.speed)
         {
             // cycle_animation
             player.anim.counter = 0;
@@ -225,11 +358,104 @@ static void update_scene()
     else
     {
         // clear animation frame
+        player.state ^= PLAYER_STATE_MOVE;
         player.anim.counter = 0;
         player.anim.frame = 0;
     }
 
-    // handle enemies
+    // update player attacking
+    if((player.state & PLAYER_STATE_ATTACK) == PLAYER_STATE_ATTACK)
+    {
+        // switch player direction to attacking direction
+        switch(player.attack_dir)
+        {
+            case PLAYER_ATTACK_LEFT: player.dir = DIR_LEFT; break;
+            case PLAYER_ATTACK_RIGHT: player.dir = DIR_RIGHT; break;
+            case PLAYER_ATTACK_UP: player.dir = DIR_UP; break;
+            case PLAYER_ATTACK_DOWN: player.dir = DIR_DOWN; break; 
+        }
+
+        player.attack_angle += player.weapon.attack_speed*(PI/30.0f);
+        player.attack_frame_counter++;
+
+        // check for collision with enemies/objects
+        if(!player.attack_hit)
+        {
+            for(int i = 0; i < num_enemies;++i)
+            {
+                int relative_enemy_position_x = enemies[i].x - camera.x;
+                int relative_enemy_position_y = enemies[i].y - camera.y;
+
+                // only care about enemies on screen...
+                if(relative_enemy_position_x > 0 && relative_enemy_position_x < buffer_width)
+                {
+                    if(relative_enemy_position_y > 0 && relative_enemy_position_y < buffer_height)
+                    {
+                        // move along weapon line and check for collision
+                        int start_weapon_x = player.x - camera.x + cos(player.attack_angle)*2*TILE_WIDTH/3;
+                        int start_weapon_y = player.y - camera.y - sin(player.attack_angle)*2*TILE_HEIGHT/3;
+                        // @TEMP:
+                        if(start_weapon_x >= relative_enemy_position_x && start_weapon_x <= relative_enemy_position_x+0.75*TILE_WIDTH)
+                        {
+                            if(start_weapon_y >= relative_enemy_position_y && start_weapon_y <= relative_enemy_position_y+0.75*TILE_HEIGHT)
+                            {
+                                int damage = (rand() % (player.weapon.max_damage - player.weapon.min_damage + 1)) + player.weapon.min_damage;
+                                
+                                // add floating number
+                                floating_numbers[num_floating_numbers].number = damage;
+                                floating_numbers[num_floating_numbers].x = start_weapon_x;
+                                floating_numbers[num_floating_numbers].y = start_weapon_y;
+                                floating_numbers[num_floating_numbers].float_duration_counter = 0;
+                                floating_numbers[num_floating_numbers].float_duration_counter_max = 60;
+                                num_floating_numbers++;
+
+                                // enemy hurt!
+                                enemies[i].hp -= damage;
+
+                                player.attack_hit = TRUE;
+                                
+                                // check if enemy died
+                                if (enemies[i].hp <= 0)
+                                {
+                                    // TODO: kill enemy i
+                                    remove_enemy(i);
+                                    
+                                }
+                                else
+                                {
+                                    enemies[i].state = ENEMY_STATE_HIT;
+                                }
+                            }
+
+                        }
+                        // @TODO: check along weapon line! not just a single point.
+                    }
+                }
+            }
+        }
+
+        if(player.attack_frame_counter >= 15.0f/player.weapon.attack_speed)
+        {
+            // end attacking
+            player.attack_frame_counter = 0;
+            player.state ^= PLAYER_STATE_ATTACK;
+            player.attack_hit = FALSE;
+        }
+    }
+
+    // update floating numbers
+    for(int i = 0; i < num_floating_numbers; ++i)
+    {
+        floating_numbers[i].y -= 0.5f;
+        floating_numbers[i].float_duration_counter++;
+
+        if(floating_numbers[i].float_duration_counter >= floating_numbers[i].float_duration_counter_max)
+        {
+            remove_floating_number(i);
+        }
+    }
+
+    // update enemies
     for(int i = 0; i < num_enemies;++i)
     {
         if(enemies[i].state == ENEMY_STATE_NONE)
@@ -313,15 +539,78 @@ static void update_scene()
 
                     enemies[i].x += enemies[i].x_vel;
                     enemies[i].y += enemies[i].y_vel;
+                    
+                    // handle enemies[i] collision
+                    // terrain collision
+                    //
+                    // 1            2
+                    //  x----------x
+                    //  |          |
+                    //  |          |
+                    //  x----------x
+                    // 3            4
+                    //
+
+                    int enemy_check_x1 = (enemies[i].x + TILE_WIDTH/4) / TILE_WIDTH;
+                    int enemy_check_y1 = (enemies[i].y + TILE_HEIGHT/2) / TILE_HEIGHT;
+
+                    int enemy_check_x2 = (enemies[i].x + 3*TILE_WIDTH/4) / TILE_WIDTH;
+                    int enemy_check_y2 = (enemies[i].y + TILE_HEIGHT/2) / TILE_HEIGHT;
+
+                    int enemy_check_x3 = (enemies[i].x + TILE_WIDTH/4) / TILE_WIDTH;
+                    int enemy_check_y3 = (enemies[i].y + TILE_HEIGHT) / TILE_HEIGHT;
+
+                    int enemy_check_x4 = (enemies[i].x + 3*TILE_WIDTH/4) / TILE_WIDTH;
+                    int enemy_check_y4 = (enemies[i].y + TILE_HEIGHT) / TILE_HEIGHT;
+
+                    int collision_value_1 = world_collision[enemy_check_x1][enemy_check_y1];
+                    int collision_value_2 = world_collision[enemy_check_x2][enemy_check_y2];
+                    int collision_value_3 = world_collision[enemy_check_x3][enemy_check_y3];
+                    int collision_value_4 = world_collision[enemy_check_x4][enemy_check_y4];
+
+                    if(collision_value_1 == 5 || collision_value_2 == 5 || collision_value_3 == 5 || collision_value_4 == 5)
+                    {
+                        BOOL correct_x = FALSE;
+                        BOOL correct_y = FALSE;
+
+                        if((collision_value_1 == 5 && collision_value_3 == 5) || (collision_value_2 == 5 && collision_value_4 == 5))
+                        {
+                            //correct collision x
+                            enemies[i].x -= enemies[i].x_vel*enemies[i].speed;
+                            correct_x = TRUE;
+                        }
+                        if((collision_value_1 == 5 && collision_value_2 == 5) || (collision_value_3 == 5 && collision_value_4 == 5))
+                        {
+                            //correct collision y
+                            enemies[i].y -= enemies[i].y_vel*enemies[i].speed;
+                            correct_y = TRUE;
+                        }
+                        
+                        if(!correct_x && !correct_y)
+                        {
+                            if(collision_value_1 == 5 || collision_value_3 == 5)
+                                enemies[i].x += 1.0f*enemies[i].speed;
+                            
+                            if(collision_value_2 == 5 || collision_value_4 == 5)
+                                enemies[i].x -= 1.0f*enemies[i].speed;
+                        }
+                    }
 
                     if(enemies[i].x < 0) enemies[i].x = 0;
                     if(enemies[i].y < 0) enemies[i].y = 0;
-                    if(enemies[i].x >(TILE_WIDTH-1)*WORLD_TILE_WIDTH) enemies[i].x = (TILE_WIDTH-1)*WORLD_TILE_WIDTH;
-                    if(enemies[i].y >(TILE_HEIGHT-1)*WORLD_TILE_HEIGHT) enemies[i].y = (TILE_HEIGHT-1)*WORLD_TILE_HEIGHT;
+                    if(enemies[i].x >TILE_WIDTH*(WORLD_TILE_WIDTH-1)) enemies[i].x = TILE_WIDTH*(WORLD_TILE_WIDTH-1);
+                    if(enemies[i].y >TILE_HEIGHT*(WORLD_TILE_HEIGHT-1)) enemies[i].y = TILE_HEIGHT*(WORLD_TILE_HEIGHT-1);
 
                     break;
                 case ENEMY_STATE_ATTACK:
                     // @TODO: handle enemy attack
+                case ENEMY_STATE_HIT:
+                    enemy_hit_counter++;
+                    if(enemy_hit_counter >= enemy_hit_counter_max)
+                    {
+                        enemy_hit_counter = 0;
+                        enemies[i].state = ENEMY_STATE_NONE;
+                    }
                     break;
             }
             
@@ -330,7 +619,7 @@ static void update_scene()
             {
                 enemies[i].anim.counter++;
 
-                if(enemies[i].anim.counter == enemies[i].anim.max_count)
+                if(enemies[i].anim.counter >= 10/enemies[i].speed)
                 {
                     // cycle_animation
                     enemies[i].anim.counter = 0;
@@ -359,28 +648,15 @@ static void update_scene()
         }
     }
 
-    // handle camera
-	if (player.x != buffer_width / 2)
-	{
-		camera.x += (player.x - (buffer_width / 2));
-		camera.x = max(camera.x, 0);
 
-		if (camera.x > 0)
-		{
-			player.x = buffer_width / 2;
-		}
-	}
+    // update camera
+    camera.x = (player.x - (buffer_width / 2));
+    camera.x = max(camera.x, 0);
+    camera.x = min(camera.x,TILE_WIDTH*WORLD_TILE_WIDTH-buffer_width);
 
-	if (player.y != buffer_height / 2)
-	{
-		camera.y += (player.y - (buffer_height / 2));
-		camera.y = max(camera.y, 0);
-
-		if (camera.y > 0)
-		{
-			player.y = buffer_height / 2;
-		}
-	}
+    camera.y = (player.y - (buffer_height / 2));
+    camera.y = max(camera.y, 0);
+    camera.y = min(camera.y,TILE_HEIGHT*WORLD_TILE_HEIGHT-buffer_height);
 
 }
 
@@ -391,18 +667,6 @@ static void draw_scene()
     
     // draw world
     draw_world(camera);
-    
-     // draw player shadow
-    int shadow_y = player.y + TILE_HEIGHT - 3;
-
-    for(int i = 7; i > 0; --i)
-    {
-		for (int j = 1; j < 15; ++j)
-        {
-            shade_pixel8(player.x + j,shadow_y,i);
-        }
-        shadow_y++;
-    }
     
 	// draw enemies
 	for (int i = 0; i < num_enemies; ++i)
@@ -415,17 +679,52 @@ static void draw_scene()
         if (enemy_y+TILE_HEIGHT < 0 || enemy_y > buffer_height)
             continue;
         
-		draw_tile(enemies[i].x - camera.x, enemies[i].y - camera.y, enemies[i].tile_index + enemies[i].dir + enemies[i].anim.frame_order[enemies[i].anim.frame]);
+        if (enemies[i].state == ENEMY_STATE_HIT)
+        {
+            draw_tile_tinted(enemies[i].x - camera.x, enemies[i].y - camera.y, enemies[i].tile_index + enemies[i].dir + enemies[i].anim.frame_order[enemies[i].anim.frame],6);
+        }
+        else
+        {
+            draw_tile(enemies[i].x - camera.x, enemies[i].y - camera.y, enemies[i].tile_index + enemies[i].dir + enemies[i].anim.frame_order[enemies[i].anim.frame]);
+        }
 	}
+    
+    // draw player shadow
+    int shadow_y = player.y + TILE_HEIGHT - 3;
+
+    for(int i = 7; i > 0; --i)
+    {
+		for (int j = 1; j < 15; ++j)
+        {
+            shade_pixel8(player.x - camera.x + j,shadow_y - camera.y,i);
+        }
+        shadow_y++;
+    }
 
     // draw player
-    draw_tile(player.x,player.y,player.tile_index + player.dir+player.anim.frame_order[player.anim.frame]);
+	if (player.dir != DIR_UP)
+		draw_tile(player.x - camera.x,player.y - camera.y,player.tile_index + player.dir+player.anim.frame_order[player.anim.frame]);
 
-    // test rotation
-    //draw_tile_rotated(player.x, player.y,0,1.5);
-
+    if((player.state & PLAYER_STATE_ATTACK) == PLAYER_STATE_ATTACK)
+    {
+        // draw weapon
+        draw_tile_rotated(player.x - camera.x + cos(player.attack_angle)*2*TILE_WIDTH/3,player.y - camera.y - sin(player.attack_angle) * 2*TILE_HEIGHT/3,player.weapon.tile_index,player.attack_angle);
+    }
+    
+	if (player.dir == DIR_UP)
+		draw_tile(player.x - camera.x, player.y - camera.y, player.tile_index + player.dir + player.anim.frame_order[player.anim.frame]);
+    
+    // draw floating numbers
+    for(int i = 0; i < num_floating_numbers; ++i)
+    {
+        char* num_str = to_string(floating_numbers[i].number);
+        draw_string(num_str,floating_numbers[i].x,floating_numbers[i].y,1.0f,6);
+        free(num_str);
+    }
+    
     // draw UI
     draw_string(player.name,0,buffer_height - 7,1.0f,1);
+    draw_string(player.weapon.name,60,buffer_height -7,1.0f,3);
 
     char* x_vel_str = to_string((int)player.hp);
     draw_string(x_vel_str,26,buffer_height - 7,1.0f, 9);
@@ -439,6 +738,7 @@ static void draw_scene()
     // Blit buffer to screen
     StretchDIBits(dc, 0, 0, window_width, window_height, 0, 0, buffer_width, buffer_height, back_buffer, (BITMAPINFO*)&bmi, DIB_RGB_COLORS, SRCCOPY);
 }
+
 static void init_player()
 {
     player.name = "Hero";
@@ -447,11 +747,13 @@ static void init_player()
     player.xp  = 0;
     player.hp  = 10;
     player.max_hp = 10;
-    player.x   = (buffer_width-TILE_WIDTH)/2;
-    player.y   = (buffer_height-TILE_HEIGHT)/2;
+    player.x   = (WORLD_TILE_WIDTH*(TILE_WIDTH-1))/2;
+    player.y   = (WORLD_TILE_HEIGHT*(TILE_HEIGHT-1))/2;
     player.x_vel = 0;
     player.y_vel = 0;
+    player.speed = 1.0f;
     player.dir = DIR_DOWN;
+    player.state = PLAYER_STATE_NONE;
     player.anim.counter = 0;
     player.anim.max_count = 10;
     player.anim.frame = 0;
@@ -460,6 +762,14 @@ static void init_player()
     player.anim.frame_order[1] = 1;
     player.anim.frame_order[2] = 0;
     player.anim.frame_order[3] = 2;
+    player.attack_angle = 0.0f;
+    player.attack_frame_counter = 0;
+    player.attack_hit = FALSE;
+    player.weapon.name = weapons[1].name;
+    player.weapon.attack_speed = weapons[1].attack_speed;
+    player.weapon.min_damage = weapons[1].min_damage;
+    player.weapon.max_damage = weapons[1].max_damage;
+    player.weapon.tile_index = weapons[1].tile_index;
 }
 
 static void init_enemies()
@@ -469,10 +779,29 @@ static void init_enemies()
     {
         Enemy e = {0};
 
-        enemies[num_enemies].x = rand() % (TILE_WIDTH*(WORLD_TILE_WIDTH -1));
-        enemies[num_enemies].y = rand() % (TILE_HEIGHT*(WORLD_TILE_HEIGHT -1));
+        int test_x, test_y;
+        int test_collision_1, test_collision_2, test_collision_3, test_collision_4;
+        BOOL collision = TRUE;
+
+        // make sure not to spawn enemy in water or on a wall
+        while(collision)
+        {
+            test_x = rand() % (TILE_WIDTH*(WORLD_TILE_WIDTH -1));
+            test_y = rand() % (TILE_HEIGHT*(WORLD_TILE_HEIGHT -1));
+
+            test_collision_1 = world_collision[test_x/TILE_WIDTH][test_y/TILE_HEIGHT]; 
+            test_collision_2 = world_collision[(test_x + TILE_WIDTH)/TILE_WIDTH][(test_y + TILE_HEIGHT)/TILE_HEIGHT];
+            test_collision_3 = world_collision[test_x/TILE_WIDTH][(test_y+TILE_HEIGHT)/TILE_HEIGHT]; 
+            test_collision_4 = world_collision[(test_x + TILE_WIDTH)/TILE_WIDTH][test_y/TILE_HEIGHT];
+            
+            collision = (test_collision_1 == 5 && test_collision_2 == 5 || test_collision_3 == 5 || test_collision_4 == 5);
+        }
+
+        enemies[num_enemies].x = test_x; 
+        enemies[num_enemies].y = test_y;
         enemies[num_enemies].x_vel = 0;
         enemies[num_enemies].y_vel = 0;
+        enemies[num_enemies].speed = 1.0f;
         enemies[num_enemies].dir = DIR_DOWN;
         enemies[num_enemies].state = ENEMY_STATE_NONE;
         enemies[num_enemies].name = "Rat";
@@ -493,8 +822,20 @@ static void init_enemies()
 
         num_enemies++;
     }
-
 }
+
+static void remove_enemy(int index)
+{
+	enemies[index] = enemies[num_enemies - 1];
+	num_enemies--;
+}
+
+static void remove_floating_number(int index)
+{
+	floating_numbers[index] = floating_numbers[num_floating_numbers - 1];
+	num_floating_numbers--;
+}
+
 static BOOL set_working_directory()
 {
 	char cwd[256] = { 0 };
@@ -595,9 +936,11 @@ static void setup_window(HINSTANCE hInstance)
 		  if (palette_num_channels == 4) 
 			  fgetc(fp);
 
-          color_index++;
           if(feof(fp))
              break;
+
+		  color_index++;
+
         }
 
         int percentage_decrease = 5;
@@ -671,6 +1014,68 @@ static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM 
             else if(wparam == 'S')
                 keypress |= KEYPRESS_DOWN;
 
+            if((player.state & PLAYER_STATE_ATTACK) != PLAYER_STATE_ATTACK)
+            {
+                // start an attack if you are already not attacking
+                if(wparam == VK_LEFT)
+                {
+                    player.state |= PLAYER_STATE_ATTACK;
+                    player.attack_dir = PLAYER_ATTACK_LEFT;
+                    player.attack_angle = +3*PI/4;
+                }
+                else if(wparam == VK_RIGHT)
+                {
+                    player.state |= PLAYER_STATE_ATTACK;
+                    player.attack_dir = PLAYER_ATTACK_RIGHT;
+                    player.attack_angle = -1*PI/4;
+                }
+                else if(wparam == VK_UP)
+                {
+                    player.state |= PLAYER_STATE_ATTACK;
+                    player.attack_dir = PLAYER_ATTACK_UP;
+                    player.attack_angle = +1*PI/4;
+                }
+                else if(wparam == VK_DOWN)
+                {
+                    player.state |= PLAYER_STATE_ATTACK;
+                    player.attack_dir = PLAYER_ATTACK_DOWN;
+                    player.attack_angle = -3*PI/4;
+                }
+            }
+            
+            // @DEV
+            if(wparam == 'K')
+            {
+                player.speed = 8;
+                player.anim.max_count = 1;
+
+            }
+            if(wparam == '1')
+            {
+                player.weapon.name = weapons[0].name;
+                player.weapon.attack_speed = weapons[0].attack_speed;
+                player.weapon.min_damage = weapons[0].min_damage;
+                player.weapon.max_damage = weapons[0].max_damage;
+                player.weapon.tile_index = weapons[0].tile_index;
+            }
+            else if(wparam == '2')
+            {
+                player.weapon.name = weapons[1].name;
+                player.weapon.attack_speed = weapons[1].attack_speed;
+                player.weapon.min_damage = weapons[1].min_damage;
+                player.weapon.max_damage = weapons[1].max_damage;
+                player.weapon.tile_index = weapons[1].tile_index;
+
+            }
+            else if(wparam == '3')
+            {
+                player.weapon.name = weapons[2].name;
+                player.weapon.attack_speed = weapons[2].attack_speed;
+                player.weapon.min_damage = weapons[2].min_damage;
+                player.weapon.max_damage = weapons[2].max_damage;
+                player.weapon.tile_index = weapons[2].tile_index;
+            }
+
 			break;
         } 
 		case WM_KEYUP:
@@ -684,6 +1089,13 @@ static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM 
                 keypress &= (~KEYPRESS_UP);
             else if(wparam == 'S')
                 keypress &= (~KEYPRESS_DOWN);
+            
+            // @DEV
+            if(wparam == 'K')
+            {
+                player.speed = 1;
+                player.anim.max_count = 10;
+            }
 
 			break;
 		}
