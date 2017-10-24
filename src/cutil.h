@@ -14,7 +14,7 @@ void reverse(char str[], int length)
 	}
 }
 
-char* c_itoa(int num, char* str, int base)
+char* c_itoa(int num, char* str, int base,int* length)
 {
     int i = 0;
     BOOL isNegative = FALSE;
@@ -46,19 +46,21 @@ char* c_itoa(int num, char* str, int base)
     // If number is negative, append '-'
     if (isNegative)
         str[i++] = '-';
- 
+
     str[i] = '\0'; // Append string terminator
  
+	*length = i;
+
     // Reverse the string
     reverse(str, i);
  
     return str;
 }
 
-char* to_string(int i)
+char* to_string(int i, int* length)
 {
 	char* str = (char*)calloc(12,sizeof(char));
-	str = c_itoa(i, str, 10);
+	str = c_itoa(i, str, 10, length);
 	return str;
 }
 

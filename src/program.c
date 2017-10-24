@@ -1,5 +1,7 @@
 #define WIN32_LEAN_AND_MEAN
 #define PI 3.14159265359 
+#define NUM_RATS 10000
+#define MAX_FLOATING_NUMBERS 1000
 
 #include <windows.h>
 #include <math.h>     // for abs,atan,cos,sin
@@ -37,9 +39,9 @@ typedef enum
 
 typedef enum
 {
-	DIR_UP = 0,
-	DIR_DOWN = 3,
-	DIR_LEFT = 6,
+	DIR_UP    = 0,
+	DIR_DOWN  = 3,
+	DIR_LEFT  = 6,
 	DIR_RIGHT = 9
 } Direction;
 typedef enum
@@ -52,11 +54,11 @@ typedef enum
 
 typedef enum
 {
-	PLAYER_STATE_NONE = 0,
-	PLAYER_STATE_MOVE = 1,
+	PLAYER_STATE_NONE   = 0,
+	PLAYER_STATE_MOVE   = 1,
 	PLAYER_STATE_ATTACK = 2,
-	PLAYER_STATE_HURT = 4,
-	PLAYER_STATE_DEAD = 8
+	PLAYER_STATE_HURT   = 4,
+	PLAYER_STATE_DEAD   = 8
 } PlayerState;
 
 typedef struct
@@ -75,10 +77,21 @@ typedef struct
     float y;
     int float_duration_counter;
     int float_duration_counter_max;
+    int color;
 } FloatingNumber;
 
-FloatingNumber floating_numbers[20];
-int num_floating_numbers;
+typedef struct
+{
+    float x;
+    float y;
+    Animation anim;
+} Coin;
+
+Coin coins[1000];
+int num_coins = 0;
+
+FloatingNumber floating_numbers[MAX_FLOATING_NUMBERS];
+int num_floating_numbers = 0;
 
 typedef struct
 {
@@ -92,6 +105,7 @@ typedef struct
     float y;
     int x_vel;
     int y_vel;
+    int gold;
     float speed;
     float attack_angle;
     int attack_frame_counter;
@@ -138,16 +152,15 @@ typedef struct
     Direction dir;
     Animation anim;
 } Enemy;
-Enemy enemies[10000];
+Enemy enemies[NUM_RATS];
 int num_enemies;
 
-// these 2 vars control how long enemy gets hit for
-int enemy_hit_counter = 0;
-int enemy_hit_counter_max = 15;
+int rats_killed = 0; // @TEMP
 
 int action_counter_max = 60;
 int world_water_anim_counter = 0;
 int world_water_anim_counter_max = 5;
+
 KeyPress keypress = 0x0000;
 
 BOOL is_running;
@@ -171,8 +184,11 @@ static void update_scene();
 static void draw_scene();
 static void init_enemies();
 static void init_player();
+static void spawn_coin(int x, int y);
+static void spawn_floating_number(float x, float y, int color);
 static void remove_enemy(int index);
 static void remove_floating_number(int index);
+static void remove_coin(int index);
 static BOOL set_working_directory();
 
 int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline, s32 nshowcmd)
@@ -379,56 +395,66 @@ static void update_scene()
         player.attack_frame_counter++;
 
         // check for collision with enemies/objects
-        if(!player.attack_hit)
+        //if(!player.attack_hit)
+        //{
+        float cosa = cos(player.attack_angle);
+        float sina = sin(player.attack_angle);
+
+        for(int i = num_enemies-1; i >= 0;--i)
         {
-            for(int i = 0; i < num_enemies;++i)
+            int relative_enemy_position_x = enemies[i].x - camera.x;
+            int relative_enemy_position_y = enemies[i].y - camera.y;
+
+            // only care about enemies on screen...
+            if(relative_enemy_position_x > 0 && relative_enemy_position_x < buffer_width)
             {
-                int relative_enemy_position_x = enemies[i].x - camera.x;
-                int relative_enemy_position_y = enemies[i].y - camera.y;
-
-                // only care about enemies on screen...
-                if(relative_enemy_position_x > 0 && relative_enemy_position_x < buffer_width)
+                if(relative_enemy_position_y > 0 && relative_enemy_position_y < buffer_height)
                 {
-                    if(relative_enemy_position_y > 0 && relative_enemy_position_y < buffer_height)
+                    // check along weapon line
+                    for(int j = 0; j < player.weapon.attack_range; ++j)
                     {
-                        // move along weapon line and check for collision
-                        int start_weapon_x = player.x - camera.x + cos(player.attack_angle)*2*TILE_WIDTH/3;
-                        int start_weapon_y = player.y - camera.y - sin(player.attack_angle)*2*TILE_HEIGHT/3;
-                        // @TEMP:
-                        if(start_weapon_x >= relative_enemy_position_x && start_weapon_x <= relative_enemy_position_x+0.75*TILE_WIDTH)
+                        // only care about hitting an enemy if it hasn't been hit yet.
+                        if(enemies[i].state != ENEMY_STATE_HIT)
                         {
-                            if(start_weapon_y >= relative_enemy_position_y && start_weapon_y <= relative_enemy_position_y+0.75*TILE_HEIGHT)
+                            int start_weapon_x = player.x - camera.x + TILE_WIDTH/2;
+                            int start_weapon_y = player.y - camera.y + TILE_HEIGHT/2;
+                        
+                            float delta_x = cosa*j;
+                            float delta_y = -sina*j;
+
+                            if(start_weapon_x+delta_x >= relative_enemy_position_x && start_weapon_x+delta_x <= relative_enemy_position_x+0.75*TILE_WIDTH)
                             {
-                                int damage = (rand() % (player.weapon.max_damage - player.weapon.min_damage + 1)) + player.weapon.min_damage;
-                                
-                                // add floating number
-                                floating_numbers[num_floating_numbers].number = damage;
-                                floating_numbers[num_floating_numbers].x = start_weapon_x;
-                                floating_numbers[num_floating_numbers].y = start_weapon_y;
-                                floating_numbers[num_floating_numbers].float_duration_counter = 0;
-                                floating_numbers[num_floating_numbers].float_duration_counter_max = 60;
-                                num_floating_numbers++;
-
-                                // enemy hurt!
-                                enemies[i].hp -= damage;
-
-                                player.attack_hit = TRUE;
-                                
-                                // check if enemy died
-                                if (enemies[i].hp <= 0)
+                                if(start_weapon_y+delta_y >= relative_enemy_position_y && start_weapon_y+delta_y <= relative_enemy_position_y+0.75*TILE_HEIGHT)
                                 {
-                                    // TODO: kill enemy i
-                                    remove_enemy(i);
+                                    int damage = (rand() % (player.weapon.max_damage - player.weapon.min_damage + 1)) + player.weapon.min_damage;
                                     
-                                }
-                                else
-                                {
-                                    enemies[i].state = ENEMY_STATE_HIT;
+                                    // add floating number
+                                    spawn_floating_number(start_weapon_x+delta_x+camera.x,start_weapon_y+delta_y+camera.y,damage,6);
+
+                                    // enemy hurt!
+                                    enemies[i].hp -= damage;
+
+                                    player.attack_hit = TRUE;
+                                    
+                                    // check if enemy died
+                                    if (enemies[i].hp <= 0)
+                                    {
+                                        rats_killed++;
+										int coins_spawned = rand() % 10;
+
+										for(int c = 0; c < coins_spawned; ++c)
+											spawn_coin(enemies[i].x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),enemies[i].y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)));
+
+                                        remove_enemy(i);
+                                    }
+                                    else
+                                    {
+                                        enemies[i].state = ENEMY_STATE_HIT;
+                                    }
+                                    break;
                                 }
                             }
-
                         }
-                        // @TODO: check along weapon line! not just a single point.
                     }
                 }
             }
@@ -443,10 +469,51 @@ static void update_scene()
         }
     }
 
-    // update floating numbers
-    for(int i = 0; i < num_floating_numbers; ++i)
+    // check if player got coins
+    for(int i = num_coins -1; i>= 0; --i)
     {
-        floating_numbers[i].y -= 0.5f;
+        int coin_x = coins[i].x + TILE_WIDTH/2 -2;
+        int coin_y = coins[i].y + TILE_HEIGHT/2 -2;
+
+        // only consider coins on screen
+        if(coin_x - camera.x >= 0 && coin_x - camera.x <= buffer_width)
+        {
+            if(coin_y - camera.y >= 0 && coin_y - camera.y <= buffer_height)
+            {
+                // check for player collision
+                if(coin_x >= player.x && coin_x <= player.x + TILE_WIDTH)
+                {
+                    if(coin_y >= player.y + TILE_HEIGHT/2 && coin_y <= player.y + TILE_HEIGHT)
+                    {
+                        player.gold++;
+                        spawn_floating_number(coins[i].x,coins[i].y,1,10);
+						remove_coin(i);
+                    }
+                }
+            }
+        }
+    }
+
+    // update coins
+    for(int i = num_coins -1; i >= 0; --i)
+    {
+        // update coin animation
+        coins[i].anim.counter++;
+
+        if(coins[i].anim.counter >= coins[i].anim.max_count)
+        {
+            // cycle_animation
+            coins[i].anim.counter = 0;
+            coins[i].anim.frame += 1;
+            if(coins[i].anim.frame >= coins[i].anim.num_frames)
+                coins[i].anim.frame = 0;
+        }
+    }
+    
+    // update floating numbers
+    for(int i = num_floating_numbers -1; i >= 0; --i)
+    {
+        floating_numbers[i].y -= 0.25f;
         floating_numbers[i].float_duration_counter++;
 
         if(floating_numbers[i].float_duration_counter >= floating_numbers[i].float_duration_counter_max)
@@ -605,10 +672,8 @@ static void update_scene()
                 case ENEMY_STATE_ATTACK:
                     // @TODO: handle enemy attack
                 case ENEMY_STATE_HIT:
-                    enemy_hit_counter++;
-                    if(enemy_hit_counter >= enemy_hit_counter_max)
+                    if((player.state & PLAYER_STATE_ATTACK) != PLAYER_STATE_ATTACK)
                     {
-                        enemy_hit_counter = 0;
                         enemies[i].state = ENEMY_STATE_NONE;
                     }
                     break;
@@ -668,6 +733,11 @@ static void draw_scene()
     // draw world
     draw_world(camera);
     
+    for(int i = 0; i < num_coins; ++i)
+    {
+		draw_tile(coins[i].x - camera.x, coins[i].y - camera.y, 80 + coins[i].anim.frame_order[coins[i].anim.frame]);
+    }
+    
 	// draw enemies
 	for (int i = 0; i < num_enemies; ++i)
 	{
@@ -713,26 +783,45 @@ static void draw_scene()
     
 	if (player.dir == DIR_UP)
 		draw_tile(player.x - camera.x, player.y - camera.y, player.tile_index + player.dir + player.anim.frame_order[player.anim.frame]);
-    
+
+    // draw coins
     // draw floating numbers
     for(int i = 0; i < num_floating_numbers; ++i)
     {
-        char* num_str = to_string(floating_numbers[i].number);
-        draw_string(num_str,floating_numbers[i].x,floating_numbers[i].y,1.0f,6);
-        free(num_str);
+		draw_number_string(floating_numbers[i].number, floating_numbers[i].x - camera.x, floating_numbers[i].y - camera.y, 1.0f, floating_numbers[i].color + 16*(floating_numbers[i].float_duration_counter/10));
     }
+	
+    // @DEBUG
+    // move along weapon line and check for collision
+    /*
+    float cosa = cos(player.attack_angle);
+    float sina = sin(player.attack_angle);
+
+    int start_weapon_x = player.x - camera.x + TILE_WIDTH/2;
+    int start_weapon_y = player.y - camera.y + TILE_HEIGHT/2;
+    
+    // check along weapon line
+    for(int i = 0; i < player.weapon.attack_range; ++i)
+    {
+        float delta_x = cosa*i;
+        float delta_y = -sina*i;
+
+        draw_pixel8(start_weapon_x+delta_x,start_weapon_y+delta_y,5);
+    }
+    */
     
     // draw UI
     draw_string(player.name,0,buffer_height - 7,1.0f,1);
     draw_string(player.weapon.name,60,buffer_height -7,1.0f,3);
+    draw_string("Gold:",buffer_width - 100, buffer_height -7,1.0f,3);
+	draw_number_string(player.hp, 26, buffer_height - 7, 1.0f, 9);
+	draw_number_string(player.max_hp, 40, buffer_height - 7, 1.0f, 9);
+    draw_number_string(player.gold,buffer_width - 44,buffer_height -7,1.0f,14);
 
-    char* x_vel_str = to_string((int)player.hp);
-    draw_string(x_vel_str,26,buffer_height - 7,1.0f, 9);
-    free(x_vel_str);
-
-    char* y_vel_str = to_string((int)player.max_hp);
-    draw_string(y_vel_str,40,buffer_height - 7,1.0f, 9);
-    free(y_vel_str);
+    draw_string("Dead Rats:",1,1,1.0f,0);
+    draw_number_string(rats_killed,61,1,1.0f,0);
+    draw_string("Dead Rats:",0,0,1.0f,7);
+    draw_number_string(rats_killed,60,0,1.0f,8);
 	//
 
     // Blit buffer to screen
@@ -747,6 +836,7 @@ static void init_player()
     player.xp  = 0;
     player.hp  = 10;
     player.max_hp = 10;
+    player.gold = 0;
     player.x   = (WORLD_TILE_WIDTH*(TILE_WIDTH-1))/2;
     player.y   = (WORLD_TILE_HEIGHT*(TILE_HEIGHT-1))/2;
     player.x_vel = 0;
@@ -767,6 +857,7 @@ static void init_player()
     player.attack_hit = FALSE;
     player.weapon.name = weapons[1].name;
     player.weapon.attack_speed = weapons[1].attack_speed;
+    player.weapon.attack_range = weapons[1].attack_range;
     player.weapon.min_damage = weapons[1].min_damage;
     player.weapon.max_damage = weapons[1].max_damage;
     player.weapon.tile_index = weapons[1].tile_index;
@@ -775,7 +866,7 @@ static void init_player()
 static void init_enemies()
 {
 
-    for (int i = 0; i < 10000; ++i)
+    for (int i = 0; i < NUM_RATS ; ++i)
     {
         Enemy e = {0};
 
@@ -826,14 +917,46 @@ static void init_enemies()
 
 static void remove_enemy(int index)
 {
-	enemies[index] = enemies[num_enemies - 1];
 	num_enemies--;
+	enemies[index] = enemies[num_enemies];
 }
 
 static void remove_floating_number(int index)
 {
-	floating_numbers[index] = floating_numbers[num_floating_numbers - 1];
 	num_floating_numbers--;
+	floating_numbers[index] = floating_numbers[num_floating_numbers];
+}
+static void spawn_floating_number(float x, float y, int number,int color)
+{
+    floating_numbers[num_floating_numbers].number = number;
+    floating_numbers[num_floating_numbers].x = x;
+    floating_numbers[num_floating_numbers].y = y; 
+    floating_numbers[num_floating_numbers].color = color;
+    floating_numbers[num_floating_numbers].float_duration_counter = 0;
+    floating_numbers[num_floating_numbers].float_duration_counter_max = 60;
+    num_floating_numbers++;
+}
+
+static void spawn_coin(int x, int y)
+{
+    coins[num_coins].x = x;
+    coins[num_coins].y = y;
+    coins[num_coins].anim.counter = rand() % 5;
+    coins[num_coins].anim.max_count = 5;
+    coins[num_coins].anim.frame = 0;
+    coins[num_coins].anim.num_frames = 4;
+    coins[num_coins].anim.frame_order[0] = 0;
+    coins[num_coins].anim.frame_order[1] = 1;
+    coins[num_coins].anim.frame_order[2] = 2;
+    coins[num_coins].anim.frame_order[3] = 3;
+
+    num_coins++;
+}
+
+static void remove_coin(int index)
+{
+	num_coins--;
+	coins[index] = coins[num_coins];
 }
 
 static BOOL set_working_directory()
@@ -1054,6 +1177,7 @@ static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM 
             {
                 player.weapon.name = weapons[0].name;
                 player.weapon.attack_speed = weapons[0].attack_speed;
+                player.weapon.attack_range = weapons[0].attack_range;
                 player.weapon.min_damage = weapons[0].min_damage;
                 player.weapon.max_damage = weapons[0].max_damage;
                 player.weapon.tile_index = weapons[0].tile_index;
@@ -1062,6 +1186,7 @@ static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM 
             {
                 player.weapon.name = weapons[1].name;
                 player.weapon.attack_speed = weapons[1].attack_speed;
+                player.weapon.attack_range = weapons[1].attack_range;
                 player.weapon.min_damage = weapons[1].min_damage;
                 player.weapon.max_damage = weapons[1].max_damage;
                 player.weapon.tile_index = weapons[1].tile_index;
@@ -1071,9 +1196,19 @@ static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM 
             {
                 player.weapon.name = weapons[2].name;
                 player.weapon.attack_speed = weapons[2].attack_speed;
+                player.weapon.attack_range = weapons[2].attack_range;
                 player.weapon.min_damage = weapons[2].min_damage;
                 player.weapon.max_damage = weapons[2].max_damage;
                 player.weapon.tile_index = weapons[2].tile_index;
+            }
+            else if(wparam == '4')
+            {
+                player.weapon.name = weapons[3].name;
+                player.weapon.attack_speed = weapons[3].attack_speed;
+                player.weapon.attack_range = weapons[3].attack_range;
+                player.weapon.min_damage = weapons[3].min_damage;
+                player.weapon.max_damage = weapons[3].max_damage;
+                player.weapon.tile_index = weapons[3].tile_index;
             }
 
 			break;

@@ -138,11 +138,38 @@ static void draw_string(char *s, int x, int y, float scale, char color)
 
 	while (*p)
 	{
-        if(scale == 1.0f)
-            draw_char(*p++, x, y, color);
-        else
-            draw_char_scaled(*p++, x, y, scale, color);
+		if (scale == 1.0f)
+			draw_char(*p++, x, y, color);
+		else
+			draw_char_scaled(*p++, x, y, scale, color);
 
 		x += ceil(GLYPH_WIDTH*scale) + 1;
 	}
+}
+
+static void draw_string_safe(char *s, int length,int x, int y, float scale, char color)
+{
+	char* p = s;
+
+	for (int i = 0; i < length; ++i)
+	{
+		if (*p == '\0')
+			break;
+
+		if (scale == 1.0f)
+			draw_char(*p++, x, y, color);
+		else
+			draw_char_scaled(*p++, x, y, scale, color);
+
+		x += ceil(GLYPH_WIDTH*scale) + 1;
+	}
+
+}
+
+static void draw_number_string(int number, int x, int y, float scale, char color)
+{
+	int length = 0;
+	char* num_str = to_string(number, &length);
+	draw_string_safe(num_str, length, x, y, scale, color);
+	free(num_str);
 }
