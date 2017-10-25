@@ -99,7 +99,8 @@ void draw_char_scaled(const unsigned char c, int x, int y, float scale_factor, c
     }
 
 }
-void draw_char(const char c, int x, int y, char color)
+
+void draw_char(const unsigned char c, int x, int y, char color)
 {
     if (!font_initialized)
         return;
@@ -130,6 +131,12 @@ void draw_char(const char c, int x, int y, char color)
         src+=(FONTDATA_WIDTH - GLYPH_WIDTH);
 		dst+=(buffer_width - GLYPH_WIDTH);
     }
+}
+
+void draw_char_with_shadow(const unsigned char c, int x, int y, char color)
+{
+    draw_char(c,x+1,y+1,0);
+    draw_char(c,x,y,color);
 }
 
 static void draw_string(char *s, int x, int y, float scale, char color)
@@ -165,7 +172,6 @@ static void draw_string_safe(char *s, int length,int x, int y, float scale, char
 	}
 
 }
-
 static void draw_number_string(int number, int x, int y, float scale, char color)
 {
 	int length = 0;
@@ -173,3 +179,30 @@ static void draw_number_string(int number, int x, int y, float scale, char color
 	draw_string_safe(num_str, length, x, y, scale, color);
 	free(num_str);
 }
+
+void draw_string_with_shadow(char *s, int x, int y, float scale, char color)
+{
+    draw_string(s,x+1,y+1,scale,0);
+    draw_string(s,x,y,scale,color);
+}
+
+static void draw_number_string_with_shadow(int number, int x, int y, float scale, char color)
+{
+    draw_number_string(number,x+1,y+1,scale,0);
+    draw_number_string(number,x,y,scale,color);
+}
+
+static void draw_message(char* name, char* message,char color)
+{
+    // 240, 176
+    for(int j = 148; j < 169; ++j)
+    {
+        for(int i = 40; i < 200; ++i)
+        {
+            shade_pixel8(i,j,10);
+        }
+    } 
+    draw_string(name,42, 149,1.0f,8);
+    draw_string(message,50,156,1.0f,color);
+}
+

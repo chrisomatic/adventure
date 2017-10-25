@@ -1,6 +1,6 @@
-#define KNIFE 64
-#define SWORD 65
-#define AXE   66
+#define KNIFE 80
+#define SWORD 81 
+#define AXE   82
 
 typedef struct
 {

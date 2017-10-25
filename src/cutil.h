@@ -64,6 +64,14 @@ char* to_string(int i, int* length)
 	return str;
 }
 
+int length_of(char* s)
+{
+    int length = 0;
+    while(*s)
+        length++;
+    return length;
+}
+
 double get_distance(double p0_x, double p0_y, double p1_x,double p1_y)
 {
     double x_diff = p1_x - p0_x;

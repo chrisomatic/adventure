@@ -46,7 +46,9 @@ static BOOL timer_ready()
 {
     if(accum_time >= target_spf)
     {
-        accum_time -= target_spf;
+        while(accum_time >= target_spf)
+            accum_time -= target_spf;
+
         return TRUE;
     }
 

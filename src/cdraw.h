@@ -72,19 +72,19 @@ static void generate_world_file(const char* image_path)
 			val = 0xFF;
 
 			if (r == 0 && g == 175 && b == 0) // grass
-				val = 32;
+				val = 48;
 			else if (r == 0 && g == 100 && b == 0) // marsh
-				val = 33;
+				val = 49;
 			else if (r == 0 && g == 150 && b == 175) // water 
-				val = 34;
+				val = 50;
 			else if (r == 255 && g == 200 && b == 0) // sand
-				val = 36;
+				val = 52;
 			else if (r == 100 && g == 75 && b == 50) // mud
-				val = 37;
+				val = 53;
             else if (r == 100 && g == 100 && b == 100) // mountain
-                val = 38;
+                val = 54;
             else if (r == 255 && g == 255 && b == 255) // snow
-				val = 39;
+				val = 55;
                 
 			if (fputc(val, fp_world) == EOF)
 				return;
@@ -175,6 +175,7 @@ static void generate_indexed_tileset(const char* rgb_image_path,RGBQUAD indexed_
     fclose(fp);
     stbi_image_free(imgdata);
 }
+
 
 static void draw_rect8(int x, int y, int w, int h, char color, BOOL filled)
 {
@@ -274,6 +275,7 @@ static void draw_pixel32(int x, int y, int color, double c)
 
 	*dst = (r << 16 | g << 8 | b);
 }
+
 
 static int ipart(double x)
 {

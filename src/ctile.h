@@ -56,7 +56,7 @@ static void draw_tile_tinted(int x, int y, int tile_index,int tint_amount)
 
 }
  
-static void draw_tile(int x, int y, int tile_index)
+static void draw_tile(int x, int y, int tile_index,int shade_amount)
 {
     unsigned char* dst = back_buffer;
     dst = dst + (buffer_width*y) + x;
@@ -77,7 +77,7 @@ static void draw_tile(int x, int y, int tile_index)
 			if(*p_tileset != 0xFF)
             {
                 if (dst >= (unsigned char*)back_buffer && x+j >= 0 && x+j < buffer_width)
-                    *dst = *p_tileset;
+                    *dst = *p_tileset + (16*shade_amount);
             }
 
 			++dst;
@@ -93,7 +93,7 @@ static void draw_tile(int x, int y, int tile_index)
 
 }
 
-static void draw_tile_rotated(int x, int y, int tile_index, float angle)
+static void draw_tile_rotated(int x, int y, int tile_index, float angle,int shade_amount)
 {
     int tile_index_x = tile_index % TILES_PER_ROW;
     int tile_index_y = tile_index / TILES_PER_ROW;
@@ -136,7 +136,7 @@ static void draw_tile_rotated(int x, int y, int tile_index, float angle)
                 src_t = src+(TILE_WIDTH*TILES_PER_ROW*v) + u;
 
 				if (*src_t != 0xFF)
-                    *dst = *src_t;
+                    *dst = *src_t + (16*shade_amount);
             }
 
             dst++;

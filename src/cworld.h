@@ -1,20 +1,28 @@
 #define WORLD_TILE_WIDTH  256
 #define WORLD_TILE_HEIGHT 256
 
-#define GRASS    32
-#define MARSH    33
-#define WATER    34
-#define WATER2   35
-#define SAND     36
-#define MUD      37
-#define MOUNTAIN 38
-#define SNOW     39
-#define ST0NE    40
-#define BRICK    41 
-#define TREE     48
+#define GRASS    48
+#define MARSH    49
+#define WATER    50
+#define WATER2   51
+#define SAND     52
+#define MUD      53
+#define MOUNTAIN 54
+#define SNOW     55
+#define ST0NE    56
+#define BRICK    57 
+#define TREE     64
 
 static int world[WORLD_TILE_HEIGHT][WORLD_TILE_WIDTH];
 static int world_collision[WORLD_TILE_HEIGHT][WORLD_TILE_WIDTH];
+
+static int world_water_anim_counter = 0;
+static int world_water_anim_counter_max = 5;
+
+static int day_cycle_counter = 0;
+static int day_cycle_direction = 1;
+static int day_cycle_counter_max = 7200;
+static int day_cycle_shade_amount = 0;
 
 static void init_world(const char* path_to_world_file)
 {
@@ -52,7 +60,38 @@ static void init_world(const char* path_to_world_file)
     fclose(fp_world);
 }
 
-static void draw_world(POINT camera)
+static void update_world()
+{
+    world_water_anim_counter++;
+
+	if (world_water_anim_counter == world_water_anim_counter_max)
+	{
+		world_water_anim_counter = 0;
+		for(int j = 0; j < WORLD_TILE_HEIGHT; ++j)
+		{
+			for(int i = 0; i < WORLD_TILE_WIDTH; ++i)
+			{
+				if(world[i][j] == WATER || world[i][j] == WATER2)
+				{
+					// animate
+                    if(world[i][j] == WATER) 
+                        world[i][j] = WATER2;
+                    else
+                        world[i][j] = WATER;
+                }
+            }
+        }
+    }
+    
+    // update day cycle
+    day_cycle_counter += day_cycle_direction;
+    day_cycle_shade_amount = 10.0f*((float)day_cycle_counter/DAY_CYCLE_COUNTER_MAX);
+
+    if(day_cycle_counter == DAY_CYCLE_COUNTER_MAX || day_cycle_counter == 0)
+        day_cycle_direction *= -1;
+
+}
+static void draw_world(POINT camera, int shade_amount)
 {
     int start_x = camera.x / TILE_WIDTH;
     int start_y = camera.y / TILE_HEIGHT;
@@ -67,7 +106,7 @@ static void draw_world(POINT camera)
     {
         for(int i = start_x; i < end_x; ++i)
         {
-            draw_tile(i*TILE_WIDTH - camera.x,j*TILE_HEIGHT - camera.y,world[j][i]);
+            draw_tile(i*TILE_WIDTH - camera.x,j*TILE_HEIGHT - camera.y,world[j][i],shade_amount);
         }
     }
 }
