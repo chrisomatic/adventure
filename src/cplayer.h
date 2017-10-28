@@ -1,56 +1,5 @@
-typedef enum
-{
-	KEYPRESS_NONE  = 0,
-	KEYPRESS_UP    = 1,
-	KEYPRESS_DOWN  = 2,
-	KEYPRESS_LEFT  = 4,
-	KEYPRESS_RIGHT = 8
-} KeyPress;
-
-typedef enum
-{
-    PLAYER_ATTACK_UP,
-    PLAYER_ATTACK_DOWN,
-    PLAYER_ATTACK_LEFT,
-    PLAYER_ATTACK_RIGHT
-} AttackDirection;
-
-typedef enum
-{
-	PLAYER_STATE_NONE   = 0,
-	PLAYER_STATE_MOVE   = 1,
-	PLAYER_STATE_ATTACK = 2,
-	PLAYER_STATE_HURT   = 4,
-	PLAYER_STATE_DEAD   = 8
-} PlayerState;
-
-typedef struct
-{
-    char* name;
-    int tile_index;
-    int lvl;
-    int xp;
-    int hp;
-    int max_hp;
-    float x;
-    float y;
-    int x_vel;
-    int y_vel;
-    int gold;
-    float speed;
-    float attack_angle;
-    int attack_frame_counter;
-    BOOL attack_hit;
-    Weapon weapon;
-    Direction dir;
-    AttackDirection attack_dir;
-    Animation anim;
-    PlayerState state;
-} Player;
-Player player;
-
 KeyPress keypress = 0x0000;
-int rats_killed = 0; // @TEMP
+int foes_killed = 0; // @TEMP
 
 static void init_player()
 {
@@ -60,14 +9,18 @@ static void init_player()
     player.xp  = 0;
     player.hp  = 6;
     player.max_hp = 6;
-    player.gold = 0;
+    player.gold = 10;
     player.x   = (WORLD_TILE_WIDTH*(TILE_WIDTH-1))/2;
     player.y   = (WORLD_TILE_HEIGHT*(TILE_HEIGHT-1))/2;
     player.x_vel = 0;
     player.y_vel = 0;
     player.speed = 1.0f;
+    player.base_speed = 1.0f;
     player.dir = DIR_DOWN;
     player.state = PLAYER_STATE_NONE;
+    player.throw_coins = FALSE;
+    player.coin_throw_counter = 0;
+    player.coin_throw_max = 20;
     player.anim.counter = 0;
     player.anim.max_count = 10;
     player.anim.frame = 0;
@@ -78,7 +31,6 @@ static void init_player()
     player.anim.frame_order[3] = 2;
     player.attack_angle = 0.0f;
     player.attack_frame_counter = 0;
-    player.attack_hit = FALSE;
     player.weapon.name = weapons[1].name;
     player.weapon.attack_speed = weapons[1].attack_speed;
     player.weapon.attack_range = weapons[1].attack_range;
@@ -179,6 +131,31 @@ static void update_player()
 				player.x -= 1.0f*player.speed;
         }
     }
+    else if(collision_value_1 == 3 || collision_value_2 == 3 || collision_value_3 == 3 || collision_value_4 == 3)
+    {
+        // handle player in mud
+        if(player.x_vel != 0 || player.y_vel != 0)
+        {
+            spawn_particle(rand() % TILE_WIDTH + player.x,player.y+TILE_HEIGHT,2,1,0,4);
+        }
+
+        player.speed = player.base_speed/2.0f;
+    }
+    
+    else if(collision_value_1 == 4 || collision_value_2 == 4 || collision_value_3 == 4 || collision_value_4 == 4)
+    {
+        // handle player in water
+        if(player.x_vel != 0 || player.y_vel != 0)
+        {
+            spawn_particle(rand() % TILE_WIDTH + player.x,player.y+TILE_HEIGHT,2,2,0,8);
+        }
+
+        player.speed = player.base_speed/3.0f;
+    }
+    else
+    {
+        player.speed = player.base_speed;
+    }
 
     // keep player in world
     if(player.x < 0) player.x = 0;
@@ -222,15 +199,18 @@ static void update_player()
 
         player.attack_angle += player.weapon.attack_speed*(PI/30.0f);
         player.attack_frame_counter++;
-
+		
         // check for collision with enemies/objects
-        //if(!player.attack_hit)
-        //{
         float cosa = cos(player.attack_angle);
         float sina = sin(player.attack_angle);
 
         for(int i = num_enemies-1; i >= 0;--i)
         {
+            if(enemies[i].untargetable)
+            {
+                continue;
+            }
+
             int relative_enemy_position_x = enemies[i].x - camera.x;
             int relative_enemy_position_y = enemies[i].y - camera.y;
 
@@ -243,7 +223,7 @@ static void update_player()
                     for(int j = 0; j < player.weapon.attack_range; ++j)
                     {
                         // only care about hitting an enemy if it hasn't been hit yet.
-                        if(enemies[i].state != ENEMY_STATE_HIT)
+                        if(enemies[i].state != ENEMY_STATE_STUNNED)
                         {
                             int start_weapon_x = player.x - camera.x + TILE_WIDTH/2;
                             int start_weapon_y = player.y - camera.y + TILE_HEIGHT/2;
@@ -260,25 +240,39 @@ static void update_player()
                                     // add floating number
                                     spawn_floating_number(start_weapon_x+delta_x+camera.x,start_weapon_y+delta_y+camera.y,damage,6);
 
+                                    
                                     // enemy hurt!
                                     enemies[i].hp -= damage;
 
-                                    player.attack_hit = TRUE;
-                                    
                                     // check if enemy died
                                     if (enemies[i].hp <= 0)
                                     {
-										rats_killed++;
-										int coins_spawned = rand() % (enemies[i].gold_drop_max+1);
+										foes_killed++;
+                                        
+                                        // add blood particles
+                                        for(int p = 0; p < 10; ++p)
+                                            spawn_particle(start_weapon_x+delta_x+camera.x,start_weapon_y+delta_y+camera.y,rand() % 4 + 1,3,0,6);
 
-										for(int c = 0; c < coins_spawned; ++c)
-											spawn_coin(enemies[i].x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),enemies[i].y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)));
+										int coins_to_spawn = rand() % (enemies[i].gold_drop_max+1);
+
+                                        int gold_coins = coins_to_spawn / 100; coins_to_spawn -= (gold_coins*100);
+                                        int silver_coins = coins_to_spawn / 10; coins_to_spawn -= (silver_coins*10);
+                                        int bronze_coins = coins_to_spawn / 1; coins_to_spawn -= bronze_coins;
+										for(int c = 0; c < bronze_coins; ++c)
+											spawn_coin(enemies[i].x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),enemies[i].y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)),2,0,0,3.0f, COIN_BRONZE);
+										for(int c = 0; c < silver_coins; ++c)
+											spawn_coin(enemies[i].x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),enemies[i].y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)),2,0,0,2.5f, COIN_SILVER);
+										for(int c = 0; c < gold_coins; ++c)
+											spawn_coin(enemies[i].x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),enemies[i].y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)),2,0,0,2.0f, COIN_GOLD);
+
+                                        // drop item(s)
+                                        spawn_item(ITEM_MEAT,enemies[i].x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),enemies[i].y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)));
 
                                         remove_enemy(i);
                                     }
                                     else
                                     {
-                                        enemies[i].state = ENEMY_STATE_HIT;
+                                        enemies[i].state = ENEMY_STATE_STUNNED;
                                     }
                                     break;
                                 }
@@ -294,11 +288,10 @@ static void update_player()
             // end attacking
             player.attack_frame_counter = 0;
             player.state ^= PLAYER_STATE_ATTACK;
-            player.attack_hit = FALSE;
         }
     }
 
-    // check if player got coins
+    // check if player picked up coins
     for(int i = num_coins -1; i>= 0; --i)
     {
         int coin_x = coins[i].x + TILE_WIDTH/2 -2;
@@ -314,8 +307,26 @@ static void update_player()
                 {
                     if(coin_y >= player.y + TILE_HEIGHT/2 && coin_y <= player.y + TILE_HEIGHT)
                     {
-                        player.gold++;
-                        spawn_floating_number(coins[i].x,coins[i].y,1,10);
+                        char color = 0;
+                        int  amount = 0;
+
+                        switch(coins[i].type)
+                        {
+                            case COIN_BRONZE:
+                                amount = 1;
+                                color = 9;
+                                break;
+                            case COIN_SILVER:
+                                amount = 10;
+                                color = 10;
+                                break;
+                            case COIN_GOLD:
+                                amount = 100;
+                                color = 14;
+                                break;
+                        }
+                        player.gold += amount;
+                        spawn_floating_number(coins[i].x,coins[i].y,amount,color);
 						remove_coin(i);
                     }
                 }
@@ -323,6 +334,52 @@ static void update_player()
         }
     }
 
+    // check if player threw coins
+    if(player.throw_coins)
+    {
+        if(player.gold > 0)
+        {
+            player.coin_throw_counter++;
+            if(player.coin_throw_counter >= player.coin_throw_max)
+            {
+                player.coin_throw_counter = 0;
+
+                float coin_x_vel;
+                float coin_y_vel;
+                float coin_x_offset = 0;
+                float coin_y_offset = 0;
+
+                switch(player.dir)
+                {
+                    case DIR_UP:
+                        coin_x_vel = 0;
+                        coin_y_vel = -2.0f;
+                        break;
+                    case DIR_DOWN:
+                        coin_x_vel = 0;
+                        coin_y_vel = +2.0f;
+                        coin_y_offset = 10;
+                        break;
+                    case DIR_LEFT:
+                        coin_x_vel = -2.0f;
+                        coin_y_vel = 0;
+                        coin_x_offset = -5;
+                        coin_y_offset = 5;
+                        break;
+                    case DIR_RIGHT:
+                        coin_x_vel = +2.0f;
+                        coin_y_vel = 0;
+                        coin_x_offset = 10;
+                        coin_y_offset = 5;
+                        break;
+                }
+                
+
+                if(spawn_coin(player.x + coin_x_offset, player.y + coin_y_offset,5,player.x_vel*player.speed + coin_x_vel,player.y_vel*player.speed+coin_y_vel,2.0f,COIN_BRONZE))
+                    player.gold--;
+            }
+        }
+    }
 }
 
 static void draw_player()
@@ -334,7 +391,7 @@ static void draw_player()
     {
 		for (int j = 1; j < 15; ++j)
         {
-            shade_pixel8(player.x - camera.x + j,shadow_y - camera.y,i);
+            shade_pixel8(player.x - camera.x + j,shadow_y - camera.y,max(0,i - day_cycle_shade_amount));
         }
         shadow_y++;
     }

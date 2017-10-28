@@ -13,6 +13,7 @@ typedef struct
     int y_vel;
     float speed;
     int action_counter;
+    int action_counter_max;
     int action_duration_counter;
     int action_duration_counter_max;
     int talk_radius;
@@ -33,9 +34,9 @@ static void init_npcs()
     npcs[num_npcs].y = TILE_HEIGHT*(WORLD_TILE_HEIGHT/2 - 10);
     npcs[num_npcs].x_vel = 0;
     npcs[num_npcs].y_vel = 0;
-    npcs[num_npcs].speed = 0.2f;
+    npcs[num_npcs].speed = 0.5f;
     npcs[num_npcs].dir = DIR_DOWN;
-    npcs[num_npcs].state = ENEMY_STATE_NONE;
+    npcs[num_npcs].state = ENEMY_STATE_NEUTRAL;
     npcs[num_npcs].talking = FALSE;
     npcs[num_npcs].name = "Gumby";
 	npcs[num_npcs].num_dialogue = 5;
@@ -50,7 +51,8 @@ static void init_npcs()
     npcs[num_npcs].max_hp = 100; 
     npcs[num_npcs].xp = 1;
     npcs[num_npcs].talk_radius = 20;
-    npcs[num_npcs].action_counter = rand() % action_counter_max;
+    npcs[num_npcs].action_counter_max = 180;
+    npcs[num_npcs].action_counter = rand() % npcs[num_npcs].action_counter_max;
     npcs[num_npcs].action_duration_counter = 0;
     npcs[num_npcs].anim.counter = 0;
     npcs[num_npcs].anim.max_count = 10;
@@ -83,80 +85,117 @@ static void update_npcs()
         // update npcs
         for(int i = 0; i < num_npcs;++i)
         {
-            npcs[i].action_counter++;
-
-            if(npcs[i].action_counter >= action_counter_max)
+            if(npcs[i].talking)
             {
-                npcs[i].action_counter = 0;
-                npcs[i].action_duration_counter_max = rand() % 180 + 60; // duration of action
-                    
-                // take an action
-                int d = rand() % 9;
-                switch (d)
+                // update direction to face player
+                float diff_x = player.x - npcs[i].x;
+                float diff_y = player.y - npcs[i].y;
+
+                if(diff_x <0)
                 {
-                    case 0:
-                        npcs[i].state = ENEMY_STATE_NONE;
-                    case 1: 
-                        npcs[i].state = ENEMY_STATE_MOVE_UP;
-                        npcs[i].dir = DIR_UP;
-                        npcs[i].x_vel = +0;
-                        npcs[i].y_vel = -1;
-                        break;
-                    case 2: 
-                        npcs[i].state = ENEMY_STATE_MOVE_DOWN;
-                        npcs[i].dir = DIR_DOWN;
-                        npcs[i].x_vel = +0;
-                        npcs[i].y_vel = +1;
-                        break;
-                    case 3: 
-                        npcs[i].state = ENEMY_STATE_MOVE_LEFT;
-                        npcs[i].dir = DIR_LEFT;
-                        npcs[i].x_vel = -1;
-                        npcs[i].y_vel = +0;
-                        break;
-                    case 4: 
-                        npcs[i].state = ENEMY_STATE_MOVE_RIGHT;
-                        npcs[i].dir = DIR_RIGHT;
-                        npcs[i].x_vel = +1;
-                        npcs[i].y_vel = +0;
-                        break;
-                    case 5: 
-                        npcs[i].state = ENEMY_STATE_MOVE_UP_LEFT;
-                        npcs[i].dir = DIR_UP;
-                        npcs[i].x_vel = -1;
-                        npcs[i].y_vel = -1;
-                        break;
-                    case 6: 
-                        npcs[i].state = ENEMY_STATE_MOVE_UP_RIGHT;
-                        npcs[i].dir = DIR_UP;
-                        npcs[i].x_vel = +1;
-                        npcs[i].y_vel = -1;
-                        break;
-                    case 7: 
-                        npcs[i].state = ENEMY_STATE_MOVE_DOWN_LEFT;
-                        npcs[i].dir = DIR_DOWN;
-                        npcs[i].x_vel = -1;
-                        npcs[i].y_vel = +1;
-                        break;
-                    case 8: 
-                        npcs[i].state = ENEMY_STATE_MOVE_DOWN_RIGHT;
-                        npcs[i].dir = DIR_DOWN;
-                        npcs[i].x_vel = +1;
-                        npcs[i].y_vel = +1;
-                        break;
+                    if(diff_y < 0)
+                    {
+                        if(abs(diff_x) > abs(diff_y))
+                            npcs[i].dir = DIR_LEFT;
+                        else
+                            npcs[i].dir = DIR_UP;
+                    }
+                    else
+                    {
+                        if(abs(diff_x) > abs(diff_y))
+                            npcs[i].dir = DIR_LEFT;
+                        else
+                            npcs[i].dir = DIR_DOWN;
+                    }
                 }
+                else
+                {
+                    if(diff_y < 0)
+                    {
+                        if(abs(diff_x) > abs(diff_y))
+                            npcs[i].dir = DIR_RIGHT;
+                        else
+                            npcs[i].dir = DIR_UP;
+                    }
+                    else
+                    {
+                        if(abs(diff_x) > abs(diff_y))
+                            npcs[i].dir = DIR_RIGHT;
+                        else
+                            npcs[i].dir = DIR_DOWN;
+                    }
+                }
+            }
+            else
+            {
+                if(npcs[i].action_counter >= npcs[i].action_counter_max)
+                {
+                    npcs[i].action_counter = 0;
+                    npcs[i].action_duration_counter_max = rand() % 180 + 60; // duration of action
+                        
+                    // take an action
+                    int d = rand() % 9;
+                    switch (d)
+                    {
+                        case 0:
+                            npcs[i].state = ENEMY_STATE_NEUTRAL;
+                        case 1: 
+                            npcs[i].state = ENEMY_STATE_ACTING;
+                            npcs[i].dir = DIR_UP;
+                            npcs[i].x_vel = +0;
+                            npcs[i].y_vel = -1;
+                            break;
+                        case 2: 
+                            npcs[i].state = ENEMY_STATE_ACTING;
+                            npcs[i].dir = DIR_DOWN;
+                            npcs[i].x_vel = +0;
+                            npcs[i].y_vel = +1;
+                            break;
+                        case 3: 
+                            npcs[i].state = ENEMY_STATE_ACTING;
+                            npcs[i].dir = DIR_LEFT;
+                            npcs[i].x_vel = -1;
+                            npcs[i].y_vel = +0;
+                            break;
+                        case 4: 
+                            npcs[i].state = ENEMY_STATE_ACTING;
+                            npcs[i].dir = DIR_RIGHT;
+                            npcs[i].x_vel = +1;
+                            npcs[i].y_vel = +0;
+                            break;
+                        case 5: 
+                            npcs[i].state = ENEMY_STATE_ACTING;
+                            npcs[i].dir = DIR_UP;
+                            npcs[i].x_vel = -1;
+                            npcs[i].y_vel = -1;
+                            break;
+                        case 6: 
+                            npcs[i].state = ENEMY_STATE_ACTING;
+                            npcs[i].dir = DIR_UP;
+                            npcs[i].x_vel = +1;
+                            npcs[i].y_vel = -1;
+                            break;
+                        case 7: 
+                            npcs[i].state = ENEMY_STATE_ACTING;
+                            npcs[i].dir = DIR_DOWN;
+                            npcs[i].x_vel = -1;
+                            npcs[i].y_vel = +1;
+                            break;
+                        case 8: 
+                            npcs[i].state = ENEMY_STATE_ACTING;
+                            npcs[i].dir = DIR_DOWN;
+                            npcs[i].x_vel = +1;
+                            npcs[i].y_vel = +1;
+                            break;
+                    }
+                }
+
+                npcs[i].action_counter++;
             }
 
             switch (npcs[i].state)
             {
-                case ENEMY_STATE_MOVE_UP:
-                case ENEMY_STATE_MOVE_DOWN:
-                case ENEMY_STATE_MOVE_LEFT:
-                case ENEMY_STATE_MOVE_RIGHT:
-                case ENEMY_STATE_MOVE_UP_LEFT:
-                case ENEMY_STATE_MOVE_UP_RIGHT:
-                case ENEMY_STATE_MOVE_DOWN_LEFT:
-                case ENEMY_STATE_MOVE_DOWN_RIGHT:
+                case ENEMY_STATE_ACTING:
 
                     npcs[i].x += npcs[i].x_vel*npcs[i].speed;
                     npcs[i].y += npcs[i].y_vel*npcs[i].speed;
@@ -230,7 +269,7 @@ static void update_npcs()
             {
                 npcs[i].anim.counter++;
 
-                if(npcs[i].anim.counter >= 10/npcs[i].speed)
+                if(npcs[i].anim.counter >= npcs[i].anim.max_count)
                 {
                     // cycle_animation
                     npcs[i].anim.counter = 0;
@@ -252,7 +291,7 @@ static void update_npcs()
             if(npcs[i].action_duration_counter >= npcs[i].action_duration_counter_max)
             {
                 npcs[i].action_duration_counter = 0;
-                npcs[i].state = ENEMY_STATE_NONE; // return to neutral state
+                npcs[i].state = ENEMY_STATE_NEUTRAL; // return to neutral state
                 npcs[i].x_vel = +0;
                 npcs[i].y_vel = +0;
             }
@@ -269,6 +308,9 @@ static void update_npcs()
                 }
 
                 npcs[i].talking = TRUE;
+                npcs[i].state = ENEMY_STATE_NEUTRAL; // return to neutral state
+                npcs[i].x_vel = +0;
+                npcs[i].y_vel = +0;
             }
             else
             {

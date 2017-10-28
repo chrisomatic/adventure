@@ -1,5 +1,6 @@
 #define WORLD_TILE_WIDTH  256
 #define WORLD_TILE_HEIGHT 256
+#define GRAVITY 0.2f;
 
 #define GRASS    48
 #define MARSH    49
@@ -12,6 +13,69 @@
 #define ST0NE    56
 #define BRICK    57 
 #define TREE     64
+
+// player structures
+typedef enum
+{
+	KEYPRESS_NONE  = 0,
+	KEYPRESS_UP    = 1,
+	KEYPRESS_DOWN  = 2,
+	KEYPRESS_LEFT  = 4,
+	KEYPRESS_RIGHT = 8
+} KeyPress;
+
+typedef enum
+{
+	DIR_UP = 0,
+	DIR_DOWN = 3,
+	DIR_LEFT = 6,
+	DIR_RIGHT = 9
+} Direction;
+
+typedef enum
+{
+    PLAYER_ATTACK_UP,
+    PLAYER_ATTACK_DOWN,
+    PLAYER_ATTACK_LEFT,
+    PLAYER_ATTACK_RIGHT
+} AttackDirection;
+
+typedef enum
+{
+	PLAYER_STATE_NONE   = 0,
+	PLAYER_STATE_MOVE   = 1,
+	PLAYER_STATE_ATTACK = 2,
+	PLAYER_STATE_HURT   = 4,
+	PLAYER_STATE_DEAD   = 8
+} PlayerState;
+
+typedef struct
+{
+    char* name;
+    int tile_index;
+    int lvl;
+    int xp;
+    int hp;
+    int max_hp;
+    float x;
+    float y;
+    int x_vel;
+    int y_vel;
+    int gold;
+    int coin_throw_counter;
+    int coin_throw_max;
+    float base_speed;
+    float speed;
+    float attack_angle;
+    int attack_frame_counter;
+    BOOL throw_coins;
+    Weapon weapon;
+    Direction dir;
+    AttackDirection attack_dir;
+    Animation anim;
+    PlayerState state;
+} Player;
+Player player;
 
 static int world[WORLD_TILE_HEIGHT][WORLD_TILE_WIDTH];
 static int world_collision[WORLD_TILE_HEIGHT][WORLD_TILE_WIDTH];
@@ -50,9 +114,9 @@ static void init_world(const char* path_to_world_file)
                 case GRASS: world_collision[i][j] = 1; break;
                 case SAND:  world_collision[i][j] = 2; break;
                 case MUD:   world_collision[i][j] = 3; break;
+                case WATER: world_collision[i][j] = 4; break;
                 case MOUNTAIN: world_collision[i][j] = 5; break;
                 case TREE:  world_collision[i][j] = 5; break;
-                case WATER: world_collision[i][j] = 5; break;
             }
         }
     }

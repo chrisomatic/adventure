@@ -12,11 +12,13 @@
 #include "ctimer.h"
 #include "canimation.h"
 #include "ctile.h"
+#include "cweapon.h"
 #include "cworld.h"
 #include "ccoin.h"
+#include "citem.h"
+#include "cparticles.h"
 #include "cfloatingnumber.h"
 #include "cenemy.h"
-#include "cweapon.h"
 #include "cplayer.h"
 #include "cnpc.h"
 
@@ -106,6 +108,9 @@ static void update_scene()
     // update player
     update_player();
    
+    // update items
+    update_items();
+    
     // update coins
     update_coins();
 
@@ -117,6 +122,9 @@ static void update_scene()
     
     // update npcs
     update_npcs();
+
+    // update particles
+    update_particles();
 
     // update camera
     camera.x = (player.x - (buffer_width / 2));
@@ -137,6 +145,9 @@ static void draw_scene()
     // draw world
     draw_world(camera,day_cycle_shade_amount);
     
+    // draw items
+    draw_items();
+    
     // draw coins 
     draw_coins();
     
@@ -152,7 +163,10 @@ static void draw_scene()
     // draw floating numbers
     draw_floating_numbers();
 
-    // draw UI
+    // update particles
+    draw_particles();
+    
+    // draw HUD 
     draw_string_with_shadow(player.name,0,buffer_height - 7,1.0f,1);
     draw_string_with_shadow(player.weapon.name,60,buffer_height -7,1.0f,3);
     draw_string_with_shadow("Gold:",buffer_width - 100, buffer_height -7,1.0f,3);
@@ -163,8 +177,8 @@ static void draw_scene()
 
     draw_number_string_with_shadow(player.gold,buffer_width - 55,buffer_height -7,1.0f,14);
 
-    draw_string_with_shadow("Dead Rats:",0,0,1.0f,7);
-    draw_number_string_with_shadow(rats_killed,60,0,1.0f,8);
+    draw_string_with_shadow("Dead Foes:",0,0,1.0f,7);
+    draw_number_string_with_shadow(foes_killed,60,0,1.0f,8);
 
     // Blit buffer to screen
     StretchDIBits(dc, 0, 0, window_width, window_height, 0, 0, buffer_width, buffer_height, back_buffer, (BITMAPINFO*)&bmi, DIB_RGB_COLORS, SRCCOPY);
@@ -375,11 +389,17 @@ static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM 
                     player.attack_angle = -3*PI/4;
                 }
             }
-            
-            // @DEV
-            if(wparam == 'K')
+
+            if(wparam == 'C')
             {
-                player.speed = 8;
+                player.throw_coins = TRUE;
+                player.coin_throw_counter = player.coin_throw_max; // start instant initial throw
+            }
+
+            // @DEV
+            if(wparam == VK_SHIFT)
+            {
+                player.base_speed = 4;
                 player.anim.max_count = 1;
 
             }
@@ -435,10 +455,15 @@ static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM 
             else if(wparam == 'S')
                 keypress &= (~KEYPRESS_DOWN);
             
-            // @DEV
-            if(wparam == 'K')
+            if(wparam == 'C')
             {
-                player.speed = 1;
+                player.throw_coins = FALSE;
+            }
+            
+            // @DEV
+            if(wparam == VK_SHIFT)
+            {
+                player.base_speed = 1;
                 player.anim.max_count = 10;
             }
 

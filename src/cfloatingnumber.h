@@ -1,4 +1,4 @@
-#define MAX_FLOATING_NUMBERS 1000
+#define MAX_FLOATING_NUMBERS 10000
 
 typedef struct
 {
@@ -21,7 +21,10 @@ static void spawn_floating_number(float x, float y, int number,int color)
     floating_numbers[num_floating_numbers].color = color;
     floating_numbers[num_floating_numbers].float_duration_counter = 0;
     floating_numbers[num_floating_numbers].float_duration_counter_max = 60;
+
     num_floating_numbers++;
+    if(num_floating_numbers > MAX_FLOATING_NUMBERS-1)
+        num_floating_numbers = MAX_FLOATING_NUMBERS -1;
 }
 
 static void remove_floating_number(int index)
@@ -34,6 +37,7 @@ static void update_floating_numbers()
 {
     for(int i = num_floating_numbers -1; i >= 0; --i)
     {
+
         floating_numbers[i].y -= 0.25f;
         floating_numbers[i].float_duration_counter++;
 
@@ -49,6 +53,15 @@ static void draw_floating_numbers()
 {
     for(int i = 0; i < num_floating_numbers; ++i)
     {
-		draw_number_string(floating_numbers[i].number, floating_numbers[i].x - camera.x, floating_numbers[i].y - camera.y, 1.0f, floating_numbers[i].color + 16*(floating_numbers[i].float_duration_counter/10));
+
+        int number_x = floating_numbers[i].x - camera.x;
+        int number_y = floating_numbers[i].y - camera.y;
+
+        if (number_x+TILE_WIDTH < 0 || number_x > buffer_width)
+            continue;
+        if (number_y+TILE_HEIGHT < 0 || number_y > buffer_height)
+            continue;
+
+		draw_number_string(floating_numbers[i].number, number_x, number_y, 1.0f, floating_numbers[i].color + 16*(floating_numbers[i].float_duration_counter/10));
     }
 }

@@ -16,12 +16,3 @@ extern int buffer_height;
 extern int window_width;
 extern int window_height;
 
-
-typedef enum
-{
-	DIR_UP = 0,
-	DIR_DOWN = 3,
-	DIR_LEFT = 6,
-	DIR_RIGHT = 9
-} Direction;
-
