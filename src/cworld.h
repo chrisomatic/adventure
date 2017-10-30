@@ -87,6 +87,15 @@ typedef struct
     PlayerState state;
 } Player;
 Player player;
+typedef struct
+{
+    char* name;
+    char* message;
+    char color;
+    BOOL active;
+} Message;
+
+Message message;
 
 static int world[WORLD_TILE_HEIGHT][WORLD_TILE_WIDTH];
 static int world_collision[WORLD_TILE_HEIGHT][WORLD_TILE_WIDTH];
@@ -196,5 +205,20 @@ static void draw_world(POINT camera, int shade_amount)
                 draw_tile(i*TILE_WIDTH - camera.x,j*TILE_HEIGHT - camera.y,world[j][i],shade_amount);
         }
     }
+}
+
+static void draw_message()
+{
+    // 240, 176
+    for(int j = 148; j < 169; ++j)
+    {
+        for(int i = 40; i < 200; ++i)
+        {
+            shade_pixel8(i,j,10);
+        }
+    } 
+
+    draw_string(message.name,42, 149,1.0f,8);
+    draw_string(message.message,50,156,1.0f,message.color);
 }
 

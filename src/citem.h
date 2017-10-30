@@ -167,12 +167,12 @@ static void draw_item(int i)
 
         if(items[i].highlighted)
         {
-            draw_message(items[i].name,items[i].description,6);
-
             draw_tile(items[i].x - camera.x, items[i].y - camera.y - items[i].z*0.5f, items[i].tile_index,max(0,day_cycle_shade_amount-3));
         }
         else
+        {
             draw_tile(items[i].x - camera.x, items[i].y - camera.y - items[i].z*0.5f, items[i].tile_index,day_cycle_shade_amount);
+        }
 }
 
 static void draw_items()

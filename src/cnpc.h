@@ -311,6 +311,12 @@ static void update_npcs()
                 npcs[i].state = ENEMY_STATE_NEUTRAL; // return to neutral state
                 npcs[i].x_vel = +0;
                 npcs[i].y_vel = +0;
+
+                message.name = npcs[i].name;
+                message.message = npcs[i].dialogue[npcs[i].selected_dialogue_num];
+                message.color = 10;
+                message.active = TRUE;
+                
             }
             else
             {
@@ -326,12 +332,6 @@ static void draw_npc(int i)
         int npc_y = npcs[i].y - camera.y;
 
         draw_tile(npcs[i].x - camera.x, npcs[i].y - camera.y, npcs[i].tile_index + npcs[i].dir + npcs[i].anim.frame_order[npcs[i].anim.frame],day_cycle_shade_amount);
-
-        if(npcs[i].talking)
-        {
-            draw_message(npcs[i].name,npcs[i].dialogue[npcs[i].selected_dialogue_num],10);
-        }
-
 }
 
 static void draw_npcs()

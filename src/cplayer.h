@@ -505,7 +505,14 @@ static void update_player()
     }
 
     if(closest_item_index > -1)
+    {
         items[closest_item_index].highlighted = TRUE;
+
+        message.name = items[closest_item_index].name;
+        message.message = items[closest_item_index].description;
+        message.color = 6;
+        message.active = TRUE;
+    }
     
     // check if player picked up / dropped an item
     if(player.pickup)

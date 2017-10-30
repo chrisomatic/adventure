@@ -103,6 +103,9 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
 
 static void update_scene()
 {
+    // update message
+    message.active = FALSE;
+
     // update world
     update_world();
 
@@ -149,6 +152,9 @@ static void draw_scene()
     sort_entities();
     draw_entities();
 
+    if(message.active)
+        draw_message();
+    
     // draw HUD 
     // health
     int ui_x = 0;
@@ -191,11 +197,6 @@ static void draw_scene()
     draw_string_with_shadow("Dead Foes:",0,0,1.0f,7);
     draw_number_string_with_shadow(foes_killed,60,0,1.0f,8);
 
-    // debug
-    if((player.state & PLAYER_STATE_MIDAIR) == PLAYER_STATE_MIDAIR)
-    {
-        draw_string_with_shadow("MIDAIR",5,5,1.0f,10);
-    }
     // Blit buffer to screen
     StretchDIBits(dc, 0, 0, window_width, window_height, 0, 0, buffer_width, buffer_height, back_buffer, (BITMAPINFO*)&bmi, DIB_RGB_COLORS, SRCCOPY);
 }

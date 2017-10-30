@@ -192,18 +192,3 @@ static void draw_number_string_with_shadow(int number, int x, int y, float scale
     draw_number_string(number,x+1,y+1,scale,0);
     draw_number_string(number,x,y,scale,color);
 }
-
-static void draw_message(char* name, char* message,char color)
-{
-    // 240, 176
-    for(int j = 148; j < 169; ++j)
-    {
-        for(int i = 40; i < 200; ++i)
-        {
-            shade_pixel8(i,j,10);
-        }
-    } 
-    draw_string(name,42, 149,1.0f,8);
-    draw_string(message,50,156,1.0f,color);
-}
-
