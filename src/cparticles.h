@@ -65,35 +65,34 @@ static void update_particles()
 
 }
 
-static void draw_particles()
+static void draw_particle(int i)
 {
+    int particle_x = particles[i].x - camera.x;
+    int particle_y = particles[i].y - camera.y;
 
-    for(int i = 0; i < num_particles; ++i)
+    int shade_amount = rand() % 6;
+
+    if(particles[i].character > 0)
     {
-        int particle_x = particles[i].x - camera.x;
-        int particle_y = particles[i].y - camera.y;
-
-        if (particle_x+TILE_WIDTH < 0 || particle_x > buffer_width)
-            continue;
-        if (particle_y+TILE_HEIGHT < 0 || particle_y > buffer_height)
-            continue;
-
-		int shade_amount = rand() % 6;
-
-        if(particles[i].character > 0)
+            draw_char_scaled(particles[i].character,particle_x-1, particle_y-1,particles[i].size, particles[i].color + (16*10));
+            draw_char_scaled(particles[i].character,particle_x, particle_y,particles[i].size, particles[i].color + (16*shade_amount));
+    }
+    else
+    {
+        for (int j = 0; j < particles[i].size; ++j)
         {
-                draw_char_scaled(particles[i].character,particle_x-1, particle_y-1,particles[i].size, particles[i].color + (16*10));
-                draw_char_scaled(particles[i].character,particle_x, particle_y,particles[i].size, particles[i].color + (16*shade_amount));
-        }
-        else
-        {
-            for (int j = 0; j < particles[i].size; ++j)
+            for (int k = 0; k < particles[i].size;++k)
             {
-                for (int k = 0; k < particles[i].size;++k)
-                {
-                    draw_pixel8(particle_x+j, particle_y+k,particles[i].color + (16*shade_amount));
-                }
+                draw_pixel8(particle_x+j, particle_y+k,particles[i].color + (16*shade_amount));
             }
         }
+    }
+}
+
+static void draw_particles()
+{
+    for(int i = 0; i < num_particles; ++i)
+    {
+        draw_particle(i);
     }
 }

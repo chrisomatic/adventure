@@ -85,6 +85,8 @@ static void generate_world_file(const char* image_path)
                 val = 54;
             else if (r == 255 && g == 255 && b == 255) // snow
 				val = 55;
+            else if (r == 255 && g == 0 && b == 0)    // lava
+				val = 56;
                 
 			if (fputc(val, fp_world) == EOF)
 				return;
@@ -276,36 +278,6 @@ static void draw_pixel32(int x, int y, int color, double c)
 	*dst = (r << 16 | g << 8 | b);
 }
 
-
-static int ipart(double x)
-{
-	return (int)x;
-}
-
-static double Q_round(double x)
-{
-	return ipart(x + 0.5);
-}
-
-static double fpart(double x)
-{
-	if (x < 0)
-		return 1 - (x - floor(x));
-	return x - floor(x);
-}
-
-static double rfpart(double x)
-{
-	return 1 - fpart(x);
-}
-
-static void swap(int* i0, int* i1)
-{
-	int temp = *i0;
-	*i0 = *i1;
-	*i1 = temp;
-}
-
 static void draw_line2(int x, int y, int x2, int y2,char color) {
    	BOOL yLonger=FALSE;
 	int shortLen=y2-y;
@@ -388,87 +360,6 @@ static void draw_line(int x, int y, int x2, int y2, char color)
 		for (int i = 0; i != endVal; i += incrementVal) {
 			draw_pixel8(x + i, y + (int)j, color);
 			j += decInc;
-		}
-	}
-}
-static void draw_line_aa(int x0, int y0, int x1, int y1, int color)
-{
-	BOOL steep = abs(y1 - y0) > abs(x1 - x0);
-	
-	if (steep)
-	{
-		swap(&x0, &y0);
-		swap(&x1, &y1);
-	}
-
-	if (x0 > x1)
-	{
-		swap(&x0, &x1);
-		swap(&y0, &y1);
-	}
-
-	double dx = x1 - x0;
-	double dy = y1 - y0;
-
-	double gradient = dy / dx;
-
-	if (dx == 0.0)
-		gradient = 1.0;
-
-	// handle first endpoint
-	double xend = Q_round(x0);
-	double yend = y0 + gradient * (xend - x0);
-	double xgap = rfpart(x0 + 0.5);
-	double xpxl1 = xend;
-	int ypxl1 = ipart(yend);
-
-	if (steep)
-	{
-		draw_pixel8(ypxl1, xpxl1, color, rfpart(yend)*xgap);
-		draw_pixel8(ypxl1 + 1, xpxl1, color, fpart(yend)*xgap);
-	}
-	else
-	{
-		draw_pixel8(xpxl1, ypxl1, color, rfpart(yend)*xgap);
-		draw_pixel8(xpxl1, ypxl1 + 1, color, fpart(yend)*xgap);
-	}
-	double intery = yend + gradient;
-
-	// handle second endpoint
-	xend = Q_round(x1);
-	yend = y1 + gradient*(xend - x1);
-	xgap = fpart(x1 + 0.5);
-	double xpxl2 = xend;
-	int ypxl2 = ipart(yend);
-
-	if (steep)
-	{
-		draw_pixel8(ypxl2, xpxl2, color, rfpart(yend)*xgap);
-		draw_pixel8(ypxl2 + 1, xpxl2, color, fpart(yend)*xgap);
-	}
-	else
-	{
-		draw_pixel8(xpxl2, ypxl2, color, rfpart(yend)*xgap);
-		draw_pixel8(xpxl2, ypxl2 + 1, color, fpart(yend)*xgap);
-	}
-
-	// main loop
-	if (steep)
-	{
-		for (int x = (int)(xpxl1 + 1); x < xpxl2; ++x)
-		{
-			draw_pixel8(ipart(intery), x,color, rfpart(intery));
-			draw_pixel8(ipart(intery) + 1, x, color, fpart(intery));
-			intery += gradient;
-		}
-	}
-	else
-	{
-		for (int x = (int)(xpxl1 + 1); x < xpxl2; ++x)
-		{
-			draw_pixel8(x, ipart(intery), color, rfpart(intery));
-			draw_pixel8(x, ipart(intery) + 1, color, fpart(intery));
-			intery += gradient;
 		}
 	}
 }

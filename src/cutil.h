@@ -1,4 +1,5 @@
-void reverse(char str[], int length)
+
+static void reverse(char str[], int length)
 {
 	int start = 0;
 	int end = length - 1;
@@ -14,7 +15,7 @@ void reverse(char str[], int length)
 	}
 }
 
-char* c_itoa(int num, char* str, int base,int* length)
+static char* c_itoa(int num, char* str, int base,int* length)
 {
     int i = 0;
     BOOL isNegative = FALSE;
@@ -57,14 +58,14 @@ char* c_itoa(int num, char* str, int base,int* length)
     return str;
 }
 
-char* to_string(int i, int* length)
+static char* to_string(int i, int* length)
 {
 	char* str = (char*)calloc(12,sizeof(char));
 	str = c_itoa(i, str, 10, length);
 	return str;
 }
 
-int length_of(char* s)
+static int length_of(char* s)
 {
     int length = 0;
     while(*s)
@@ -72,7 +73,7 @@ int length_of(char* s)
     return length;
 }
 
-double get_distance(double p0_x, double p0_y, double p1_x,double p1_y)
+static double get_distance(double p0_x, double p0_y, double p1_x,double p1_y)
 {
     double x_diff = p1_x - p0_x;
     double y_diff = p1_y - p0_y;

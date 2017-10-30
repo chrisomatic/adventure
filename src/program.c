@@ -21,6 +21,7 @@
 #include "cenemy.h"
 #include "cplayer.h"
 #include "cnpc.h"
+#include "centity.h"
 
 const char* CLASS_NAME = "Adventure";
 
@@ -144,42 +145,57 @@ static void draw_scene()
     
     // draw world
     draw_world(camera,day_cycle_shade_amount);
-    
-    // draw items
-    draw_items();
-    
-    // draw coins 
-    draw_coins();
-    
-	// draw enemies
-    draw_enemies();
 
-    // draw npcs
-    draw_npcs();
-    
-    // draw player
-    draw_player();
+    sort_entities();
+    draw_entities();
 
-    // draw floating numbers
-    draw_floating_numbers();
-
-    // update particles
-    draw_particles();
-    
     // draw HUD 
-    draw_string_with_shadow(player.name,0,buffer_height - 7,1.0f,1);
-    draw_string_with_shadow(player.weapon.name,60,buffer_height -7,1.0f,3);
-    draw_string_with_shadow("Gold:",buffer_width - 100, buffer_height -7,1.0f,3);
+    // health
+    int ui_x = 0;
 
-    draw_char_with_shadow(CHAR_HEART,32, buffer_height -7, 6);
-    draw_char_with_shadow(CHAR_HEART,38, buffer_height -7, 6);
-    draw_char_with_shadow(CHAR_HEART,44, buffer_height -7, 6);
+    for(int i = 0; i < player.max_hp / 2.0f;++i)
+    {
+        draw_char_with_shadow(CHAR_HEART,ui_x + 6*i,buffer_height -7,3);
+    }
 
-    draw_number_string_with_shadow(player.gold,buffer_width - 55,buffer_height -7,1.0f,14);
+    float num_hearts = player.hp / 2.0f;
+    while(num_hearts >= 1)
+    {
+        draw_char_with_shadow(CHAR_HEART,ui_x, buffer_height -7, 6);
+        ui_x += 6;
+        num_hearts--;
+    }
+    if(num_hearts > 0)
+        draw_char_with_shadow(CHAR_HEART_HALF,ui_x, buffer_height -7, 6);
+
+    ui_x += 40;
+    
+    // gold
+    draw_string_with_shadow("Gold:",ui_x, buffer_height -7,1.0f,7); ui_x += 30;
+    draw_number_string_with_shadow(player.gold,ui_x,buffer_height -7,1.0f,14); ui_x += 30;
+
+    // lvl
+    draw_string_with_shadow("Lvl:",ui_x, buffer_height -7,1.0f,7); ui_x += 24;
+    draw_number_string_with_shadow(player.lvl,ui_x,buffer_height -7,1.0f,14); ui_x += 18;
+    
+    // xp
+    float xp_percentage = player.xp / next_level;
+
+    draw_string_with_shadow("XP:",ui_x, buffer_height -7,1.0f,7); ui_x += 18;
+    draw_rect8(ui_x,buffer_height-6,50,4,1,TRUE);
+    draw_rect8(ui_x,buffer_height-6,50*xp_percentage,4,8,TRUE);
+    
+    // weapon
+    draw_string_with_shadow(player.weapon.name,buffer_width - 50,0,1.0f,7);
 
     draw_string_with_shadow("Dead Foes:",0,0,1.0f,7);
     draw_number_string_with_shadow(foes_killed,60,0,1.0f,8);
 
+    // debug
+    if((player.state & PLAYER_STATE_MIDAIR) == PLAYER_STATE_MIDAIR)
+    {
+        draw_string_with_shadow("MIDAIR",5,5,1.0f,10);
+    }
     // Blit buffer to screen
     StretchDIBits(dc, 0, 0, window_width, window_height, 0, 0, buffer_width, buffer_height, back_buffer, (BITMAPINFO*)&bmi, DIB_RGB_COLORS, SRCCOPY);
 }
@@ -394,6 +410,21 @@ static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM 
             {
                 player.throw_coins = TRUE;
                 player.coin_throw_counter = player.coin_throw_max; // start instant initial throw
+            }
+
+            if(wparam == 'E')
+            {
+                player.pickup = TRUE;
+            }
+
+            if(wparam == 'R')
+            {
+                player.take = TRUE;
+            }
+
+            if(wparam == VK_SPACE)
+            {
+                player.jump = TRUE;
             }
 
             // @DEV

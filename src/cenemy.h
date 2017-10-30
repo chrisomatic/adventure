@@ -313,6 +313,16 @@ static void update_enemies()
 
                         enemies[i].speed = enemies[i].base_speed/3.0f;
                     }
+                    else if(collision_value_1 == 6 || collision_value_2 == 6 || collision_value_3 == 6 || collision_value_4 == 6)
+                    {
+                        // handle enemy in lava
+                        if(enemies[i].x_vel != 0 || enemies[i].y_vel != 0)
+                        {
+                            spawn_particle(rand() % TILE_WIDTH + enemies[i].x,enemies[i].y+TILE_HEIGHT,2,2,0,6);
+                        }
+
+                        enemies[i].speed = enemies[i].base_speed/3.0f;
+                    }
                     else
                     {
                         enemies[i].speed = enemies[i].base_speed;
@@ -533,18 +543,11 @@ static void update_enemies()
     }
 }
 
-static void draw_enemies()
+static void draw_enemy(int i)
 {
-	for (int i = 0; i < num_enemies; ++i)
-	{
         int enemy_x = enemies[i].x - camera.x;
         int enemy_y = enemies[i].y - camera.y;
 
-        if (enemy_x+TILE_WIDTH < 0 || enemy_x > buffer_width)
-            continue;
-        if (enemy_y+TILE_HEIGHT < 0 || enemy_y > buffer_height)
-            continue;
-        
         if (enemies[i].state == ENEMY_STATE_STUNNED)
         {
             // draw red tint
@@ -554,6 +557,14 @@ static void draw_enemies()
         {
             draw_tile(enemies[i].x - camera.x, enemies[i].y - camera.y, enemies[i].tile_index + enemies[i].dir + enemies[i].anim.frame_order[enemies[i].anim.frame],day_cycle_shade_amount);
         }
+
+}
+
+static void draw_enemies()
+{
+	for (int i = 0; i < num_enemies; ++i)
+	{
+        draw_enemy(i);
 	}
 
 }

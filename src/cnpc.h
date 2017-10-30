@@ -320,24 +320,24 @@ static void update_npcs()
     }
 }
 
-
-static void draw_npcs()
+static void draw_npc(int i)
 {
-	for (int i = 0; i < num_npcs; ++i)
-	{
         int npc_x = npcs[i].x - camera.x;
         int npc_y = npcs[i].y - camera.y;
 
-        if (npc_x+TILE_WIDTH < 0 || npc_x > buffer_width)
-            continue;
-        if (npc_y+TILE_HEIGHT < 0 || npc_y > buffer_height)
-            continue;
-        
         draw_tile(npcs[i].x - camera.x, npcs[i].y - camera.y, npcs[i].tile_index + npcs[i].dir + npcs[i].anim.frame_order[npcs[i].anim.frame],day_cycle_shade_amount);
 
         if(npcs[i].talking)
         {
             draw_message(npcs[i].name,npcs[i].dialogue[npcs[i].selected_dialogue_num],10);
         }
+
+}
+
+static void draw_npcs()
+{
+	for (int i = 0; i < num_npcs; ++i)
+	{
+        draw_npc(i);
 	}
 }

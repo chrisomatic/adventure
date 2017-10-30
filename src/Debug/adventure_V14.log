@@ -4,102 +4,93 @@ c:\dev\adventure\src\cdraw.h(30): warning C4033: 'draw_image' must return a valu
 c:\dev\adventure\src\cdraw.h(26): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
 c:\dev\adventure\src\cdraw.h(27): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
 c:\dev\adventure\src\cdraw.h(37): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-c:\dev\adventure\src\cdraw.h(256): warning C4133: '<': incompatible types - from 'void *' to 'int *'
-c:\dev\adventure\src\cdraw.h(427): warning C4244: 'function': conversion from 'double' to 'int', possible loss of data
-c:\dev\adventure\src\cdraw.h(427): warning C4020: 'draw_pixel8': too many actual parameters
-c:\dev\adventure\src\cdraw.h(428): warning C4244: 'function': conversion from 'double' to 'int', possible loss of data
-c:\dev\adventure\src\cdraw.h(428): warning C4020: 'draw_pixel8': too many actual parameters
-c:\dev\adventure\src\cdraw.h(432): warning C4244: 'function': conversion from 'double' to 'int', possible loss of data
-c:\dev\adventure\src\cdraw.h(432): warning C4020: 'draw_pixel8': too many actual parameters
-c:\dev\adventure\src\cdraw.h(433): warning C4244: 'function': conversion from 'double' to 'int', possible loss of data
-c:\dev\adventure\src\cdraw.h(433): warning C4020: 'draw_pixel8': too many actual parameters
-c:\dev\adventure\src\cdraw.h(446): warning C4244: 'function': conversion from 'double' to 'int', possible loss of data
-c:\dev\adventure\src\cdraw.h(446): warning C4020: 'draw_pixel8': too many actual parameters
-c:\dev\adventure\src\cdraw.h(447): warning C4244: 'function': conversion from 'double' to 'int', possible loss of data
-c:\dev\adventure\src\cdraw.h(447): warning C4020: 'draw_pixel8': too many actual parameters
-c:\dev\adventure\src\cdraw.h(451): warning C4244: 'function': conversion from 'double' to 'int', possible loss of data
-c:\dev\adventure\src\cdraw.h(451): warning C4020: 'draw_pixel8': too many actual parameters
-c:\dev\adventure\src\cdraw.h(452): warning C4244: 'function': conversion from 'double' to 'int', possible loss of data
-c:\dev\adventure\src\cdraw.h(452): warning C4020: 'draw_pixel8': too many actual parameters
-c:\dev\adventure\src\cdraw.h(460): warning C4020: 'draw_pixel8': too many actual parameters
-c:\dev\adventure\src\cdraw.h(461): warning C4020: 'draw_pixel8': too many actual parameters
-c:\dev\adventure\src\cdraw.h(469): warning C4020: 'draw_pixel8': too many actual parameters
-c:\dev\adventure\src\cdraw.h(470): warning C4020: 'draw_pixel8': too many actual parameters
-c:\dev\adventure\src\cfontsimple.h(72): warning C4133: '<': incompatible types - from 'void *' to 'unsigned char *'
-c:\dev\adventure\src\cfontsimple.h(123): warning C4133: '<': incompatible types - from 'void *' to 'unsigned char *'
-c:\dev\adventure\src\cfontsimple.h(153): warning C4244: '+=': conversion from 'double' to 'int', possible loss of data
-c:\dev\adventure\src\cfontsimple.h(171): warning C4244: '+=': conversion from 'double' to 'int', possible loss of data
+c:\dev\adventure\src\cdraw.h(258): warning C4133: '<': incompatible types - from 'void *' to 'int *'
+c:\dev\adventure\src\cfontsimple.h(73): warning C4133: '<': incompatible types - from 'void *' to 'unsigned char *'
+c:\dev\adventure\src\cfontsimple.h(124): warning C4133: '<': incompatible types - from 'void *' to 'unsigned char *'
+c:\dev\adventure\src\cfontsimple.h(154): warning C4244: '+=': conversion from 'double' to 'int', possible loss of data
+c:\dev\adventure\src\cfontsimple.h(172): warning C4244: '+=': conversion from 'double' to 'int', possible loss of data
 c:\dev\adventure\src\ctile.h(107): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
 c:\dev\adventure\src\ctile.h(108): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-c:\dev\adventure\src\cworld.h(149): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\ccoin.h(22): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
-c:\dev\adventure\src\ccoin.h(23): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
-c:\dev\adventure\src\ccoin.h(68): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cworld.h(168): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\ccoin.h(88): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\ccoin.h(89): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\ccoin.h(109): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\ccoin.h(110): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\citem.h(75): warning C4033: 'spawn_item' must return a value
+c:\dev\adventure\src\citem.h(154): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\citem.h(155): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\citem.h(164): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\citem.h(170): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\citem.h(173): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
 c:\dev\adventure\src\cparticles.h(21): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
 c:\dev\adventure\src\cparticles.h(22): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
-c:\dev\adventure\src\cparticles.h(85): warning C4244: 'function': conversion from 'int' to 'float', possible loss of data
-c:\dev\adventure\src\cparticles.h(86): warning C4244: 'function': conversion from 'int' to 'float', possible loss of data
-c:\dev\adventure\src\cparticles.h(73): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cparticles.h(74): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cfloatingnumber.h(55): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cparticles.h(77): warning C4244: 'function': conversion from 'int' to 'float', possible loss of data
+c:\dev\adventure\src\cparticles.h(78): warning C4244: 'function': conversion from 'int' to 'float', possible loss of data
+c:\dev\adventure\src\cparticles.h(70): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cparticles.h(71): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cfloatingnumber.h(54): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cfloatingnumber.h(55): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
 c:\dev\adventure\src\cenemy.h(73): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
 c:\dev\adventure\src\cenemy.h(74): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+c:\dev\adventure\src\cenemy.h(107): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
 c:\dev\adventure\src\cenemy.h(108): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
-c:\dev\adventure\src\cenemy.h(109): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
-c:\dev\adventure\src\cenemy.h(257): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cenemy.h(268): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cenemy.h(291): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cenemy.h(292): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cenemy.h(293): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cenemy.h(208): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cenemy.h(209): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cenemy.h(211): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cenemy.h(212): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cenemy.h(214): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cenemy.h(215): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cenemy.h(217): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cenemy.h(218): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cenemy.h(376): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-c:\dev\adventure\src\cenemy.h(377): warning C4305: 'initializing': truncation from 'double' to 'float'
-c:\dev\adventure\src\cenemy.h(508): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cenemy.h(508): warning C4020: 'draw_tile_tinted': too many actual parameters
-c:\dev\adventure\src\cenemy.h(512): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cenemy.h(497): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cenemy.h(498): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cplayer.h(47): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cplayer.h(53): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cplayer.h(56): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cplayer.h(62): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cplayer.h(68): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cplayer.h(71): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cplayer.h(137): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cplayer.h(148): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cplayer.h(198): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
-c:\dev\adventure\src\cplayer.h(256): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cplayer.h(265): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cplayer.h(267): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cplayer.h(269): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cplayer.h(87): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cplayer.h(88): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cplayer.h(90): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cplayer.h(91): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cplayer.h(93): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cplayer.h(94): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cplayer.h(96): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cplayer.h(97): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cplayer.h(204): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-c:\dev\adventure\src\cplayer.h(205): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-c:\dev\adventure\src\cplayer.h(214): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cplayer.h(215): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cplayer.h(228): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cplayer.h(229): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cplayer.h(298): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cplayer.h(299): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cplayer.h(349): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cplayer.h(356): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cplayer.h(361): warning C4244: 'function': conversion from 'double' to 'int', possible loss of data
-c:\dev\adventure\src\cplayer.h(365): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cenemy.h(141): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+c:\dev\adventure\src\cenemy.h(142): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+c:\dev\adventure\src\cenemy.h(300): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cenemy.h(311): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cenemy.h(321): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cenemy.h(344): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cenemy.h(345): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cenemy.h(346): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cenemy.h(251): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cenemy.h(252): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cenemy.h(254): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cenemy.h(255): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cenemy.h(257): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cenemy.h(258): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cenemy.h(260): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cenemy.h(261): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cenemy.h(429): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\dev\adventure\src\cenemy.h(430): warning C4305: 'initializing': truncation from 'double' to 'float'
+c:\dev\adventure\src\cenemy.h(554): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cenemy.h(554): warning C4020: 'draw_tile_tinted': too many actual parameters
+c:\dev\adventure\src\cenemy.h(558): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cenemy.h(548): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cenemy.h(549): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cplayer.h(78): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cplayer.h(84): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cplayer.h(87): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cplayer.h(93): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cplayer.h(99): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cplayer.h(102): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cplayer.h(168): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cplayer.h(179): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cplayer.h(189): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cplayer.h(246): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+c:\dev\adventure\src\cplayer.h(300): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cplayer.h(437): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\dev\adventure\src\cplayer.h(118): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cplayer.h(119): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cplayer.h(121): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cplayer.h(122): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cplayer.h(124): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cplayer.h(125): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cplayer.h(127): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cplayer.h(128): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cplayer.h(250): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\dev\adventure\src\cplayer.h(251): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\dev\adventure\src\cplayer.h(260): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cplayer.h(261): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cplayer.h(274): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cplayer.h(275): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
 c:\dev\adventure\src\cplayer.h(343): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cplayer.h(344): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cplayer.h(545): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cplayer.h(553): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cplayer.h(559): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cplayer.h(564): warning C4244: 'function': conversion from 'double' to 'int', possible loss of data
+c:\dev\adventure\src\cplayer.h(568): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cplayer.h(539): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
 c:\dev\adventure\src\cnpc.h(98): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
 c:\dev\adventure\src\cnpc.h(105): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
 c:\dev\adventure\src\cnpc.h(115): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
@@ -112,18 +103,32 @@ c:\dev\adventure\src\cnpc.h(220): warning C4244: 'initializing': conversion from
 c:\dev\adventure\src\cnpc.h(221): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
 c:\dev\adventure\src\cnpc.h(223): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
 c:\dev\adventure\src\cnpc.h(224): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cnpc.h(336): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cnpc.h(328): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\cnpc.h(329): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-c:\dev\adventure\src\program.c(66): warning C4244: 'function': conversion from 'time_t' to 'unsigned int', possible loss of data
-c:\dev\adventure\src\program.c(126): warning C4244: '=': conversion from 'float' to 'LONG', possible loss of data
-c:\dev\adventure\src\program.c(130): warning C4244: '=': conversion from 'float' to 'LONG', possible loss of data
+c:\dev\adventure\src\cnpc.h(328): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cnpc.h(325): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\cnpc.h(326): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\centity.h(68): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\centity.h(69): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\centity.h(85): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\centity.h(86): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\centity.h(102): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\centity.h(103): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\centity.h(119): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\centity.h(120): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\centity.h(136): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\centity.h(137): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\centity.h(153): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\centity.h(154): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\centity.h(170): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\adventure\src\program.c(68): warning C4244: 'function': conversion from 'time_t' to 'unsigned int', possible loss of data
+c:\dev\adventure\src\program.c(131): warning C4244: '=': conversion from 'float' to 'LONG', possible loss of data
+c:\dev\adventure\src\program.c(135): warning C4244: '=': conversion from 'float' to 'LONG', possible loss of data
+c:\dev\adventure\src\program.c(299): warning C4244: '=': conversion from 'float' to 'BYTE', possible loss of data
 c:\dev\adventure\src\program.c(300): warning C4244: '=': conversion from 'float' to 'BYTE', possible loss of data
 c:\dev\adventure\src\program.c(301): warning C4244: '=': conversion from 'float' to 'BYTE', possible loss of data
-c:\dev\adventure\src\program.c(302): warning C4244: '=': conversion from 'float' to 'BYTE', possible loss of data
-c:\dev\adventure\src\program.c(364): warning C4305: '=': truncation from 'double' to 'float'
-c:\dev\adventure\src\program.c(370): warning C4305: '=': truncation from 'double' to 'float'
-c:\dev\adventure\src\program.c(376): warning C4305: '=': truncation from 'double' to 'float'
-c:\dev\adventure\src\program.c(382): warning C4305: '=': truncation from 'double' to 'float'
+c:\dev\adventure\src\program.c(363): warning C4305: '=': truncation from 'double' to 'float'
+c:\dev\adventure\src\program.c(369): warning C4305: '=': truncation from 'double' to 'float'
+c:\dev\adventure\src\program.c(375): warning C4305: '=': truncation from 'double' to 'float'
+c:\dev\adventure\src\program.c(381): warning C4305: '=': truncation from 'double' to 'float'
+c:\dev\adventure\src\citem.h(88): warning C4715: 'spawn_item': not all control paths return a value
   adventure_V14.vcxproj -> C:\dev\adventure\src\Debug\adventure_V14.exe
   adventure_V14.vcxproj -> C:\dev\adventure\src\Debug\adventure_V14.pdb (Full PDB)

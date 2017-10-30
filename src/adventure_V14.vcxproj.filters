@@ -11,6 +11,15 @@
     <ClInclude Include="ctimer.h" />
     <ClInclude Include="cutil.h" />
     <ClInclude Include="cworld.h" />
+    <ClInclude Include="canimation.h" />
+    <ClInclude Include="ccoin.h" />
+    <ClInclude Include="cenemy.h" />
+    <ClInclude Include="cfloatingnumber.h" />
+    <ClInclude Include="citem.h" />
+    <ClInclude Include="cnpc.h" />
+    <ClInclude Include="cparticles.h" />
+    <ClInclude Include="cplayer.h" />
+    <ClInclude Include="cweapon.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="data">

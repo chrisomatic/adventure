@@ -104,13 +104,17 @@ static void update_coins()
 
 }
 
+static void draw_coin(int i)
+{
+		draw_tile_shadow(coins[i].x - camera.x, coins[i].y - camera.y, coins[i].type + coins[i].anim.frame_order[coins[i].anim.frame],max(0,10 - day_cycle_shade_amount)); // shadow
+		draw_tile(coins[i].x - camera.x, coins[i].y - camera.y - coins[i].z*0.5f, coins[i].type + coins[i].anim.frame_order[coins[i].anim.frame],day_cycle_shade_amount);
+}
+
 static void draw_coins()
 {
     for(int i = 0; i < num_coins; ++i)
     {
-
-		draw_tile(coins[i].x - camera.x, coins[i].y - camera.y, coins[i].type + coins[i].anim.frame_order[coins[i].anim.frame],254); // shadow
-		draw_tile(coins[i].x - camera.x, coins[i].y - camera.y - coins[i].z*0.5f, coins[i].type + coins[i].anim.frame_order[coins[i].anim.frame],day_cycle_shade_amount);
+        draw_coin(i);
     }
 
 }

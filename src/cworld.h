@@ -10,8 +10,10 @@
 #define MUD      53
 #define MOUNTAIN 54
 #define SNOW     55
-#define ST0NE    56
-#define BRICK    57 
+#define LAVA     56
+#define LAVA2    57
+#define ST0NE    58
+#define BRICK    59 
 #define TREE     64
 
 // player structures
@@ -46,7 +48,8 @@ typedef enum
 	PLAYER_STATE_MOVE   = 1,
 	PLAYER_STATE_ATTACK = 2,
 	PLAYER_STATE_HURT   = 4,
-	PLAYER_STATE_DEAD   = 8
+    PLAYER_STATE_MIDAIR = 8,
+	PLAYER_STATE_DEAD   = 16
 } PlayerState;
 
 typedef struct
@@ -54,21 +57,29 @@ typedef struct
     char* name;
     int tile_index;
     int lvl;
-    int xp;
+    float xp;
     int hp;
     int max_hp;
     float x;
     float y;
-    int x_vel;
-    int y_vel;
+    float z;
+    float x_vel;
+    float y_vel;
+    float z_vel;
     int gold;
     int coin_throw_counter;
     int coin_throw_max;
+    int environmental_hurt_counter;
+    int environmental_hurt_max;
     float base_speed;
     float speed;
     float attack_angle;
     int attack_frame_counter;
     BOOL throw_coins;
+    BOOL pickup;
+    BOOL take;
+    BOOL jump;
+    int item_held_index;
     Weapon weapon;
     Direction dir;
     AttackDirection attack_dir;
@@ -115,6 +126,7 @@ static void init_world(const char* path_to_world_file)
                 case SAND:  world_collision[i][j] = 2; break;
                 case MUD:   world_collision[i][j] = 3; break;
                 case WATER: world_collision[i][j] = 4; break;
+                case LAVA:  world_collision[i][j] = 6; break;
                 case MOUNTAIN: world_collision[i][j] = 5; break;
                 case TREE:  world_collision[i][j] = 5; break;
             }
@@ -137,12 +149,20 @@ static void update_world()
 			{
 				if(world[i][j] == WATER || world[i][j] == WATER2)
 				{
-					// animate
+					// animate water
                     if(world[i][j] == WATER) 
                         world[i][j] = WATER2;
                     else
                         world[i][j] = WATER;
                 }
+				if(world[i][j] == LAVA || world[i][j] == LAVA2)
+                {
+					// animate lava
+                    if(world[i][j] == LAVA) 
+                        world[i][j] = LAVA2;
+                    else
+                        world[i][j] = LAVA;
+                }    
             }
         }
     }
@@ -170,7 +190,10 @@ static void draw_world(POINT camera, int shade_amount)
     {
         for(int i = start_x; i < end_x; ++i)
         {
-            draw_tile(i*TILE_WIDTH - camera.x,j*TILE_HEIGHT - camera.y,world[j][i],shade_amount);
+            if(world[j][i] == LAVA || world[j][i] == LAVA2)
+                draw_tile(i*TILE_WIDTH - camera.x,j*TILE_HEIGHT - camera.y,world[j][i],0); // don't shade lava tiles
+            else
+                draw_tile(i*TILE_WIDTH - camera.x,j*TILE_HEIGHT - camera.y,world[j][i],shade_amount);
         }
     }
 }

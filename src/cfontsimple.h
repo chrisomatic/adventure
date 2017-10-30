@@ -10,6 +10,7 @@
 #define CHAR_FLAME        131
 #define CHAR_MISSILE_M    132
 #define CHAR_HEART        133 
+#define CHAR_HEART_HALF   134 
 
 //    int x,y,n;
 //    unsigned char *data = stbi_load(filename, &x, &y, &n, 0);

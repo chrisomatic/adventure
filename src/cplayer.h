@@ -1,5 +1,6 @@
 KeyPress keypress = 0x0000;
 int foes_killed = 0; // @TEMP
+long next_level = 10;
 
 static void init_player()
 {
@@ -12,13 +13,21 @@ static void init_player()
     player.gold = 10;
     player.x   = (WORLD_TILE_WIDTH*(TILE_WIDTH-1))/2;
     player.y   = (WORLD_TILE_HEIGHT*(TILE_HEIGHT-1))/2;
+    player.z   = 0;
     player.x_vel = 0;
     player.y_vel = 0;
+    player.z_vel = 0;
     player.speed = 1.0f;
     player.base_speed = 1.0f;
     player.dir = DIR_DOWN;
     player.state = PLAYER_STATE_NONE;
     player.throw_coins = FALSE;
+    player.pickup = FALSE;
+    player.take = FALSE;
+    player.jump = FALSE;
+    player.environmental_hurt_counter = 60;
+    player.environmental_hurt_max = 60;
+    player.item_held_index = -1;
     player.coin_throw_counter = 0;
     player.coin_throw_max = 20;
     player.anim.counter = 0;
@@ -38,9 +47,43 @@ static void init_player()
     player.weapon.max_damage = weapons[1].max_damage;
     player.weapon.tile_index = weapons[1].tile_index;
 }
+static void gain_level()
+{
+    player.lvl++;
+    player.xp -= next_level;
+    next_level *= 1.10f;
+
+    spawn_floating_string(player.x + TILE_WIDTH/2, player.y,"+Lvl",8);
+    for(int i = 0; i < 10; ++i)
+        spawn_particle(rand() % TILE_WIDTH + player.x,player.y,2,5,'*',8);
+}
 
 static void update_player()
 {
+    // check if died
+    if(player.hp <= 0)
+    {
+        // drop all player gold
+        int gold_coins = player.gold / 100; player.gold -= (gold_coins*100);
+        int silver_coins = player.gold / 10; player.gold -= (silver_coins*10);
+        int bronze_coins = player.gold / 1; player.gold -= bronze_coins;
+
+        for(int c = 0; c < bronze_coins; ++c)
+            spawn_coin(player.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),player.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)),2,0,0,3.0f, COIN_BRONZE);
+        for(int c = 0; c < silver_coins; ++c)
+            spawn_coin(player.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),player.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)),2,0,0,2.5f, COIN_SILVER);
+        for(int c = 0; c < gold_coins; ++c)
+            spawn_coin(player.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),player.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)),2,0,0,2.0f, COIN_GOLD);
+
+        player.state = PLAYER_STATE_DEAD;
+    }
+
+    if(player.state == PLAYER_STATE_DEAD)
+    {
+        // TODO
+        return;
+    }
+    
     // update player movement
 	if ((keypress & KEYPRESS_LEFT) == KEYPRESS_LEFT)
 	{
@@ -74,7 +117,23 @@ static void update_player()
 
     player.x += player.x_vel*player.speed;
     player.y += player.y_vel*player.speed;
+    player.z += player.z_vel;
 
+    // update z vel
+    if((player.state & PLAYER_STATE_MIDAIR) == PLAYER_STATE_MIDAIR)
+    {
+        if(player.z <= 0.0f)
+        {
+            player.z = 0.0f;
+            player.z_vel = 0.0f;
+            player.state ^= PLAYER_STATE_MIDAIR;
+        }
+        else
+        {
+            player.z_vel -= GRAVITY;
+        }
+    }
+    
     // handle player collision
     // terrain collision
     //
@@ -133,24 +192,50 @@ static void update_player()
     }
     else if(collision_value_1 == 3 || collision_value_2 == 3 || collision_value_3 == 3 || collision_value_4 == 3)
     {
-        // handle player in mud
-        if(player.x_vel != 0 || player.y_vel != 0)
+        if((player.state & PLAYER_STATE_MIDAIR) != PLAYER_STATE_MIDAIR)
         {
-            spawn_particle(rand() % TILE_WIDTH + player.x,player.y+TILE_HEIGHT,2,1,0,4);
-        }
+            // handle player in mud
+            if(player.x_vel != 0 || player.y_vel != 0)
+            {
+                spawn_particle(rand() % TILE_WIDTH + player.x,player.y+TILE_HEIGHT,2,1,0,4);
+            }
 
-        player.speed = player.base_speed/2.0f;
+            player.speed = player.base_speed/2.0f;
+        }
     }
     
     else if(collision_value_1 == 4 || collision_value_2 == 4 || collision_value_3 == 4 || collision_value_4 == 4)
     {
         // handle player in water
-        if(player.x_vel != 0 || player.y_vel != 0)
+        if((player.state & PLAYER_STATE_MIDAIR) != PLAYER_STATE_MIDAIR)
         {
-            spawn_particle(rand() % TILE_WIDTH + player.x,player.y+TILE_HEIGHT,2,2,0,8);
-        }
+            if(player.x_vel != 0 || player.y_vel != 0)
+            {
+                spawn_particle(rand() % TILE_WIDTH + player.x,player.y+TILE_HEIGHT,2,2,0,8);
+            }
 
-        player.speed = player.base_speed/3.0f;
+            player.speed = player.base_speed/3.0f;
+        }
+    }
+    else if(collision_value_1 == 6 || collision_value_2 == 6 || collision_value_3 == 6 || collision_value_4 == 6)
+    {
+        if((player.state & PLAYER_STATE_MIDAIR) != PLAYER_STATE_MIDAIR)
+        {
+            // handle player in lava
+            if(player.x_vel != 0 || player.y_vel != 0)
+            {
+                spawn_particle(rand() % TILE_WIDTH + player.x,player.y+TILE_HEIGHT,2,2,0,6);
+            }
+
+            player.environmental_hurt_counter++;
+            if(player.environmental_hurt_counter >= player.environmental_hurt_max)
+            {
+                player.environmental_hurt_counter = 0;
+                player.hp--;
+                spawn_floating_number(player.x+TILE_WIDTH/2,player.y,1,6);
+            }
+            player.speed = player.base_speed/3.0f;
+        }
     }
     else
     {
@@ -249,6 +334,13 @@ static void update_player()
                                     {
 										foes_killed++;
                                         
+                                        // player get xp
+                                        player.xp += enemies[i].xp;
+                                        if(player.xp >= next_level)
+                                        {
+                                            gain_level();
+                                        }
+                                        
                                         // add blood particles
                                         for(int p = 0; p < 10; ++p)
                                             spawn_particle(start_weapon_x+delta_x+camera.x,start_weapon_y+delta_y+camera.y,rand() % 4 + 1,3,0,6);
@@ -266,7 +358,17 @@ static void update_player()
 											spawn_coin(enemies[i].x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),enemies[i].y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)),2,0,0,2.0f, COIN_GOLD);
 
                                         // drop item(s)
-                                        spawn_item(ITEM_MEAT,enemies[i].x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),enemies[i].y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)));
+                                        int item_percent = rand() % 100 + 1;
+                                        if(item_percent >= 1 && item_percent <= 40)
+                                        {
+                                            spawn_item(ITEM_MEAT,enemies[i].x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),enemies[i].y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)));
+
+                                        }
+                                        if(item_percent >= 41 && item_percent <= 50)
+                                        {
+                                            spawn_item(ITEM_IRON_SWORD,enemies[i].x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),enemies[i].y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)));
+
+                                        }
 
                                         remove_enemy(i);
                                     }
@@ -326,7 +428,7 @@ static void update_player()
                                 break;
                         }
                         player.gold += amount;
-                        spawn_floating_number(coins[i].x,coins[i].y,amount,color);
+                        spawn_floating_string(coins[i].x,coins[i].y,"$",color);
 						remove_coin(i);
                     }
                 }
@@ -380,33 +482,180 @@ static void update_player()
             }
         }
     }
+
+    // check if player is near items
+    float closest_item_distance = 100.0f;
+    int closest_item_index = -1;
+    float distance = 0.0f;
+
+    for(int i = 0; i < num_items; ++i)
+    {
+        distance = get_distance(player.x + TILE_WIDTH/2,player.y + TILE_HEIGHT,items[i].x + TILE_WIDTH/2,items[i].y + TILE_HEIGHT/2);
+
+        if(distance <= 14)
+        {
+            if(distance < closest_item_distance)
+            {
+                closest_item_distance = distance;
+                closest_item_index = i;
+            }
+        }
+        
+        items[i].highlighted = FALSE;
+    }
+
+    if(closest_item_index > -1)
+        items[closest_item_index].highlighted = TRUE;
+    
+    // check if player picked up / dropped an item
+    if(player.pickup)
+    {
+        player.pickup = FALSE;
+
+        if(player.item_held_index == -1)
+        {
+            for(int i = 0; i < num_items; ++i)
+            {
+                if(items[i].highlighted == TRUE)
+                {
+                    player.item_held_index = i;
+                    break;
+                }
+            }
+        }
+        else
+        {
+
+            float item_x_vel;
+            float item_y_vel;
+            float item_x_offset = 0;
+            float item_y_offset = 0;
+
+            switch(player.dir)
+            {
+                case DIR_UP:
+                    item_x_vel = 0;
+                    item_y_vel = -2.0f;
+                    break;
+                case DIR_DOWN:
+                    item_x_vel = 0;
+                    item_y_vel = +2.0f;
+                    item_y_offset = +10;
+                    break;
+                case DIR_LEFT:
+                    item_x_vel = -2.0f;
+                    item_y_vel = 0;
+                    item_x_offset = -5;
+                    item_y_offset = 5;
+                    break;
+                case DIR_RIGHT:
+                    item_x_vel = +2.0f;
+                    item_y_vel = 0;
+                    item_x_offset = +5;
+                    item_y_offset = 5;
+                    break;
+            }
+
+            items[player.item_held_index].x += item_x_offset;
+            items[player.item_held_index].y += item_y_offset;
+            items[player.item_held_index].x_vel = player.x_vel*player.speed + item_x_vel;
+            items[player.item_held_index].y_vel = player.y_vel*player.speed + item_y_vel;
+            items[player.item_held_index].z_vel = 2.0f;
+
+            player.item_held_index = -1;
+        }
+    }
+
+    // check if player has "taken" an item (used)
+    if(player.take)
+    {
+        player.take = FALSE;
+
+        int item_index_taken = -1;
+
+        if(player.item_held_index > -1)
+        {
+            item_index_taken = player.item_held_index;
+            player.item_held_index = -1;
+        }
+        else
+        {
+            // find nearest highlighted item
+            for(int i = 0; i < num_items; ++i)
+            {
+                if(items[i].highlighted == TRUE)
+                {
+                    item_index_taken = i;
+                    break;
+                }
+            }
+
+        }
+
+        if(item_index_taken > -1)
+        {
+            if(items[item_index_taken].consummable)
+            {
+                switch(items[item_index_taken].type)
+                {
+                    case ITEM_TYPE_HEALTH:
+                        player.hp += items[item_index_taken].value;
+                        player.hp = min(player.max_hp,player.hp);
+
+                        spawn_floating_number(player.x+TILE_WIDTH/2,player.y,items[item_index_taken].value,11);
+
+                        for(int i = 0; i < 20; ++i)
+                        {
+                            spawn_particle(rand() % TILE_WIDTH + player.x,player.y,rand() % 4 + 1,3,0,6);
+                        }
+                        break;
+                }
+            }
+            remove_item(item_index_taken);
+        }
+    }
+
+    // player jump
+    if(player.jump)
+    {
+        player.jump = FALSE;
+
+        if((player.state & PLAYER_STATE_MIDAIR) != PLAYER_STATE_MIDAIR)
+        {
+            player.state |= PLAYER_STATE_MIDAIR;
+            player.z_vel = 3.0f;
+        }
+    }
 }
 
 static void draw_player()
 {
-    // draw player shadow
-    int shadow_y = player.y + TILE_HEIGHT - 3;
-
-    for(int i = 7; i > 0; --i)
+    if(player.state == PLAYER_STATE_DEAD)
     {
-		for (int j = 1; j < 15; ++j)
+        // draw tombstone
+		draw_tile(player.x - camera.x, player.y - camera.y,66, day_cycle_shade_amount);
+    }
+    else
+    {
+        // draw player
+        if (player.dir != DIR_UP)
         {
-            shade_pixel8(player.x - camera.x + j,shadow_y - camera.y,max(0,i - day_cycle_shade_amount));
+            draw_tile_shadow(player.x - camera.x,player.y - camera.y,player.tile_index + player.dir+player.anim.frame_order[player.anim.frame],max(10-day_cycle_shade_amount,0));
+            draw_tile(player.x - camera.x,player.y - camera.y - 0.5*player.z,player.tile_index + player.dir+player.anim.frame_order[player.anim.frame],day_cycle_shade_amount);
         }
-        shadow_y++;
-    }
 
-    // draw player
-	if (player.dir != DIR_UP)
-		draw_tile(player.x - camera.x,player.y - camera.y,player.tile_index + player.dir+player.anim.frame_order[player.anim.frame],day_cycle_shade_amount);
-
-    if((player.state & PLAYER_STATE_ATTACK) == PLAYER_STATE_ATTACK)
-    {
-        // draw weapon
-        draw_tile_rotated(player.x - camera.x + cos(player.attack_angle)*2*TILE_WIDTH/3,player.y - camera.y - sin(player.attack_angle) * 2*TILE_HEIGHT/3,player.weapon.tile_index,player.attack_angle, day_cycle_shade_amount);
+        if((player.state & PLAYER_STATE_ATTACK) == PLAYER_STATE_ATTACK)
+        {
+            // draw weapon
+            draw_tile_rotated_shadow(player.x - camera.x + cos(player.attack_angle)*2*TILE_WIDTH/3,player.y - camera.y - sin(player.attack_angle) * 2*TILE_HEIGHT/3,player.weapon.tile_index,player.attack_angle,max(10-day_cycle_shade_amount,0));
+            draw_tile_rotated(player.x - camera.x + cos(player.attack_angle)*2*TILE_WIDTH/3,player.y - camera.y - sin(player.attack_angle) * 2*TILE_HEIGHT/3 - 0.5*player.z,player.weapon.tile_index,player.attack_angle, day_cycle_shade_amount);
+        }
+        
+        if (player.dir == DIR_UP)
+        {
+            draw_tile_shadow(player.x - camera.x,player.y - camera.y,player.tile_index + player.dir+player.anim.frame_order[player.anim.frame],max(10-day_cycle_shade_amount,0));
+            draw_tile(player.x - camera.x,player.y - camera.y - 0.5*player.z,player.tile_index + player.dir+player.anim.frame_order[player.anim.frame],day_cycle_shade_amount);
+        }
     }
-    
-	if (player.dir == DIR_UP)
-		draw_tile(player.x - camera.x, player.y - camera.y, player.tile_index + player.dir + player.anim.frame_order[player.anim.frame],day_cycle_shade_amount);
 
 }
