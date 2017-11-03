@@ -1,4 +1,5 @@
-#define MAX_ENEMIES 1000
+#define MAX_ENEMIES    1000
+#define MAX_ENEMY_LIST 100
 
 typedef enum
 {
@@ -12,6 +13,12 @@ typedef enum
     ENEMY_MODE_WANDER,
     ENEMY_MODE_PURSUE
 } EnemyMode;
+
+typedef enum
+{
+    PASSIVE,
+    AGGRESSIVE
+} EnemyBehavior;
 
 typedef struct
 {
@@ -30,6 +37,8 @@ typedef struct
     int aggro_radius;
     float speed;
     float base_speed;
+    int environmental_hurt_counter;
+    int environmental_hurt_max;
     int action_counter;
     int action_counter_max;
     int action_duration_counter;
@@ -38,142 +47,131 @@ typedef struct
     BOOL untargetable;
     EnemyState state;
     EnemyMode  mode;
+    EnemyBehavior behavior;
     Direction dir;
     Animation anim;
 } Enemy;
 
 Enemy enemies[MAX_ENEMIES];
+Enemy enemy_list[MAX_ENEMY_LIST];
 
-int num_enemies;
+int num_enemies = 0;
+
+static BOOL get_enemy_by_name(const char* name,Enemy* enemy)
+{
+    for(int i = 0; i < MAX_ENEMY_LIST; ++i)
+    {
+		if (enemy_list[i].name == NULL)
+			continue;
+
+        if(strcmp(enemy_list[i].name, name) == 0)
+        {
+            enemy->name = enemy_list[i].name;
+			enemy->hp = enemy_list[i].hp;
+			enemy->max_hp = enemy_list[i].max_hp;
+			enemy->xp = enemy_list[i].xp;
+            enemy->speed = enemy_list[i].speed;
+            enemy->gold_drop_max = enemy_list[i].gold_drop_max;
+            enemy->behavior = enemy_list[i].behavior;
+            enemy->untargetable = enemy_list[i].untargetable;
+            enemy->tile_index = enemy_list[i].tile_index;
+
+            return TRUE;
+        }
+    }
+}
+static BOOL spawn_enemy(const char* enemy_name,float x, float y)
+{
+    Enemy enemy = {0};
+
+    if(!get_enemy_by_name(enemy_name,&enemy))
+        return;
+
+    enemies[num_enemies].x = x; 
+    enemies[num_enemies].y = y;
+    enemies[num_enemies].x_vel = 0;
+    enemies[num_enemies].y_vel = 0;
+    enemies[num_enemies].speed = enemy.speed;
+    enemies[num_enemies].base_speed = enemy.speed;
+    enemies[num_enemies].dir = DIR_DOWN;
+    enemies[num_enemies].state = ENEMY_STATE_NEUTRAL;
+    enemies[num_enemies].mode  = ENEMY_MODE_WANDER;
+    enemies[num_enemies].name = enemy_name;
+    enemies[num_enemies].tile_index = enemy.tile_index;
+    enemies[num_enemies].hp = enemy.hp;
+    enemies[num_enemies].max_hp = enemy.max_hp;
+    enemies[num_enemies].xp = enemy.xp;
+    enemies[num_enemies].gold_drop_max = enemy.gold_drop_max;
+    enemies[num_enemies].aggro_radius = 50;
+    enemies[num_enemies].particle_spawn_counter = 0;
+    enemies[num_enemies].environmental_hurt_counter = 60;
+    enemies[num_enemies].environmental_hurt_max = 60;
+    enemies[num_enemies].stun_counter = 0;
+    enemies[num_enemies].stun_duration = 20;
+    enemies[num_enemies].untargetable = enemy.untargetable;
+    enemies[num_enemies].behavior = enemy.behavior;
+    enemies[num_enemies].action_counter_max = 60;
+    enemies[num_enemies].action_counter = rand() % enemies[num_enemies].action_counter_max;
+    enemies[num_enemies].action_duration_counter = 0;
+    enemies[num_enemies].anim.counter = 0;
+    enemies[num_enemies].anim.max_count = 10;
+    enemies[num_enemies].anim.frame = 0;
+    enemies[num_enemies].anim.num_frames = 4;
+    enemies[num_enemies].anim.frame_order[0] = 0;
+    enemies[num_enemies].anim.frame_order[1] = 1;
+    enemies[num_enemies].anim.frame_order[2] = 0;
+    enemies[num_enemies].anim.frame_order[3] = 2;
+    
+    ++num_enemies;
+
+    if(num_enemies > MAX_ENEMIES -1)
+    {
+        num_enemies = MAX_ENEMIES - 1;
+        return FALSE;
+    }
+
+    return TRUE;
+}
 
 static void init_enemies()
 {
+    num_enemies = 0;
+
     for (int i = 0; i < MAX_ENEMIES ; ++i)
     {
-        int test_x, test_y;
+        int enemy_x, enemy_y;
         int test_collision_1, test_collision_2, test_collision_3, test_collision_4;
         BOOL collision = TRUE;
 
         // make sure not to spawn enemy in a solid object
         while(collision)
         {
-            test_x = rand() % (TILE_WIDTH*(WORLD_TILE_WIDTH -1));
-            test_y = rand() % (TILE_HEIGHT*(WORLD_TILE_HEIGHT -1));
+            enemy_x = rand() % (TILE_WIDTH*(WORLD_TILE_WIDTH -1));
+            enemy_y = rand() % (TILE_HEIGHT*(WORLD_TILE_HEIGHT -1));
 
-            test_collision_1 = world_collision[test_x/TILE_WIDTH][test_y/TILE_HEIGHT]; 
-            test_collision_2 = world_collision[(test_x + TILE_WIDTH)/TILE_WIDTH][(test_y + TILE_HEIGHT)/TILE_HEIGHT];
-            test_collision_3 = world_collision[test_x/TILE_WIDTH][(test_y+TILE_HEIGHT)/TILE_HEIGHT]; 
-            test_collision_4 = world_collision[(test_x + TILE_WIDTH)/TILE_WIDTH][test_y/TILE_HEIGHT];
+            test_collision_1 = world_collision[enemy_x/TILE_WIDTH][enemy_y/TILE_HEIGHT]; 
+            test_collision_2 = world_collision[(enemy_x + TILE_WIDTH)/TILE_WIDTH][(enemy_y + TILE_HEIGHT)/TILE_HEIGHT];
+            test_collision_3 = world_collision[enemy_x/TILE_WIDTH][(enemy_y+TILE_HEIGHT)/TILE_HEIGHT]; 
+            test_collision_4 = world_collision[(enemy_x + TILE_WIDTH)/TILE_WIDTH][enemy_y/TILE_HEIGHT];
             
             collision = (test_collision_1 == 5 && test_collision_2 == 5 || test_collision_3 == 5 || test_collision_4 == 5);
         }
 
-        if(i < 200)
-        {
-            enemies[num_enemies].x = test_x; 
-            enemies[num_enemies].y = test_y;
-            enemies[num_enemies].x_vel = 0;
-            enemies[num_enemies].y_vel = 0;
-            enemies[num_enemies].speed = 0.9f;
-            enemies[num_enemies].base_speed = 0.9f;
-            enemies[num_enemies].dir = DIR_DOWN;
-            enemies[num_enemies].state = ENEMY_STATE_NEUTRAL;
-            enemies[num_enemies].mode  = ENEMY_MODE_WANDER;
-            enemies[num_enemies].name = "White Rat";
-            enemies[num_enemies].tile_index = 144;
-            enemies[num_enemies].hp = 10;
-            enemies[num_enemies].max_hp = 10;
-            enemies[num_enemies].xp = 2;
-            enemies[num_enemies].gold_drop_max = 5;
-            enemies[num_enemies].aggro_radius = 50;
-            enemies[num_enemies].particle_spawn_counter = 0;
-            enemies[num_enemies].stun_counter = 0;
-            enemies[num_enemies].stun_duration = 20;
-            enemies[num_enemies].untargetable = FALSE;
-            enemies[num_enemies].action_counter_max = 60;
-            enemies[num_enemies].action_counter = rand() % enemies[num_enemies].action_counter_max;
-            enemies[num_enemies].action_duration_counter = 0;
-            enemies[num_enemies].anim.counter = 0;
-            enemies[num_enemies].anim.max_count = 10;
-            enemies[num_enemies].anim.frame = 0;
-            enemies[num_enemies].anim.num_frames = 4;
-            enemies[num_enemies].anim.frame_order[0] = 0;
-            enemies[num_enemies].anim.frame_order[1] = 1;
-            enemies[num_enemies].anim.frame_order[2] = 0;
-            enemies[num_enemies].anim.frame_order[3] = 2;
-        }
-        else if(i < 700)
-        {
-            enemies[num_enemies].x = test_x; 
-            enemies[num_enemies].y = test_y;
-            enemies[num_enemies].x_vel = 0;
-            enemies[num_enemies].y_vel = 0;
-            enemies[num_enemies].speed = 0.5f;
-            enemies[num_enemies].base_speed = 0.5f;
-            enemies[num_enemies].dir = DIR_DOWN;
-            enemies[num_enemies].state = ENEMY_STATE_NEUTRAL;
-            enemies[num_enemies].mode  = ENEMY_MODE_WANDER;
-            enemies[num_enemies].name = "Rat";
-            enemies[num_enemies].tile_index = 16;
-            enemies[num_enemies].hp = 5;
-            enemies[num_enemies].max_hp = 5;
-            enemies[num_enemies].xp = 1;
-            enemies[num_enemies].gold_drop_max = 2;
-            enemies[num_enemies].aggro_radius = 50;
-            enemies[num_enemies].particle_spawn_counter = 0;
-            enemies[num_enemies].stun_counter = 0;
-            enemies[num_enemies].stun_duration = 20;
-            enemies[num_enemies].untargetable = FALSE;
-            enemies[num_enemies].action_counter_max = 60;
-            enemies[num_enemies].action_counter = rand() % enemies[num_enemies].action_counter_max;
-            enemies[num_enemies].action_duration_counter = 0;
-            enemies[num_enemies].anim.counter = 0;
-            enemies[num_enemies].anim.max_count = 10;
-            enemies[num_enemies].anim.frame = 0;
-            enemies[num_enemies].anim.num_frames = 4;
-            enemies[num_enemies].anim.frame_order[0] = 0;
-            enemies[num_enemies].anim.frame_order[1] = 1;
-            enemies[num_enemies].anim.frame_order[2] = 0;
-            enemies[num_enemies].anim.frame_order[3] = 2;
-        }
-        else
-        {
-            enemies[num_enemies].x = test_x; 
-            enemies[num_enemies].y = test_y;
-            enemies[num_enemies].x_vel = 0;
-            enemies[num_enemies].y_vel = 0;
-            enemies[num_enemies].speed = 0.8f;
-            enemies[num_enemies].base_speed = 0.8f;
-            enemies[num_enemies].dir = DIR_DOWN;
-            enemies[num_enemies].state = ENEMY_STATE_NEUTRAL;
-            enemies[num_enemies].mode  = ENEMY_MODE_WANDER;
-            enemies[num_enemies].name = "Orc";
-            enemies[num_enemies].tile_index = 128;
-            enemies[num_enemies].hp = 20;
-            enemies[num_enemies].max_hp = 20; 
-            enemies[num_enemies].xp = 5;
-            enemies[num_enemies].gold_drop_max = 12;
-            enemies[num_enemies].aggro_radius = 50;
-            enemies[num_enemies].particle_spawn_counter = 0;
-            enemies[num_enemies].stun_counter = 0;
-            enemies[num_enemies].stun_duration = 20;
-            enemies[num_enemies].untargetable = FALSE;
-            enemies[num_enemies].action_counter_max = 60;
-            enemies[num_enemies].action_counter = rand() % enemies[num_enemies].action_counter_max;
-            enemies[num_enemies].action_duration_counter = 0;
-            enemies[num_enemies].anim.counter = 0;
-            enemies[num_enemies].anim.max_count = 10;
-            enemies[num_enemies].anim.frame = 0;
-            enemies[num_enemies].anim.num_frames = 4;
-            enemies[num_enemies].anim.frame_order[0] = 0;
-            enemies[num_enemies].anim.frame_order[1] = 1;
-            enemies[num_enemies].anim.frame_order[2] = 0;
-            enemies[num_enemies].anim.frame_order[3] = 2;
-        }
+        int enemy_type = rand() % 3 + 1;
 
-        num_enemies++;
+        switch(enemy_type)
+        {
+            case 1:
+                spawn_enemy("Orc",enemy_x,enemy_y);
+                break;
+            case 2:
+                spawn_enemy("Rat",enemy_x,enemy_y);
+                break;
+            case 3:
+                spawn_enemy("White Rat",enemy_x,enemy_y);
+                break;
+        }
     }
-
 }
 
 static void remove_enemy(int index)
@@ -182,9 +180,44 @@ static void remove_enemy(int index)
 	enemies[index] = enemies[num_enemies];
 }
 
+static void enemy_death(int i)
+{
+    for(int p = 0; p < 10; ++p)
+        spawn_particle(rand()%TILE_WIDTH + enemies[i].x,rand()%TILE_HEIGHT+enemies[i].y,rand() % 4 + 1,3,0,6);
+
+    int coins_to_spawn = rand() % (enemies[i].gold_drop_max+1);
+
+    int gold_coins = coins_to_spawn / 100; coins_to_spawn -= (gold_coins*100);
+    int silver_coins = coins_to_spawn / 10; coins_to_spawn -= (silver_coins*10);
+    int bronze_coins = coins_to_spawn / 1; coins_to_spawn -= bronze_coins;
+
+    for(int c = 0; c < bronze_coins; ++c)
+        spawn_coin(enemies[i].x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),enemies[i].y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)),2,0,0,3.0f, COIN_BRONZE);
+    for(int c = 0; c < silver_coins; ++c)
+        spawn_coin(enemies[i].x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),enemies[i].y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)),2,0,0,2.5f, COIN_SILVER);
+    for(int c = 0; c < gold_coins; ++c)
+        spawn_coin(enemies[i].x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),enemies[i].y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)),2,0,0,2.0f, COIN_GOLD);
+
+    // drop item(s)
+    int item_percent = rand() % 100 + 1;
+    if(item_percent >= 1 && item_percent <= 40)
+    {
+        spawn_item("Meat",enemies[i].x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),enemies[i].y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)));
+
+    }
+    if(item_percent >= 41 && item_percent <= 50)
+    {
+        spawn_item("Iron Sword",enemies[i].x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),enemies[i].y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)));
+
+    }
+
+    remove_enemy(i);
+
+}
+
 static void update_enemies()
 {
-    for(int i = 0; i < num_enemies;++i)
+    for(int i = num_enemies -1; i >= 0;--i)
     {
         if(enemies[i].state == ENEMY_STATE_STUNNED)
         {
@@ -319,6 +352,19 @@ static void update_enemies()
                         if(enemies[i].x_vel != 0 || enemies[i].y_vel != 0)
                         {
                             spawn_particle(rand() % TILE_WIDTH + enemies[i].x,enemies[i].y+TILE_HEIGHT,2,2,0,6);
+                        }
+
+                        enemies[i].environmental_hurt_counter++;
+                        if(enemies[i].environmental_hurt_counter >= enemies[i].environmental_hurt_max)
+                        {
+                            enemies[i].environmental_hurt_counter = 0;
+                            enemies[i].hp--;
+                            if(enemies[i].hp <= 0)
+                            {
+                                enemy_death(i);
+                            }
+
+                            spawn_floating_number(enemies[i].x+TILE_WIDTH/2,enemies[i].y,1,6);
                         }
 
                         enemies[i].speed = enemies[i].base_speed/3.0f;

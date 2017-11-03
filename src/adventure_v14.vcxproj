@@ -81,9 +81,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="canimation.h" />
+    <ClInclude Include="casset.h" />
     <ClInclude Include="ccoin.h" />
     <ClInclude Include="cdraw.h" />
     <ClInclude Include="cenemy.h" />
+    <ClInclude Include="centity.h" />
     <ClInclude Include="cfloatingnumber.h" />
     <ClInclude Include="cfontsimple.h" />
     <ClInclude Include="citem.h" />
@@ -91,9 +93,10 @@
     <ClInclude Include="common.h" />
     <ClInclude Include="cparticles.h" />
     <ClInclude Include="cplayer.h" />
+    <ClInclude Include="cprojectile.h" />
+    <ClInclude Include="cstr.h" />
     <ClInclude Include="ctile.h" />
     <ClInclude Include="ctimer.h" />
-    <ClInclude Include="cutil.h" />
     <ClInclude Include="cweapon.h" />
     <ClInclude Include="cworld.h" />
   </ItemGroup>

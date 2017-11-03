@@ -73,6 +73,9 @@ void draw_char_scaled(const unsigned char c, int x, int y, float scale_factor, c
 			if (dst < back_buffer || dst >(unsigned char*)back_buffer + (buffer_width*buffer_height))
 				return;
 
+			if (x+j < 0 || x+j >= buffer_width)
+				return;
+
 			if(*src > 0)
 				*dst = color;
 			++dst;
@@ -124,6 +127,9 @@ void draw_char(const unsigned char c, int x, int y, char color)
 			if (dst < back_buffer || dst >(unsigned char*)back_buffer + (buffer_width*buffer_height))
 				return;
 
+			if (x+j < 0 || x+j >= buffer_width)
+				return;
+
 			if(*src > 0)
 				*dst = color;
 			++dst; ++src;
@@ -142,6 +148,9 @@ void draw_char_with_shadow(const unsigned char c, int x, int y, char color)
 
 static void draw_string(char *s, int x, int y, float scale, char color)
 {
+	if (s == NULL)
+		return;
+	
 	char* p = s;
 
 	while (*p)

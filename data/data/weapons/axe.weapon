@@ -1,0 +1,7 @@
+name: Axe
+type: 0 # Melee
+min_damage: 4
+max_damage: 5
+attack_speed: 0.5 
+attack_range: 20
+tile_index: 82

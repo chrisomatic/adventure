@@ -9,7 +9,6 @@
     <ClInclude Include="common.h" />
     <ClInclude Include="ctile.h" />
     <ClInclude Include="ctimer.h" />
-    <ClInclude Include="cutil.h" />
     <ClInclude Include="cworld.h" />
     <ClInclude Include="canimation.h" />
     <ClInclude Include="ccoin.h" />
@@ -20,6 +19,10 @@
     <ClInclude Include="cparticles.h" />
     <ClInclude Include="cplayer.h" />
     <ClInclude Include="cweapon.h" />
+    <ClInclude Include="cprojectile.h" />
+    <ClInclude Include="casset.h" />
+    <ClInclude Include="centity.h" />
+    <ClInclude Include="cstr.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="data">

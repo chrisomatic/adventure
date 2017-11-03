@@ -1,0 +1,7 @@
+name: Sword
+type: 0 # Melee
+min_damage: 2
+max_damage: 3
+attack_speed: 1.0
+attack_range: 20
+tile_index: 81

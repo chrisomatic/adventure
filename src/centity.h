@@ -7,6 +7,7 @@ typedef enum
     ENTITY_TYPE_ENEMY,
     ENTITY_TYPE_NPC,
     ENTITY_TYPE_PARTICLE,
+    ENTITY_TYPE_PROJECTILE,
     ENTITY_TYPE_FLOATING_NUMBER
 } EntityType;
 
@@ -68,9 +69,9 @@ static void sort_entities()
         screen_x = items[i].x - camera.x;
         screen_y = items[i].y - camera.y;
         
-        if (screen_x+TILE_WIDTH < 0 || screen_x > buffer_width)
+        if (screen_x+TILE_WIDTH < 0 || screen_x >= buffer_width)
             continue;
-        if (screen_y+TILE_HEIGHT < 0 || screen_y > buffer_height)
+        if (screen_y+TILE_HEIGHT < 0 || screen_y >= buffer_height)
             continue;
 
         entities[num_entities].type = ENTITY_TYPE_ITEM;
@@ -119,9 +120,9 @@ static void sort_entities()
         screen_x = npcs[i].x - camera.x;
         screen_y = npcs[i].y - camera.y;
         
-        if (screen_x+TILE_WIDTH < 0 || screen_x > buffer_width)
+        if (screen_x+TILE_WIDTH < 0 || screen_x >= buffer_width)
             continue;
-        if (screen_y+TILE_HEIGHT < 0 || screen_y > buffer_height)
+        if (screen_y+TILE_HEIGHT < 0 || screen_y >= buffer_height)
             continue;
 
         entities[num_entities].type = ENTITY_TYPE_NPC;
@@ -136,12 +137,29 @@ static void sort_entities()
         screen_x = particles[i].x - camera.x;
         screen_y = particles[i].y - camera.y;
         
-        if (screen_x+TILE_WIDTH < 0 || screen_x > buffer_width)
+        if (screen_x+TILE_WIDTH < 0 || screen_x >= buffer_width)
             continue;
-        if (screen_y+TILE_HEIGHT < 0 || screen_y > buffer_height)
+        if (screen_y+TILE_HEIGHT < 0 || screen_y >= buffer_height)
             continue;
 
         entities[num_entities].type = ENTITY_TYPE_PARTICLE;
+        entities[num_entities].index = i;
+        entities[num_entities].y_value = screen_y;
+        num_entities++;
+    }
+    
+    // projectiles
+    for(int i = 0; i < num_projectiles;++i)
+    {
+        screen_x = projectiles[i].x - camera.x;
+        screen_y = projectiles[i].y - camera.y;
+        
+        if (screen_x+TILE_WIDTH < 0 || screen_x >= buffer_width)
+            continue;
+        if (screen_y+TILE_HEIGHT < 0 || screen_y >= buffer_height)
+            continue;
+
+        entities[num_entities].type = ENTITY_TYPE_PROJECTILE;
         entities[num_entities].index = i;
         entities[num_entities].y_value = screen_y;
         num_entities++;
@@ -153,9 +171,9 @@ static void sort_entities()
         screen_x = floating_numbers[i].x - camera.x;
         screen_y = floating_numbers[i].y - camera.y;
         
-        if (screen_x+TILE_WIDTH < 0 || screen_x > buffer_width)
+        if (screen_x+TILE_WIDTH < 0 || screen_x >= buffer_width)
             continue;
-        if (screen_y+TILE_HEIGHT < 0 || screen_y > buffer_height)
+        if (screen_y+TILE_HEIGHT < 0 || screen_y >= buffer_height)
             continue;
 
         entities[num_entities].type = ENTITY_TYPE_FLOATING_NUMBER;
@@ -197,6 +215,9 @@ static void draw_entities()
                 break;
             case ENTITY_TYPE_PARTICLE:
                 draw_particle(entities[i].index);
+                break;
+            case ENTITY_TYPE_PROJECTILE:
+                draw_projectile(entities[i].index);
                 break;
             case ENTITY_TYPE_FLOATING_NUMBER:
                 draw_floating_number(entities[i].index);

@@ -1,0 +1,9 @@
+name: Orc
+hp: 20
+max_hp: 20
+xp: 5
+speed: 0.8
+gold_drop_max: 12
+behavior: 1 # Aggressive
+untargetable: 0 # FALSE
+tile_index: 128

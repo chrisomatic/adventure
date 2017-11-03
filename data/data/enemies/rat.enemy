@@ -1,0 +1,9 @@
+name: Rat
+hp: 5
+max_hp: 5
+xp: 1
+speed: 0.5
+gold_drop_max: 2
+behavior: 0 # Passive
+untargetable: 0 # FALSE
+tile_index: 16

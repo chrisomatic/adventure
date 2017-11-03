@@ -1,0 +1,9 @@
+name: "White Rat"
+hp: 10
+max_hp: 10
+xp: 2
+speed: 0.9
+gold_drop_max: 5
+behavior: 0 # Passive
+untargetable: 0 # FALSE
+tile_index: 144

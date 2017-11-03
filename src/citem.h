@@ -1,10 +1,5 @@
-#define MAX_ITEMS 1000
-
-typedef enum
-{
-    ITEM_MEAT,
-    ITEM_IRON_SWORD
-} ItemIndex;
+#define MAX_ITEMS     1000
+#define MAX_ITEM_LIST 100
 
 typedef enum
 {
@@ -34,51 +29,54 @@ typedef struct
 } Item;
 
 Item items[MAX_ITEMS];
-static int num_items;
+Item item_list[MAX_ITEM_LIST];
 
-static BOOL spawn_item(ItemIndex i,float x, float y)
+static int num_items = 0;
+
+static BOOL get_item_by_name(const char* name,Item* item)
 {
-    switch(i)
+    for(int i = 0; i < MAX_ITEM_LIST; ++i)
     {
-        case ITEM_MEAT:
-            items[num_items].name = "Meat";
-            items[num_items].description = "Heals you 1 heart!";
-            items[num_items].x = x;
-            items[num_items].y = y;
-            items[num_items].z = 5.0f;
-            items[num_items].x_vel = 0.0f;
-            items[num_items].y_vel = 0.0f;
-            items[num_items].z_vel = 2.0f;
-            items[num_items].friction = 0.05f;
-            items[num_items].tile_index = 112;
-            items[num_items].value = 2;
-            items[num_items].highlighted = FALSE;
-            items[num_items].consummable = TRUE;
-            items[num_items].type = ITEM_TYPE_HEALTH;
+		if (item_list[i].name == NULL)
+			continue;
 
-            break;
-        case ITEM_IRON_SWORD:
-            items[num_items].name = "Iron Sword";
-            items[num_items].description = "A shoddily-made iron sword!";
-            items[num_items].x = x;
-            items[num_items].y = y;
-            items[num_items].z = 5.0f;
-            items[num_items].x_vel = 0.0f;
-            items[num_items].y_vel = 0.0f;
-            items[num_items].z_vel = 2.0f;
-            items[num_items].friction = 0.05f;
-            items[num_items].tile_index = 81;
-            items[num_items].highlighted = FALSE;
-            items[num_items].consummable = FALSE;
-            items[num_items].type = ITEM_TYPE_WEAPON;
+        if(strcmp(item_list[i].name, name) == 0)
+        {
+            item->name = item_list[i].name;
+			item->description = item_list[i].description;
+			item->value = item_list[i].value;
+			item->tile_index = item_list[i].tile_index;
+			item->consummable = item_list[i].consummable;
+			item->type = item_list[i].type;
 
-            break;
-        default:
-            return;
+            return TRUE;
+        }
     }
-    
-    num_items++;
+}
 
+static BOOL spawn_item(const char* item_name,float x, float y)
+{
+    Item item = {0};
+
+    if(!get_item_by_name(item_name,&item))
+        return;
+
+    items[num_items].name = item.name;
+    items[num_items].description = item.description;
+    items[num_items].x = x;
+    items[num_items].y = y;
+    items[num_items].z = 5.0f;
+    items[num_items].x_vel = 0.0f;
+    items[num_items].y_vel = 0.0f;
+    items[num_items].z_vel = 2.0f;
+    items[num_items].friction = AIR_RESISTANCE;
+    items[num_items].tile_index = item.tile_index;
+    items[num_items].highlighted = FALSE;
+    items[num_items].consummable = item.consummable;
+    items[num_items].type = item.type;
+    items[num_items].value = item.value;
+
+    ++num_items;
     if(num_items > MAX_ITEMS -1)
     {
         num_items = MAX_ITEMS - 1;
@@ -89,9 +87,14 @@ static BOOL spawn_item(ItemIndex i,float x, float y)
     
 }
 
+static void init_items()
+{
+    num_items = 0;
+}
+
 static void remove_item(int index)
 {
-	num_items--;
+	--num_items;
 	items[index] = items[num_items];
 }
 
@@ -138,7 +141,7 @@ static void update_items()
                 // hit the ground
                 items[i].z = 0.0f;
                 items[i].z_vel = 0.0f;
-                items[i].friction = 0.1f;
+                items[i].friction = GROUND_FRICTION;
             }
             else
             {
@@ -148,9 +151,9 @@ static void update_items()
             if(items[i].x_vel != 0 || items[i].y_vel != 0)
             {
                 // air resistance
-                if(items[i].x_vel < 0) items[i].x_vel += coins[i].friction;
+                if(items[i].x_vel < 0) items[i].x_vel += items[i].friction;
                 else items[i].x_vel -= items[i].friction;
-                if(items[i].y_vel < 0) items[i].y_vel += coins[i].friction;
+                if(items[i].y_vel < 0) items[i].y_vel += items[i].friction;
                 else items[i].y_vel -= items[i].friction;
 
                 if(abs(items[i].x_vel) <= 0.2f) items[i].x_vel = 0.0f;

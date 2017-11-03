@@ -15,4 +15,3 @@ extern int buffer_height;
 
 extern int window_width;
 extern int window_height;
-

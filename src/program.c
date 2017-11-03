@@ -1,13 +1,13 @@
 #define WIN32_LEAN_AND_MEAN
 #define PI 3.14159265359 
-#define DAY_CYCLE_COUNTER_MAX 7200
 
 #include <windows.h>
 #include <math.h>     // for abs,atan,cos,sin
+#include <strsafe.h>
 #include <time.h>     // for time function
 #include "common.h"
+#include "cstr.h"
 #include "cdraw.h"
-#include "cutil.h"
 #include "cfontsimple.h"
 #include "ctimer.h"
 #include "canimation.h"
@@ -17,11 +17,13 @@
 #include "ccoin.h"
 #include "citem.h"
 #include "cparticles.h"
+#include "cprojectile.h"
 #include "cfloatingnumber.h"
 #include "cenemy.h"
 #include "cplayer.h"
 #include "cnpc.h"
 #include "centity.h"
+#include "casset.h"
 
 const char* CLASS_NAME = "Adventure";
 
@@ -70,10 +72,12 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
     init_font("data\\font.png");
 	load_tileset("data\\tileset");
 
-    init_weapons();
+	load_all_assets();
+
     init_world("data\\world");
     init_enemies();
     init_player();
+    init_items();
     init_npcs();
 
     timer_init(TARGET_FPS); 
@@ -105,6 +109,7 @@ static void update_scene()
 {
     // update message
     message.active = FALSE;
+    player.notch = FALSE;
 
     // update world
     update_world();
@@ -129,6 +134,9 @@ static void update_scene()
 
     // update particles
     update_particles();
+    
+    // update particles
+    update_projectiles();
 
     // update camera
     camera.x = (player.x - (buffer_width / 2));
@@ -172,7 +180,7 @@ static void draw_scene()
         num_hearts--;
     }
     if(num_hearts > 0)
-        draw_char_with_shadow(CHAR_HEART_HALF,ui_x, buffer_height -7, 6);
+        draw_char(CHAR_HEART_HALF,ui_x, buffer_height -7, 6);
 
     ui_x += 40;
     
@@ -378,35 +386,80 @@ static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM 
             else if(wparam == 'S')
                 keypress |= KEYPRESS_DOWN;
 
+            // start an attack if you are already not attacking
             if((player.state & PLAYER_STATE_ATTACK) != PLAYER_STATE_ATTACK)
             {
-                // start an attack if you are already not attacking
-                if(wparam == VK_LEFT)
+                if(player.weapon.type == WEAPON_TYPE_MELEE)
                 {
-                    player.state |= PLAYER_STATE_ATTACK;
-                    player.attack_dir = PLAYER_ATTACK_LEFT;
-                    player.attack_angle = +3*PI/4;
-                }
-                else if(wparam == VK_RIGHT)
-                {
-                    player.state |= PLAYER_STATE_ATTACK;
-                    player.attack_dir = PLAYER_ATTACK_RIGHT;
-                    player.attack_angle = -1*PI/4;
-                }
-                else if(wparam == VK_UP)
-                {
-                    player.state |= PLAYER_STATE_ATTACK;
-                    player.attack_dir = PLAYER_ATTACK_UP;
-                    player.attack_angle = +1*PI/4;
-                }
-                else if(wparam == VK_DOWN)
-                {
-                    player.state |= PLAYER_STATE_ATTACK;
-                    player.attack_dir = PLAYER_ATTACK_DOWN;
-                    player.attack_angle = -3*PI/4;
+                    if(wparam == VK_LEFT)
+                    {
+                        player.state |= PLAYER_STATE_ATTACK;
+                        player.attack_dir = PLAYER_ATTACK_LEFT;
+                        player.attack_angle = +3*PI/4;
+                    }
+                    else if(wparam == VK_RIGHT)
+                    {
+                        player.state |= PLAYER_STATE_ATTACK;
+                        player.attack_dir = PLAYER_ATTACK_RIGHT;
+                        player.attack_angle = -1*PI/4;
+                    }
+                    else if(wparam == VK_UP)
+                    {
+                        player.state |= PLAYER_STATE_ATTACK;
+                        player.attack_dir = PLAYER_ATTACK_UP;
+                        player.attack_angle = +1*PI/4;
+                    }
+                    else if(wparam == VK_DOWN)
+                    {
+                        player.state |= PLAYER_STATE_ATTACK;
+                        player.attack_dir = PLAYER_ATTACK_DOWN;
+                        player.attack_angle = -3*PI/4;
+                    }
+
                 }
             }
 
+            if(player.weapon.type == WEAPON_TYPE_RANGED)
+            {
+                if(wparam == VK_LEFT)
+                    keypress_attack |= KEYPRESS_LEFT;
+                else if(wparam == VK_RIGHT)
+                    keypress_attack |= KEYPRESS_RIGHT;
+                else if(wparam == VK_UP)
+                    keypress_attack |= KEYPRESS_UP;
+                else if(wparam == VK_DOWN)
+                    keypress_attack |= KEYPRESS_DOWN;
+                
+                if(wparam == VK_LEFT)
+                {
+                    player.state |= PLAYER_STATE_NOTCHED;
+                    player.attack_dir = PLAYER_ATTACK_LEFT;
+                    player.attack_angle = PI;
+                    player.notch = TRUE;
+                }
+                else if(wparam == VK_RIGHT)
+                {
+                    player.state |= PLAYER_STATE_NOTCHED;
+                    player.attack_dir = PLAYER_ATTACK_RIGHT;
+                    player.attack_angle = 0;
+                    player.notch = TRUE;
+                }
+                else if(wparam == VK_UP)
+                {
+                    player.state |= PLAYER_STATE_NOTCHED;
+                    player.attack_dir = PLAYER_ATTACK_UP;
+                    player.attack_angle = +PI/2;
+                    player.notch = TRUE;
+                }
+                else if(wparam == VK_DOWN)
+                {
+                    player.state |= PLAYER_STATE_NOTCHED;
+                    player.attack_dir = PLAYER_ATTACK_DOWN;
+                    player.attack_angle = -PI/2;
+                    player.notch = TRUE;
+                }
+            }
+            
             if(wparam == 'C')
             {
                 player.throw_coins = TRUE;
@@ -428,49 +481,46 @@ static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM 
                 player.jump = TRUE;
             }
 
-            // @DEV
             if(wparam == VK_SHIFT)
             {
-                player.base_speed = 4;
-                player.anim.max_count = 1;
-
+                player.base_speed = 3.0f;
             }
+
+            // @DEV
             if(wparam == '1')
             {
-                player.weapon.name = weapons[0].name;
-                player.weapon.attack_speed = weapons[0].attack_speed;
-                player.weapon.attack_range = weapons[0].attack_range;
-                player.weapon.min_damage = weapons[0].min_damage;
-                player.weapon.max_damage = weapons[0].max_damage;
-                player.weapon.tile_index = weapons[0].tile_index;
+                get_weapon_by_name("Knife",&player.weapon);
             }
             else if(wparam == '2')
             {
-                player.weapon.name = weapons[1].name;
-                player.weapon.attack_speed = weapons[1].attack_speed;
-                player.weapon.attack_range = weapons[1].attack_range;
-                player.weapon.min_damage = weapons[1].min_damage;
-                player.weapon.max_damage = weapons[1].max_damage;
-                player.weapon.tile_index = weapons[1].tile_index;
-
+                get_weapon_by_name("Sword",&player.weapon);
             }
             else if(wparam == '3')
             {
-                player.weapon.name = weapons[2].name;
-                player.weapon.attack_speed = weapons[2].attack_speed;
-                player.weapon.attack_range = weapons[2].attack_range;
-                player.weapon.min_damage = weapons[2].min_damage;
-                player.weapon.max_damage = weapons[2].max_damage;
-                player.weapon.tile_index = weapons[2].tile_index;
+                get_weapon_by_name("Axe",&player.weapon);
             }
             else if(wparam == '4')
             {
-                player.weapon.name = weapons[3].name;
-                player.weapon.attack_speed = weapons[3].attack_speed;
-                player.weapon.attack_range = weapons[3].attack_range;
-                player.weapon.min_damage = weapons[3].min_damage;
-                player.weapon.max_damage = weapons[3].max_damage;
-                player.weapon.tile_index = weapons[3].tile_index;
+                get_weapon_by_name("Ultimate",&player.weapon);
+            }
+            else if(wparam == '5')
+            {
+                get_weapon_by_name("Bow",&player.weapon);
+            }
+            else if(wparam == '6')
+            {
+                get_weapon_by_name("Staff",&player.weapon);
+            }
+
+            if(wparam == 'H')
+            {
+                // re-load assets
+                load_all_assets();
+
+                init_enemies();
+                init_items();
+                init_npcs();
+                init_weapons();
             }
 
 			break;
@@ -492,11 +542,28 @@ static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM 
                 player.throw_coins = FALSE;
             }
             
+            if(player.weapon.type == WEAPON_TYPE_RANGED)
+            {
+                if(wparam == VK_LEFT)
+                    keypress_attack ^= KEYPRESS_LEFT;
+                else if(wparam == VK_RIGHT)
+                    keypress_attack ^= KEYPRESS_RIGHT;
+                else if(wparam == VK_UP)
+                    keypress_attack ^= KEYPRESS_UP;
+                else if(wparam == VK_DOWN)
+                    keypress_attack ^= KEYPRESS_DOWN;
+            }
+
+            if((player.state & PLAYER_STATE_NOTCHED) == PLAYER_STATE_NOTCHED)
+                if(!player.notch)
+                    if(keypress_attack == 0x0000)
+                        player.shoot = TRUE;
+
+            
             // @DEV
             if(wparam == VK_SHIFT)
             {
-                player.base_speed = 1;
-                player.anim.max_count = 10;
+                player.base_speed = 1.0f;
             }
 
 			break;

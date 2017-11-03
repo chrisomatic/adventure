@@ -173,7 +173,8 @@ static void draw_tile_rotated(int x, int y, int tile_index, float angle,int shad
                 src_t = src+(TILE_WIDTH*TILES_PER_ROW*v) + u;
 
 				if (*src_t != 0xFF)
-                    *dst = *src_t + (16*shade_amount);
+                    if (dst >= (unsigned char*)back_buffer && x+i >= 0 && x+i < buffer_width)
+                        *dst = *src_t + (16*shade_amount);
             }
 
             dst++;
@@ -228,7 +229,8 @@ static void draw_tile_rotated_shadow(int x, int y, int tile_index, float angle,i
                 src_t = src+(TILE_WIDTH*TILES_PER_ROW*v) + u;
 
 				if (*src_t != 0xFF)
-                    *dst = min(*dst + (16*shade_amount),254);
+                    if (dst >= (unsigned char*)back_buffer && x+i >= 0 && x+i < buffer_width)
+                        *dst = min(*dst + (16*shade_amount),254);
             }
 
             dst++;

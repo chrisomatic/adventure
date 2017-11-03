@@ -1,4 +1,5 @@
-#define MAX_NPCS 100
+#define MAX_NPCS     100
+#define MAX_NPC_LIST 100
 
 typedef struct
 {
@@ -25,31 +26,75 @@ typedef struct
     Direction dir;
     Animation anim;
 } NPC;
+
 NPC npcs[MAX_NPCS];
+NPC npc_list[MAX_NPC_LIST];
+
 int num_npcs = 0;
 
-static void init_npcs()
+static BOOL get_npc_by_name(const char* name,NPC* npc)
 {
-    npcs[num_npcs].x = TILE_WIDTH*(WORLD_TILE_WIDTH/2 - 2); 
-    npcs[num_npcs].y = TILE_HEIGHT*(WORLD_TILE_HEIGHT/2 - 10);
+    for(int i = 0; i < MAX_NPC_LIST; ++i)
+    {
+		if (npc_list[i].name == NULL)
+			continue;
+
+        if(strcmp(npc_list[i].name, name) == 0)
+        {
+            npc->name = npc_list[i].name;
+            npc->hp = npc_list[i].hp;
+            npc->max_hp = npc_list[i].max_hp;
+            npc->xp = npc_list[i].xp;
+			npc->num_dialogue = npc_list[i].num_dialogue;
+			npc->dialogue[0] = npc_list[i].dialogue[0];
+			npc->dialogue[1] = npc_list[i].dialogue[1];
+			npc->dialogue[2] = npc_list[i].dialogue[2];
+			npc->dialogue[3] = npc_list[i].dialogue[3];
+			npc->dialogue[4] = npc_list[i].dialogue[4];
+			npc->dialogue[5] = npc_list[i].dialogue[5];
+			npc->dialogue[6] = npc_list[i].dialogue[6];
+			npc->dialogue[7] = npc_list[i].dialogue[7];
+			npc->dialogue[8] = npc_list[i].dialogue[8];
+			npc->dialogue[9] = npc_list[i].dialogue[9];
+			npc->tile_index = npc_list[i].tile_index;
+
+            return TRUE;
+        }
+    }
+}
+
+static BOOL spawn_npc(const char* npc_name,float x, float y)
+{
+    NPC npc = {0};
+
+    if(!get_npc_by_name(npc_name,&npc))
+        return;
+
+    npcs[num_npcs].x = x; 
+    npcs[num_npcs].y = y;
     npcs[num_npcs].x_vel = 0;
     npcs[num_npcs].y_vel = 0;
     npcs[num_npcs].speed = 0.5f;
     npcs[num_npcs].dir = DIR_DOWN;
     npcs[num_npcs].state = ENEMY_STATE_NEUTRAL;
     npcs[num_npcs].talking = FALSE;
-    npcs[num_npcs].name = "Gumby";
-	npcs[num_npcs].num_dialogue = 5;
+    npcs[num_npcs].name = npc.name;
+	npcs[num_npcs].num_dialogue = npc.num_dialogue;
     npcs[num_npcs].selected_dialogue_num = 0;
-	npcs[num_npcs].dialogue[0] = "Look out for my rats!";
-	npcs[num_npcs].dialogue[1] = "You look very handsome!";
-	npcs[num_npcs].dialogue[2] = "You're my best friend.";
-	npcs[num_npcs].dialogue[3] = "Hello!";
-	npcs[num_npcs].dialogue[4] = "You little b*tch!";
-    npcs[num_npcs].tile_index = 32;
-    npcs[num_npcs].hp = 100;
-    npcs[num_npcs].max_hp = 100; 
-    npcs[num_npcs].xp = 1;
+	npcs[num_npcs].dialogue[0] = npc.dialogue[0];
+	npcs[num_npcs].dialogue[1] = npc.dialogue[1];
+	npcs[num_npcs].dialogue[2] = npc.dialogue[2];
+	npcs[num_npcs].dialogue[3] = npc.dialogue[3];
+	npcs[num_npcs].dialogue[4] = npc.dialogue[4];
+	npcs[num_npcs].dialogue[5] = npc.dialogue[4];
+	npcs[num_npcs].dialogue[6] = npc.dialogue[4];
+	npcs[num_npcs].dialogue[7] = npc.dialogue[4];
+	npcs[num_npcs].dialogue[8] = npc.dialogue[4];
+	npcs[num_npcs].dialogue[9] = npc.dialogue[4];
+    npcs[num_npcs].tile_index = npc.tile_index;
+    npcs[num_npcs].hp = npc.hp; 
+    npcs[num_npcs].max_hp = npc.max_hp; 
+    npcs[num_npcs].xp = npc.xp;
     npcs[num_npcs].talk_radius = 20;
     npcs[num_npcs].action_counter_max = 180;
     npcs[num_npcs].action_counter = rand() % npcs[num_npcs].action_counter_max;
@@ -74,8 +119,22 @@ static void init_npcs()
     npcs[num_npcs].anim.frame_order[13] = 1;
     npcs[num_npcs].anim.frame_order[14] = 1;
     npcs[num_npcs].anim.frame_order[15] = 1;
+    ++num_npcs;
 
-    num_npcs++;
+    if(num_npcs > MAX_NPCS -1)
+    {
+        num_npcs = MAX_NPCS - 1;
+        return FALSE;
+    }
+
+    return TRUE;
+    
+}
+
+static void init_npcs()
+{
+    num_npcs = 0;
+    spawn_npc("Gumby",2016,1888);
 }
 
 static void update_npcs()

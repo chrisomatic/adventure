@@ -30,7 +30,7 @@ static BOOL spawn_coin(float x, float y, float z, float x_vel, float y_vel, floa
     coins[num_coins].x_vel = x_vel;
     coins[num_coins].y_vel = y_vel;
     coins[num_coins].z_vel = z_vel;
-    coins[num_coins].friction = 0.05f;
+    coins[num_coins].friction = AIR_RESISTANCE;
     coins[num_coins].type = type;
     coins[num_coins].anim.counter = rand() % 5;
     coins[num_coins].anim.max_count = 5;
@@ -70,7 +70,7 @@ static void update_coins()
             // hit the ground
             coins[i].z = 0.0f;
             coins[i].z_vel = 0.0f;
-			coins[i].friction = 0.1f;
+			coins[i].friction = GROUND_FRICTION;
         }
 		else
 		{
@@ -79,7 +79,7 @@ static void update_coins()
 
         if(coins[i].x_vel != 0 || coins[i].y_vel != 0)
         {
-            // air resistance
+            // friction
             if(coins[i].x_vel < 0) coins[i].x_vel += coins[i].friction;
             else coins[i].x_vel -= coins[i].friction;
             if(coins[i].y_vel < 0) coins[i].y_vel += coins[i].friction;

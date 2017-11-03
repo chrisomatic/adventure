@@ -1,7 +1,16 @@
+#define MAX_WEAPONS     1000
+#define MAX_WEAPON_LIST 100
 #define KNIFE 80
-#define SWORD 81 
+#define SWORD 81
 #define AXE   82
+#define BOW   83
+#define STAFF 85
 
+typedef enum
+{
+    WEAPON_TYPE_MELEE,
+    WEAPON_TYPE_RANGED
+} WeaponType;
 typedef struct
 {
     char* name;
@@ -9,50 +18,17 @@ typedef struct
     int attack_range;
     int min_damage;
     int max_damage;
-    int   tile_index;
+    int tile_index;
+    WeaponType type;
 } Weapon;
 
-Weapon weapons[20];
+Weapon weapons[MAX_WEAPONS];
+Weapon weapon_list[MAX_WEAPON_LIST];
 
 int num_weapons = 0;
 
 static void init_weapons()
 {
-    // knife
-    weapons[0].name = "Knife";
-    weapons[0].attack_speed = 2.0f;
-    weapons[0].attack_range = 16;
-    weapons[0].min_damage = 1;
-    weapons[0].max_damage = 2;
-    weapons[0].tile_index = KNIFE; 
-    num_weapons++;
-    
-    // sword
-    weapons[1].name = "Sword";
-    weapons[1].attack_speed = 1.0f;
-    weapons[1].attack_range = 20;
-    weapons[1].min_damage = 2;
-    weapons[1].max_damage = 3;
-    weapons[1].tile_index = SWORD; 
-    num_weapons++;
-    
-    // axe
-    weapons[2].name = "Axe";
-    weapons[2].attack_speed = 0.5f;
-    weapons[2].attack_range = 20;
-    weapons[2].min_damage = 3;
-    weapons[2].max_damage = 4;
-    weapons[2].tile_index = AXE;
-    num_weapons++;
-    
-    // ultimate
-    weapons[3].name = "Ultimate";
-    weapons[3].attack_speed = 3.0f;
-    weapons[3].attack_range = 100;
-    weapons[3].min_damage = 100;
-    weapons[3].max_damage = 100;
-    weapons[3].tile_index = AXE;
-    num_weapons++;
-
+    num_weapons = 0;
 }
 

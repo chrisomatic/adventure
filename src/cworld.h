@@ -1,6 +1,9 @@
 #define WORLD_TILE_WIDTH  256
 #define WORLD_TILE_HEIGHT 256
 #define GRAVITY 0.2f;
+#define AIR_RESISTANCE 0.01f;
+#define GROUND_FRICTION 0.1f;
+#define DAY_CYCLE_COUNTER_MAX 7200
 
 #define GRASS    48
 #define MARSH    49
@@ -49,7 +52,8 @@ typedef enum
 	PLAYER_STATE_ATTACK = 2,
 	PLAYER_STATE_HURT   = 4,
     PLAYER_STATE_MIDAIR = 8,
-	PLAYER_STATE_DEAD   = 16
+	PLAYER_STATE_NOTCHED  = 16,
+	PLAYER_STATE_DEAD   = 32 
 } PlayerState;
 
 typedef struct
@@ -79,7 +83,10 @@ typedef struct
     BOOL pickup;
     BOOL take;
     BOOL jump;
+    BOOL notch;
+    BOOL shoot;
     int item_held_index;
+    int notch_index;
     Weapon weapon;
     Direction dir;
     AttackDirection attack_dir;
@@ -105,7 +112,6 @@ static int world_water_anim_counter_max = 5;
 
 static int day_cycle_counter = 0;
 static int day_cycle_direction = 1;
-static int day_cycle_counter_max = 7200;
 static int day_cycle_shade_amount = 0;
 
 static void init_world(const char* path_to_world_file)
