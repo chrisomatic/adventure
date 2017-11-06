@@ -1,17 +1,17 @@
 KeyPress keypress = 0x0000;
 KeyPress keypress_attack = 0x0000;
 
-int foes_killed = 0; // @TEMP
-long next_level = 10;
-
 static void init_player()
 {
     player.name = "Hero";
+    player.tileset_name = "characters";
     player.tile_index = 0;
     player.lvl = 1;
     player.xp  = 0;
     player.hp  = 6;
     player.max_hp = 6;
+    player.mp  = 6;
+    player.max_mp = 6;
     player.gold = 10;
     player.x   = (WORLD_TILE_WIDTH*(TILE_WIDTH-1))/2;
     player.y   = (WORLD_TILE_HEIGHT*(TILE_HEIGHT-1))/2;
@@ -32,6 +32,8 @@ static void init_player()
     player.notch_index = -1;
     player.environmental_hurt_counter = 60;
     player.environmental_hurt_max = 60;
+    player.bounce_counter = 0;
+    player.bounce_counter_max = 12;
     player.item_held_index = -1;
     player.coin_throw_counter = 0;
     player.coin_throw_max = 20;
@@ -46,16 +48,6 @@ static void init_player()
     player.attack_angle = 0.0f;
     player.attack_frame_counter = 0;
     get_weapon_by_name("Sword",&player.weapon);
-}
-static void gain_level()
-{
-    player.lvl++;
-    player.xp -= next_level;
-    next_level *= 2.00f;
-
-    spawn_floating_string(player.x + TILE_WIDTH/2, player.y,"+Lvl",8);
-    for(int i = 0; i < 10; ++i)
-        spawn_particle(rand() % TILE_WIDTH + player.x,player.y,2,5,'*',8);
 }
 
 static void update_player()
@@ -252,12 +244,14 @@ static void update_player()
     if(player.x_vel != 0 || player.y_vel != 0)
     {
         // make player bounce
-        if(player.z == 0.0f && player.base_speed > 1.5f)
+        if(player.z == 0.0f && player.base_speed > 1.5f && player.bounce_counter >= player.bounce_counter_max)
         {
             player.state |= PLAYER_STATE_MIDAIR;
-            player.z_vel = 1.0f;
-
+            player.z_vel = 0.6f;
+            player.bounce_counter = 0;
         }
+
+        player.bounce_counter++;
 
         player.anim.counter++;
 
@@ -295,30 +289,30 @@ static void update_player()
             player.attack_angle += player.weapon.attack_speed*(PI/30.0f);
             player.attack_frame_counter++;
             
-            // check for collision with enemies/objects
+            // check for collision with creatures/objects
             float cosa = cos(player.attack_angle);
             float sina = sin(player.attack_angle);
 
-            for(int i = num_enemies-1; i >= 0;--i)
+            for(int i = num_creatures-1; i >= 0;--i)
             {
-                if(enemies[i].untargetable)
+                if(creatures[i].untargetable)
                 {
                     continue;
                 }
 
-                int relative_enemy_position_x = enemies[i].x - camera.x;
-                int relative_enemy_position_y = enemies[i].y - camera.y;
+                int relative_creature_position_x = creatures[i].x - camera.x;
+                int relative_creature_position_y = creatures[i].y - camera.y;
 
-                // only care about enemies on screen...
-                if(relative_enemy_position_x > 0 && relative_enemy_position_x < buffer_width)
+                // only care about creatures on screen...
+                if(relative_creature_position_x > 0 && relative_creature_position_x < buffer_width)
                 {
-                    if(relative_enemy_position_y > 0 && relative_enemy_position_y < buffer_height)
+                    if(relative_creature_position_y > 0 && relative_creature_position_y < buffer_height)
                     {
                         // check along weapon line
                         for(int j = 0; j < player.weapon.attack_range; ++j)
                         {
-                            // only care about hitting an enemy if it hasn't been hit yet.
-                            if(enemies[i].state != ENEMY_STATE_STUNNED)
+                            // only care about hitting an creature if it hasn't been hit yet.
+                            if(creatures[i].state != CREATURE_STATE_STUNNED)
                             {
                                 int start_weapon_x = player.x - camera.x + TILE_WIDTH/2;
                                 int start_weapon_y = player.y - camera.y + TILE_HEIGHT/2;
@@ -326,37 +320,40 @@ static void update_player()
                                 float delta_x = cosa*j;
                                 float delta_y = -sina*j;
 
-                                if(start_weapon_x+delta_x >= relative_enemy_position_x && start_weapon_x+delta_x <= relative_enemy_position_x+0.75*TILE_WIDTH)
+                                if(start_weapon_x+delta_x >= relative_creature_position_x && start_weapon_x+delta_x <= relative_creature_position_x+0.75*TILE_WIDTH)
                                 {
-                                    if(start_weapon_y+delta_y >= relative_enemy_position_y && start_weapon_y+delta_y <= relative_enemy_position_y+0.75*TILE_HEIGHT)
+                                    if(start_weapon_y+delta_y >= relative_creature_position_y && start_weapon_y+delta_y <= relative_creature_position_y+0.75*TILE_HEIGHT)
                                     {
                                         int damage = (rand() % (player.weapon.max_damage - player.weapon.min_damage + 1)) + player.weapon.min_damage;
                                         
                                         // add floating number
                                         spawn_floating_number(start_weapon_x+delta_x+camera.x,start_weapon_y+delta_y+camera.y,damage,6);
 
-                                        
-                                        // enemy hurt!
-                                        enemies[i].hp -= damage;
+                                        // creature hurt!
+                                        creatures[i].hp -= damage;
 
-                                        // check if enemy died
-                                        if (enemies[i].hp <= 0)
+                                        // check if creature died
+                                        if (creatures[i].hp <= 0)
                                         {
                                             foes_killed++;
                                             
                                             // player get xp
-                                            player.xp += enemies[i].xp;
+                                            player.xp += creatures[i].xp;
                                             if(player.xp >= next_level)
                                             {
                                                 gain_level();
                                             }
 
-                                            enemy_death(i);
+                                            creature_death(i);
 
                                         }
                                         else
                                         {
-                                            enemies[i].state = ENEMY_STATE_STUNNED;
+                                            creatures[i].state = CREATURE_STATE_STUNNED;
+                                            if(creatures[i].behavior == CREATURE_BEHAVIOR_PASSIVE)
+                                            {
+                                                creatures[i].behavior = CREATURE_BEHAVIOR_AGGRESSIVE;
+                                            }
                                         }
                                         break;
                                     }
@@ -400,6 +397,7 @@ static void update_player()
             switch(player.weapon.tile_index)
             {
                 case BOW: offset_amount = 10; break;
+                case CROSSBOW: offset_amount = 10; break;
                 case STAFF: offset_amount = 15; break;
             }
 
@@ -435,22 +433,27 @@ static void update_player()
             switch(player.weapon.tile_index)
             {
                 case BOW:
+                case CROSSBOW:
                     player.notch_index = spawn_projectile(player.x, player.y, 5, 0, 0, 0, ARROW, player.attack_angle, 1.0f);
                     break;
                 case STAFF:
-                    player.notch_index = spawn_projectile(player.x, player.y, 5, 0, 0, 0, FIREBALL, player.attack_angle, 1.0f);
+                    if(player.mp > 0)
+                        player.notch_index = spawn_projectile(player.x, player.y, 5, 0, 0, 0, FIREBALL, player.attack_angle, 1.0f);
+
+                    --player.mp;
+                    player.mp = max(0,player.mp);
                     break;
             }
         }
     
 		if (player.shoot)
 		{
-			player.shoot = FALSE;
             player.state ^= PLAYER_STATE_NOTCHED;
+			player.shoot = FALSE;
 
 			float shoot_x_vel = 0.0f;
 			float shoot_y_vel = 0.0f;
-			float shoot_z_vel = 3.0f;
+			float shoot_z_vel = 2.0f;
 
 			switch (player.attack_dir)
 			{
@@ -474,6 +477,8 @@ static void update_player()
 
 			if (player.notch_index > -1)
 			{
+                projectiles[player.notch_index].shot = TRUE;
+
 				projectiles[player.notch_index].x_vel += ((shoot_x_vel*player.weapon.attack_range) + player.x_vel*player.speed);
 				projectiles[player.notch_index].y_vel += ((shoot_y_vel*player.weapon.attack_range) + player.y_vel*player.speed);
 				projectiles[player.notch_index].z_vel += (shoot_z_vel + player.z_vel);
@@ -707,6 +712,17 @@ static void update_player()
                             spawn_particle(rand() % TILE_WIDTH + player.x,player.y,rand() % 4 + 1,3,0,6);
                         }
                         break;
+                    case ITEM_TYPE_MANA:
+                        player.mp += items[item_index_taken].value;
+                        player.mp = min(player.max_mp,player.mp);
+
+                        spawn_floating_number(player.x+TILE_WIDTH/2,player.y,items[item_index_taken].value,8);
+
+                        for(int i = 0; i < 20; ++i)
+                        {
+                            spawn_particle(rand() % TILE_WIDTH + player.x,player.y,rand() % 2 + 1,3,'*',8);
+                        }
+                        break;
                 }
             }
             remove_item(item_index_taken);
@@ -731,28 +747,28 @@ static void draw_player()
     if(player.state == PLAYER_STATE_DEAD)
     {
         // draw tombstone
-		draw_tile(player.x - camera.x, player.y - camera.y,66, day_cycle_shade_amount);
+		draw_tile(player.x - camera.x, player.y - camera.y,"objects",2,day_cycle_shade_amount);
     }
     else
     {
         // draw player
         if (player.dir != DIR_UP)
         {
-            draw_tile_shadow(player.x - camera.x,player.y - camera.y,player.tile_index + player.dir+player.anim.frame_order[player.anim.frame],max(10-day_cycle_shade_amount,0));
-            draw_tile(player.x - camera.x,player.y - camera.y - 0.5*player.z,player.tile_index + player.dir+player.anim.frame_order[player.anim.frame],day_cycle_shade_amount);
+            draw_tile_shadow(player.x - camera.x,player.y - camera.y,player.tileset_name,player.tile_index + player.dir+player.anim.frame_order[player.anim.frame],max(10-day_cycle_shade_amount,0));
+            draw_tile(player.x - camera.x,player.y - camera.y - 0.5*player.z,player.tileset_name,player.tile_index + player.dir+player.anim.frame_order[player.anim.frame],day_cycle_shade_amount);
         }
 
         if((player.state & PLAYER_STATE_ATTACK) == PLAYER_STATE_ATTACK || (player.state & PLAYER_STATE_NOTCHED) == PLAYER_STATE_NOTCHED)
         {
             // draw weapon
-            draw_tile_rotated_shadow(player.x - camera.x + cos(player.attack_angle)*2*TILE_WIDTH/3,player.y - camera.y - sin(player.attack_angle) * 2*TILE_HEIGHT/3,player.weapon.tile_index,player.attack_angle,max(10-day_cycle_shade_amount,0));
-            draw_tile_rotated(player.x - camera.x + cos(player.attack_angle)*2*TILE_WIDTH/3,player.y - camera.y - sin(player.attack_angle) * 2*TILE_HEIGHT/3 - 0.5*player.z,player.weapon.tile_index,player.attack_angle, day_cycle_shade_amount);
+            draw_tile_rotated_shadow(player.x - camera.x + cos(player.attack_angle)*2*TILE_WIDTH/3,player.y - camera.y - sin(player.attack_angle) * 2*TILE_HEIGHT/3,player.weapon.tileset_name,player.weapon.tile_index,player.attack_angle,max(10-day_cycle_shade_amount,0));
+            draw_tile_rotated(player.x - camera.x + cos(player.attack_angle)*2*TILE_WIDTH/3,player.y - camera.y - sin(player.attack_angle) * 2*TILE_HEIGHT/3 - 0.5*player.z,player.weapon.tileset_name,player.weapon.tile_index,player.attack_angle, day_cycle_shade_amount);
         }
         
         if (player.dir == DIR_UP)
         {
-            draw_tile_shadow(player.x - camera.x,player.y - camera.y,player.tile_index + player.dir+player.anim.frame_order[player.anim.frame],max(10-day_cycle_shade_amount,0));
-            draw_tile(player.x - camera.x,player.y - camera.y - 0.5*player.z,player.tile_index + player.dir+player.anim.frame_order[player.anim.frame],day_cycle_shade_amount);
+            draw_tile_shadow(player.x - camera.x,player.y - camera.y,player.tileset_name,player.tile_index + player.dir+player.anim.frame_order[player.anim.frame],max(10-day_cycle_shade_amount,0));
+            draw_tile(player.x - camera.x,player.y - camera.y - 0.5*player.z,player.tileset_name,player.tile_index + player.dir+player.anim.frame_order[player.anim.frame],day_cycle_shade_amount);
         }
     }
 

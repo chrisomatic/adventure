@@ -2,41 +2,32 @@
 #define PI 3.14159265359 
 
 #include <windows.h>
+#include <mmsystem.h>
 #include <math.h>     // for abs,atan,cos,sin
 #include <strsafe.h>
 #include <time.h>     // for time function
 #include "common.h"
+#include "cwin.h"
 #include "cstr.h"
 #include "cdraw.h"
-#include "cfontsimple.h"
-#include "ctimer.h"
-#include "canimation.h"
-#include "ctile.h"
-#include "cweapon.h"
-#include "cworld.h"
-#include "ccoin.h"
-#include "citem.h"
-#include "cparticles.h"
-#include "cprojectile.h"
-#include "cfloatingnumber.h"
-#include "cenemy.h"
-#include "cplayer.h"
-#include "cnpc.h"
-#include "centity.h"
-#include "casset.h"
+#include "font.h"
+#include "timer.h"
+#include "animation.h"
+#include "tile.h"
+#include "weapon.h"
+#include "world.h"
+#include "coin.h"
+#include "item.h"
+#include "particle.h"
+#include "floatingnumber.h"
+#include "creature.h"
+#include "projectile.h"
+#include "player.h"
+#include "npc.h"
+#include "entity.h"
+#include "asset.h"
 
 const char* CLASS_NAME = "Adventure";
-
-WNDCLASSEX wc;
-HDC dc;
-HWND main_window;
-
-typedef struct
-{
-    BITMAPINFOHEADER bmiHeader;
-    RGBQUAD          acolors[256];
-} dibinfo_t;
-dibinfo_t bmi = { 0 };
 
 BOOL is_running;
 
@@ -50,7 +41,6 @@ const int BYTES_PER_PIXEL = 1;
 
 double TARGET_FPS = 60.0f;
 
-// prototypes
 static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam);
 static void setup_window(HINSTANCE hInstance);
 static void update_scene();
@@ -64,21 +54,26 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
 	generate_palette_file("data\\16_color_palette.png");
 	setup_window(hinstance);
 
-	generate_indexed_tileset("data\\tileset0.png", bmi.acolors);
+    generate_all_tilesets();
     generate_world_file("data\\world0.png");
     
+    // seed PRNG
 	srand(time(NULL));
 
     init_font("data\\font.png");
-	load_tileset("data\\tileset");
 
+    load_all_tilesets();
 	load_all_assets();
 
     init_world("data\\world");
-    init_enemies();
+    init_creatures();
     init_player();
     init_items();
     init_npcs();
+
+    // test
+    //playMIDIFile(main_window,"data\\music\\village.mid");
+    // 
 
     timer_init(TARGET_FPS); 
     is_running = TRUE;
@@ -126,8 +121,8 @@ static void update_scene()
     // update floating numbers
     update_floating_numbers();
 
-    // update enemies
-    update_enemies();
+    // update creatures
+    update_creatures();
     
     // update npcs
     update_npcs();
@@ -152,10 +147,10 @@ static void update_scene()
 static void draw_scene()
 {
     // Clear buffer to bg_color 
-    memset(back_buffer,5, buffer_width*buffer_height*BYTES_PER_PIXEL);
+    memset(back_buffer,1, buffer_width*buffer_height*BYTES_PER_PIXEL);
     
     // draw world
-    draw_world(camera,day_cycle_shade_amount);
+    draw_world();
 
     sort_entities();
     draw_entities();
@@ -169,20 +164,45 @@ static void draw_scene()
 
     for(int i = 0; i < player.max_hp / 2.0f;++i)
     {
-        draw_char_with_shadow(CHAR_HEART,ui_x + 6*i,buffer_height -7,3);
+        draw_char_with_shadow(CHAR_HEART,ui_x,buffer_height -7,3);
+        ui_x += 6;
     }
 
     float num_hearts = player.hp / 2.0f;
+    int heart_counter = 0;
+
     while(num_hearts >= 1)
     {
-        draw_char_with_shadow(CHAR_HEART,ui_x, buffer_height -7, 6);
-        ui_x += 6;
+        draw_char_with_shadow(CHAR_HEART,6*heart_counter, buffer_height -7, 6);
         num_hearts--;
+        heart_counter++;
     }
-    if(num_hearts > 0)
-        draw_char(CHAR_HEART_HALF,ui_x, buffer_height -7, 6);
 
-    ui_x += 40;
+    if(num_hearts > 0)
+        draw_char(CHAR_HEART_HALF,6*heart_counter, buffer_height -7, 6);
+
+    ui_x += 10; 
+    int diamond_x = ui_x;
+
+    for(int i = 0; i < player.max_mp / 2.0f;++i)
+    {
+        draw_char_with_shadow(CHAR_DIAMOND,ui_x,buffer_height -7,3);
+        ui_x += 6;
+    }
+
+    float num_diamonds = player.mp / 2.0f;
+    int diamond_counter = 0;
+
+    while(num_diamonds >= 1)
+    {
+        draw_char_with_shadow(CHAR_DIAMOND,diamond_x + 6*diamond_counter, buffer_height -7, 8);
+        num_diamonds--;
+        diamond_counter++;
+    }
+    if(num_diamonds > 0)
+        draw_char(CHAR_DIAMOND_HALF,diamond_x  + 6*diamond_counter, buffer_height -7, 8);
+
+    ui_x += 20;
     
     // gold
     draw_string_with_shadow("Gold:",ui_x, buffer_height -7,1.0f,7); ui_x += 30;
@@ -233,7 +253,7 @@ static void setup_window(HINSTANCE hInstance)
 	buffer_height = 176; // 11 16px tiles
 
 	window_width = 1024;
-	window_height = 768;
+	window_height = 751;
 
 	wc.lpfnWndProc = MainWndProc;
 	wc.hInstance = hInstance;
@@ -253,7 +273,7 @@ static void setup_window(HINSTANCE hInstance)
 		return;
 
 	DWORD window_style_ex = 0;
-	DWORD window_style = (WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX);
+	DWORD window_style = WS_OVERLAPPEDWINDOW;//(WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
 	
 	RECT r = { 0 };
 
@@ -374,6 +394,22 @@ static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM 
             PostQuitMessage(0);
             break;
         }
+        case WM_SIZING:
+        {
+            RECT* screen_coords = lparam;
+
+            window_width = (screen_coords->right - screen_coords->left);
+			window_height = (screen_coords->bottom - screen_coords->top);
+
+        } break;
+		case WM_SIZE:
+		{
+			if (wparam == SIZE_MAXIMIZED || wparam == SIZE_RESTORED)
+			{
+				window_width = LOWORD(lparam);
+				window_height = HIWORD(lparam);
+			}
+		} break;
         case WM_KEYDOWN:
         {
             if(wparam == 'A')
@@ -483,7 +519,7 @@ static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM 
 
             if(wparam == VK_SHIFT)
             {
-                player.base_speed = 3.0f;
+                player.base_speed = 2.0f;
             }
 
             // @DEV
@@ -511,13 +547,17 @@ static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM 
             {
                 get_weapon_by_name("Staff",&player.weapon);
             }
+            else if(wparam == '7')
+            {
+                get_weapon_by_name("Crossbow",&player.weapon);
+            }
 
             if(wparam == 'H')
             {
                 // re-load assets
                 load_all_assets();
 
-                init_enemies();
+                init_creatures();
                 init_items();
                 init_npcs();
                 init_weapons();

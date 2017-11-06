@@ -1,0 +1,10 @@
+name: Gary
+x: 1200
+y: 880
+hp: 100
+max_hp: 100
+xp: 5
+num_dialogue: 1
+dialogue0: "Welcome to my shop!"
+tileset_name: characters
+tile_index: 0

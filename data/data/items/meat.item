@@ -1,6 +1,7 @@
 name: Meat
 description: "Heals you 1 heart!"
 value: 2
-tile_index: 112
+tileset_name: items
+tile_index: 16
 consummable: 1 #TRUE
 type: 1 #Health

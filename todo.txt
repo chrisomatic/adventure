@@ -1,0 +1,23 @@
+#TODO
+- Add attacking code for enemies
+- Expand "Item" so it will include weapons and armor
+- Improve creature behavior
+- Add creature reproduction cycle
+- Add grouping logic for creatures
+- Add vendors to buy/sell to
+- Add height to entities and integrate it into collision code
+- Add support for "Objects" and object collision
+- Add support for multiple boards
+- Add deep water
+- Add UI for equipment/inventory
+- Experiment with an "Energy" system for swinging, running, etc
+
+#DONE
++ Add mana for spells
++ Make projectiles disappear after a certain amount of time
++ Add collision for projectiles
++ Add item that will recover mana
++ Added crossbow (7 for testing)
++ Improved bouncing, so it has a cooldown and is less bouncy
++ Added support for window resizing
++ Add support for multiple tilesets

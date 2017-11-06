@@ -74,8 +74,8 @@ static void draw_particle(int i)
 
     if(particles[i].character > 0)
     {
-            draw_char_scaled(particles[i].character,particle_x-1, particle_y-1,particles[i].size, particles[i].color + (16*10));
-            draw_char_scaled(particles[i].character,particle_x, particle_y,particles[i].size, particles[i].color + (16*shade_amount));
+        draw_char_scaled(particles[i].character,particle_x-1, particle_y-1,particles[i].size, particles[i].color + (16*10));
+        draw_char_scaled(particles[i].character,particle_x, particle_y,particles[i].size, particles[i].color + (16*shade_amount));
     }
     else
     {

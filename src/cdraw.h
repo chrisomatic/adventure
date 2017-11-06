@@ -45,59 +45,6 @@ static BOOL draw_image(const char* image_path,int x, int y,float scale)
     return TRUE;
 }
 
-static void generate_world_file(const char* image_path)
-{
-    int w,h,n;
-    unsigned char *imgdata = stbi_load(image_path,&w,&h,&n,0);
-
-    if(imgdata == NULL)
-        return;
-
-    unsigned char *p = imgdata;
-
-    FILE * fp_world;
-    fp_world = fopen ("data\\world", "wb");
-
-	unsigned char r, g, b;
-	int val;
-
-    for(int j = 0; j < h; ++j)
-    {
-		for (int i = 0; i < w; ++i)
-		{
-			r = *(p + 0);
-			g = *(p + 1);
-			b = *(p + 2);
-
-			val = 0xFF;
-
-			if (r == 0 && g == 175 && b == 0) // grass
-				val = 48;
-			else if (r == 0 && g == 100 && b == 0) // marsh
-				val = 49;
-			else if (r == 0 && g == 150 && b == 175) // water 
-				val = 50;
-			else if (r == 255 && g == 200 && b == 0) // sand
-				val = 52;
-			else if (r == 100 && g == 75 && b == 50) // mud
-				val = 53;
-            else if (r == 100 && g == 100 && b == 100) // mountain
-                val = 54;
-            else if (r == 255 && g == 255 && b == 255) // snow
-				val = 55;
-            else if (r == 255 && g == 0 && b == 0)    // lava
-				val = 56;
-                
-			if (fputc(val, fp_world) == EOF)
-				return;
-
-			p += n;
-		}
-    }
-    
-    fclose(fp_world);
-    stbi_image_free(imgdata);
-}
 
 static void generate_palette_file(const char* image_path)
 {
@@ -129,54 +76,6 @@ static void generate_palette_file(const char* image_path)
     stbi_image_free(imgdata);
 }
 
-static void generate_indexed_tileset(const char* rgb_image_path,RGBQUAD indexed_colors[256])
-{
-    int w,h,n;
-    unsigned char *imgdata = stbi_load(rgb_image_path,&w,&h,&n,0);
-
-    if(imgdata == NULL)
-        return;
-
-    unsigned char *p = imgdata;
-
-    FILE * fp;
-    fp = fopen ("data\\tileset", "wb");
-
-    for(int j = 0; j < h; ++j)
-    {
-        for(int i = 0; i < w; ++i)
-        {
-            // find closest index for rgb pixel
-            
-            int  color_delta = 0;
-            int  min_color_delta = 256*255*255;
-            int  min_delta_index = 255;
-
-			BOOL color_found = FALSE;
-            for (int k = 0; k < 256; ++k)
-            {
-                color_delta = 0;
-
-                color_delta += abs(indexed_colors[k].rgbRed   - *(p+0));
-                color_delta += abs(indexed_colors[k].rgbGreen - *(p+1));
-                color_delta += abs(indexed_colors[k].rgbBlue  - *(p+2));
-
-                if(color_delta < min_color_delta)
-                {
-                    min_color_delta = color_delta;
-                    min_delta_index = k;
-                }
-            }
-
-            fputc(min_delta_index,fp);
-
-            p+=n;
-        }
-    }
-    
-    fclose(fp);
-    stbi_image_free(imgdata);
-}
 
 
 static void draw_rect8(int x, int y, int w, int h, char color, BOOL filled)
@@ -228,6 +127,9 @@ static void shade_pixel8(int x, int y,int shade_amount)
 	if (dst > (unsigned char*)back_buffer + (buffer_width*buffer_height))
 		return;
 
+    if (x < 0 || x >= buffer_width)
+        return;
+
 	int current = *dst;
 	int offset = (16 * shade_amount);
 
@@ -246,36 +148,10 @@ static void draw_pixel8(int x, int y, unsigned char color)
 	if (dst > (unsigned char*)back_buffer + (buffer_width*buffer_height))
 		return;
 
+    if (x < 0 || x >= buffer_width)
+        return;
+    
 	*dst = color;
-}
-
-static void draw_pixel32(int x, int y, int color, double c)
-{
-	// c is brightness. 0 <= c <= 1
-	int* dst = (int*)back_buffer;
-	dst = dst + (buffer_width*y) + x;
-
-	if (dst < back_buffer)
-		return;
-
-	if (dst > (int*)back_buffer + (buffer_width*buffer_height))
-		return;
-
-    int dstcolor = *dst;
-
-	int sr = (color >> 16 & 0x000000FF);
-	int sg = (color >> 8 & 0x000000FF);
-	int sb = (color & 0x000000FF);
-
-	int dr = (dstcolor >> 16 & 0x000000FF);
-	int dg = (dstcolor >> 8 & 0x000000FF);
-	int db = (dstcolor & 0x000000FF);
-
-	unsigned char r = (unsigned char)(dr + c * (sr - dr));
-	unsigned char g = (unsigned char)(dg + c * (sg - dg));
-	unsigned char b = (unsigned char)(db + c * (sb - db));
-
-	*dst = (r << 16 | g << 8 | b);
 }
 
 static void draw_line2(int x, int y, int x2, int y2,char color) {

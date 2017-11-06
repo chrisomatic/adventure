@@ -4,4 +4,5 @@ min_damage: 100
 max_damage: 100 
 attack_speed: 3.0 
 attack_range: 100 
-tile_index: 82
+tileset_name: weapons
+tile_index: 5

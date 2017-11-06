@@ -4,27 +4,6 @@
     <ClCompile Include="program.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="cdraw.h" />
-    <ClInclude Include="cfontsimple.h" />
-    <ClInclude Include="common.h" />
-    <ClInclude Include="ctile.h" />
-    <ClInclude Include="ctimer.h" />
-    <ClInclude Include="cworld.h" />
-    <ClInclude Include="canimation.h" />
-    <ClInclude Include="ccoin.h" />
-    <ClInclude Include="cenemy.h" />
-    <ClInclude Include="cfloatingnumber.h" />
-    <ClInclude Include="citem.h" />
-    <ClInclude Include="cnpc.h" />
-    <ClInclude Include="cparticles.h" />
-    <ClInclude Include="cplayer.h" />
-    <ClInclude Include="cweapon.h" />
-    <ClInclude Include="cprojectile.h" />
-    <ClInclude Include="casset.h" />
-    <ClInclude Include="centity.h" />
-    <ClInclude Include="cstr.h" />
-  </ItemGroup>
-  <ItemGroup>
     <Filter Include="data">
       <UniqueIdentifier>{ce31da93-d607-47aa-9b96-e739c9cf88cd}</UniqueIdentifier>
     </Filter>
@@ -39,5 +18,27 @@
     <Image Include="..\data\tileset0.png">
       <Filter>data</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="animation.h" />
+    <ClInclude Include="asset.h" />
+    <ClInclude Include="cdraw.h" />
+    <ClInclude Include="coin.h" />
+    <ClInclude Include="common.h" />
+    <ClInclude Include="cstr.h" />
+    <ClInclude Include="cwin.h" />
+    <ClInclude Include="entity.h" />
+    <ClInclude Include="floatingnumber.h" />
+    <ClInclude Include="font.h" />
+    <ClInclude Include="item.h" />
+    <ClInclude Include="npc.h" />
+    <ClInclude Include="particle.h" />
+    <ClInclude Include="player.h" />
+    <ClInclude Include="projectile.h" />
+    <ClInclude Include="tile.h" />
+    <ClInclude Include="timer.h" />
+    <ClInclude Include="weapon.h" />
+    <ClInclude Include="world.h" />
+    <ClInclude Include="creature.h" />
   </ItemGroup>
 </Project>

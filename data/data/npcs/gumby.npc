@@ -1,4 +1,6 @@
 name: Gumby
+x: 2016
+y: 1888
 hp: 100
 max_hp: 100
 xp: 1
@@ -8,4 +10,5 @@ dialogue1: "You look very handsome!"
 dialogue2: "You're my best friend."
 dialogue3: "Hello!"
 dialogue4: "You little b*tch!"
-tile_index: 32
+tileset_name: characters
+tile_index: 16

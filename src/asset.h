@@ -1,41 +1,18 @@
 typedef enum
 {
-    ASSET_TYPE_ENEMY,
-    ASSET_TYPE_ITEM,
-    ASSET_TYPE_NPC,
-    ASSET_TYPE_WEAPON
+	ASSET_TYPE_CREATURE,
+	ASSET_TYPE_ITEM,
+	ASSET_TYPE_NPC,
+	ASSET_TYPE_WEAPON
 } ASSET_TYPE;
 
-static int get_files_in_directory_with_extension(const char* directory_path, const char* extension,char file_paths[100][MAX_PATH]);
-static BOOL copy_weapon_by_name(const char* name,Weapon* copy_to_weapon);
 static void load_assets(ASSET_TYPE type);
 static void load_all_assets();
 
-static BOOL get_weapon_by_name(const char* name,Weapon* weapon)
-{
-    for(int i = 0; i < MAX_WEAPON_LIST; ++i)
-    {
-		if (weapon_list[i].name == NULL)
-			continue;
-
-        if(strcmp(weapon_list[i].name, name) == 0)
-        {
-            weapon->name = weapon_list[i].name;
-			weapon->type = weapon_list[i].type;
-            weapon->attack_speed = weapon_list[i].attack_speed;
-            weapon->attack_range = weapon_list[i].attack_range;
-            weapon->min_damage = weapon_list[i].min_damage;
-            weapon->max_damage = weapon_list[i].max_damage;
-            weapon->tile_index = weapon_list[i].tile_index;
-
-            return TRUE;
-        }
-    }
-}
 
 static void load_all_assets()
 {
-    load_assets(ASSET_TYPE_ENEMY);
+    load_assets(ASSET_TYPE_CREATURE);
     load_assets(ASSET_TYPE_ITEM);
     load_assets(ASSET_TYPE_NPC);
     load_assets(ASSET_TYPE_WEAPON);
@@ -48,9 +25,9 @@ static void load_assets(ASSET_TYPE type)
 
     switch(type)
     {
-        case ASSET_TYPE_ENEMY:
-            directory = "data\\enemies";
-            file_extension = ".enemy";
+        case ASSET_TYPE_CREATURE:
+            directory = "data\\creatures";
+            file_extension = ".creature";
             break;
         case ASSET_TYPE_ITEM:
             directory = "data\\items";
@@ -68,7 +45,7 @@ static void load_assets(ASSET_TYPE type)
             return;
     }
 
-	char paths[100][MAX_PATH] = { 0 };
+	char paths[1000][MAX_PATH] = { 0 };
 	int num_files = get_files_in_directory_with_extension(directory, file_extension, paths);
 
 	int asset_counter = 0;
@@ -121,29 +98,35 @@ static void load_assets(ASSET_TYPE type)
                 
                 switch(type)
                 {
-                    case ASSET_TYPE_ENEMY:
-						if (strcmp(key, "name") == 0) enemy_list[asset_counter].name = _strdup(value);
-                        else if (strcmp(key, "hp") == 0) C_atoi(value, &enemy_list[asset_counter].hp);
-                        else if (strcmp(key, "max_hp") == 0) C_atoi(value, &enemy_list[asset_counter].max_hp);
-                        else if (strcmp(key, "xp") == 0) C_atoi(value, &enemy_list[asset_counter].xp);
-                        else if (strcmp(key, "speed") == 0) enemy_list[asset_counter].speed = atof(value);
-                        else if (strcmp(key, "gold_drop_max") == 0) C_atoi(value, &enemy_list[asset_counter].gold_drop_max);
-                        else if (strcmp(key, "behavior") == 0) C_atoi(value, &enemy_list[asset_counter].behavior);
-                        else if (strcmp(key, "untargetable") == 0) C_atoi(value, &enemy_list[asset_counter].untargetable);
-                        else if (strcmp(key, "tile_index") == 0) C_atoi(value, &enemy_list[asset_counter].tile_index);
+                    case ASSET_TYPE_CREATURE:
+						if (strcmp(key, "name") == 0) creature_list[asset_counter].name = _strdup(value);
+                        else if (strcmp(key, "hp") == 0) C_atoi(value, &creature_list[asset_counter].hp);
+                        else if (strcmp(key, "max_hp") == 0) C_atoi(value, &creature_list[asset_counter].max_hp);
+                        else if (strcmp(key, "xp") == 0) C_atoi(value, &creature_list[asset_counter].xp);
+                        else if (strcmp(key, "speed") == 0) creature_list[asset_counter].speed = atof(value);
+                        else if (strcmp(key, "gold_drop_max") == 0) C_atoi(value, &creature_list[asset_counter].gold_drop_max);
+                        else if (strcmp(key, "behavior") == 0) C_atoi(value, &creature_list[asset_counter].behavior);
+                        else if (strcmp(key, "untargetable") == 0) C_atoi(value, &creature_list[asset_counter].untargetable);
+						else if (strcmp(key, "tileset_name") == 0) creature_list[asset_counter].tileset_name = _strdup(value);
+                        else if (strcmp(key, "tile_index") == 0) C_atoi(value, &creature_list[asset_counter].tile_index);
+
                         break;
 
                     case ASSET_TYPE_ITEM:
 						if (strcmp(key, "name") == 0) item_list[asset_counter].name = _strdup(value);
 						else if (strcmp(key, "description") == 0) item_list[asset_counter].description = _strdup(value);
                         else if (strcmp(key, "value") == 0) C_atoi(value, &item_list[asset_counter].value);
+						else if (strcmp(key, "tileset_name") == 0) item_list[asset_counter].tileset_name = _strdup(value);
                         else if (strcmp(key, "tile_index") == 0) C_atoi(value, &item_list[asset_counter].tile_index);
                         else if (strcmp(key, "consummable") == 0) C_atoi(value, &item_list[asset_counter].consummable);
                         else if (strcmp(key, "type") == 0) C_atoi(value, &item_list[asset_counter].type);
+
                         break;
 
                     case ASSET_TYPE_NPC:
 						if (strcmp(key, "name") == 0) npc_list[asset_counter].name = _strdup(value);
+                        else if (strcmp(key, "x") == 0) npc_list[asset_counter].x = atof(value);
+                        else if (strcmp(key, "y") == 0) npc_list[asset_counter].y = atof(value);
                         else if (strcmp(key, "hp") == 0) C_atoi(value, &npc_list[asset_counter].hp);
                         else if (strcmp(key, "max_hp") == 0) C_atoi(value, &npc_list[asset_counter].max_hp);
                         else if (strcmp(key, "xp") == 0) C_atoi(value, &npc_list[asset_counter].xp);
@@ -158,8 +141,11 @@ static void load_assets(ASSET_TYPE type)
 						else if (strcmp(key, "dialogue7") == 0) npc_list[asset_counter].dialogue[7] = _strdup(value);
 						else if (strcmp(key, "dialogue8") == 0) npc_list[asset_counter].dialogue[8] = _strdup(value);
 						else if (strcmp(key, "dialogue9") == 0) npc_list[asset_counter].dialogue[9] = _strdup(value);
+						else if (strcmp(key, "tileset_name") == 0) npc_list[asset_counter].tileset_name = _strdup(value);
                         else if (strcmp(key, "tile_index") == 0) C_atoi(value, &npc_list[asset_counter].tile_index);
+
                         break;
+
                     case ASSET_TYPE_WEAPON:
 
 						if (strcmp(key, "name") == 0) weapon_list[asset_counter].name = _strdup(value);
@@ -168,7 +154,9 @@ static void load_assets(ASSET_TYPE type)
                         else if (strcmp(key, "max_damage") == 0) C_atoi(value, &weapon_list[asset_counter].max_damage);
                         else if (strcmp(key, "attack_speed") == 0) weapon_list[asset_counter].attack_speed = atof(value);
                         else if (strcmp(key, "attack_range") == 0) C_atoi(value, &weapon_list[asset_counter].attack_range);
+						else if (strcmp(key, "tileset_name") == 0) weapon_list[asset_counter].tileset_name = _strdup(value);
                         else if (strcmp(key, "tile_index") == 0) C_atoi(value, &weapon_list[asset_counter].tile_index);
+
                         break;
                 }
 
@@ -196,60 +184,12 @@ static void load_assets(ASSET_TYPE type)
 
 		++asset_counter;
     }
-}
 
-static int get_files_in_directory_with_extension(const char* directory_path, const char* extension,char file_paths[100][MAX_PATH])
-{
-    WIN32_FIND_DATA ffd;
-    LARGE_INTEGER filesize;
-    TCHAR szDir[MAX_PATH];
-    HANDLE hFind = INVALID_HANDLE_VALUE;
-    size_t length_of_arg;
-    int num_files = 0;
-
-    StringCchLength(directory_path, MAX_PATH, &length_of_arg);
-
-    if (length_of_arg > (MAX_PATH - 3))
+    switch(type)
     {
-        printf(TEXT("\nDirectory path is too long.\n"));
-        return (-1);
+        case ASSET_TYPE_CREATURE: num_creature_list = asset_counter; break;
+        case ASSET_TYPE_ITEM: num_item_list = asset_counter; break;
+        case ASSET_TYPE_NPC: num_npc_list = asset_counter; break;
+        case ASSET_TYPE_WEAPON: num_weapon_list = asset_counter; break;
     }
-
-    StringCchCopy(szDir, MAX_PATH, directory_path);
-    StringCchCat(szDir, MAX_PATH, TEXT("\\*")); 
-    StringCchCat(szDir, MAX_PATH, TEXT(extension));
-
-    hFind = FindFirstFile(szDir, &ffd);
-
-    if (INVALID_HANDLE_VALUE == hFind) 
-    {
-        printf(TEXT("\nError getting first file.\n"));
-        return -1;
-    } 
-
-    char full_file_path[MAX_PATH] = {0};
-    StringCchCopy(full_file_path,MAX_PATH,directory_path);
-	StringCchCat(full_file_path, MAX_PATH, "\\");
-	StringCchCat(full_file_path, MAX_PATH, ffd.cFileName);
-    StringCchCopy(file_paths[num_files],MAX_PATH,full_file_path);
-
-	do
-    {
-        if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-        {
-            // directory
-        }
-        else
-        {
-            StringCchCopy(full_file_path,MAX_PATH,directory_path);
-            StringCchCat(full_file_path, MAX_PATH, "\\");
-            StringCchCat(full_file_path, MAX_PATH, ffd.cFileName);
-            StringCchCopy(file_paths[num_files++],MAX_PATH,full_file_path);
-        }
-	} while (FindNextFile(hFind, &ffd) != 0);
-    
-
-    FindClose(hFind); 
-
-    return num_files;
 }

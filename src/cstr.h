@@ -1,3 +1,53 @@
+static void remove_file_extension(const char* path, char return_path[260])
+{
+    int length = length_of(path);
+
+    int index_of_last_period = -1;
+
+    for(int i = length - 1; i >= 0; --i)
+    {
+        if(path[i] == '.')
+        {
+            index_of_last_period = i;
+            break;
+        }
+    }
+
+    if(index_of_last_period == -1)
+        return;
+
+    int new_length = index_of_last_period;
+
+    for(int i = 0; i < new_length; ++i)
+    {
+        return_path[i] = path[i];
+    }
+}
+
+static void get_file_name(const char* path, char return_file_name[260])
+{
+    int length = length_of(path);
+
+    int index_of_last_slash = -1;
+
+    for(int i = length -1; i >= 0; --i)
+    {
+        if(path[i] == '\\')
+        {
+            index_of_last_slash = i;
+            break;
+        }
+    }
+
+    if(index_of_last_slash == -1)
+        return;
+
+    for(int i = index_of_last_slash + 1; i < length; ++i)
+    {
+        return_file_name[i - index_of_last_slash - 1] = path[i];
+    }
+}
+
 static void reverse(char str[], int length)
 {
 	int start = 0;
@@ -66,9 +116,15 @@ static char* to_string(int i, int* length)
 
 static int length_of(char* s)
 {
+    char* p = s;
     int length = 0;
-    while(*s)
-        length++;
+
+    while(*p)
+    {
+        ++length;
+        ++p;
+    }
+
     return length;
 }
 

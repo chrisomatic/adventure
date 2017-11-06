@@ -1,15 +1,4 @@
 #define MAX_ONSCREEN_ENTITIES 10000
-typedef enum
-{
-    ENTITY_TYPE_PLAYER,
-    ENTITY_TYPE_ITEM,
-    ENTITY_TYPE_COIN,
-    ENTITY_TYPE_ENEMY,
-    ENTITY_TYPE_NPC,
-    ENTITY_TYPE_PARTICLE,
-    ENTITY_TYPE_PROJECTILE,
-    ENTITY_TYPE_FLOATING_NUMBER
-} EntityType;
 
 typedef struct
 {
@@ -97,18 +86,18 @@ static void sort_entities()
         num_entities++;
     }
     
-    // enemies
-    for(int i = 0; i < num_enemies;++i)
+    // creatures
+    for(int i = 0; i < num_creatures;++i)
     {
-        screen_x = enemies[i].x - camera.x;
-        screen_y = enemies[i].y - camera.y;
+        screen_x = creatures[i].x - camera.x;
+        screen_y = creatures[i].y - camera.y;
         
         if (screen_x+TILE_WIDTH < 0 || screen_x >= buffer_width)
             continue;
         if (screen_y+TILE_HEIGHT < 0 || screen_y >= buffer_height)
             continue;
 
-        entities[num_entities].type = ENTITY_TYPE_ENEMY;
+        entities[num_entities].type = ENTITY_TYPE_CREATURE;
         entities[num_entities].index = i;
         entities[num_entities].y_value = screen_y;
         num_entities++;
@@ -207,8 +196,8 @@ static void draw_entities()
             case ENTITY_TYPE_COIN:
                 draw_coin(entities[i].index);
                 break;
-            case ENTITY_TYPE_ENEMY:
-                draw_enemy(entities[i].index);
+            case ENTITY_TYPE_CREATURE:
+                draw_creature(entities[i].index);
                 break;
             case ENTITY_TYPE_NPC:
                 draw_npc(entities[i].index);
@@ -224,4 +213,14 @@ static void draw_entities()
                 break;
         }
     }
+}
+
+static BOOL are_entities_colliding(BoundingBox* a, BoundingBox* b)
+{
+    if(a->x <= (b->x + b->width) && (a->x + a->width) >= b->x)
+        if(a->y <= (b->y + b->length) && (a->y + a->length) >= b->y)
+            if(a->z <= (b->z + b->height) && (a->z + a->height) >= b->z)
+                return TRUE;
+
+    return FALSE;
 }

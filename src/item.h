@@ -5,10 +5,27 @@ typedef enum
 {
     ITEM_TYPE_NONE,
     ITEM_TYPE_HEALTH,
+    ITEM_TYPE_MANA,
     ITEM_TYPE_WEAPON,
     ITEM_TYPE_ARMOR,
     ITEM_TYPE_QUEST
 } ItemType;
+
+/*
+typedef enum
+{
+    WEAPON_TYPE_MELEE,
+    WEAPON_TYPE_RANGED
+} WeaponType;
+*/
+typedef struct
+{
+    float attack_speed;
+    int attack_range;
+    int min_damage;
+    int max_damage;
+    WeaponType type;
+} WeaponProperties;
 
 typedef struct
 {
@@ -21,17 +38,20 @@ typedef struct
     float y_vel;
     float z_vel;
     float friction;
+    char* tileset_name;
     int  tile_index;
     int  value;
     BOOL highlighted;
     BOOL consummable;
     ItemType type;
+    WeaponProperties weapon_props;
 } Item;
 
 Item items[MAX_ITEMS];
 Item item_list[MAX_ITEM_LIST];
 
 static int num_items = 0;
+static int num_item_list = 0;
 
 static BOOL get_item_by_name(const char* name,Item* item)
 {
@@ -45,6 +65,7 @@ static BOOL get_item_by_name(const char* name,Item* item)
             item->name = item_list[i].name;
 			item->description = item_list[i].description;
 			item->value = item_list[i].value;
+			item->tileset_name = item_list[i].tileset_name;
 			item->tile_index = item_list[i].tile_index;
 			item->consummable = item_list[i].consummable;
 			item->type = item_list[i].type;
@@ -70,6 +91,7 @@ static BOOL spawn_item(const char* item_name,float x, float y)
     items[num_items].y_vel = 0.0f;
     items[num_items].z_vel = 2.0f;
     items[num_items].friction = AIR_RESISTANCE;
+    items[num_items].tileset_name = item.tileset_name;
     items[num_items].tile_index = item.tile_index;
     items[num_items].highlighted = FALSE;
     items[num_items].consummable = item.consummable;
@@ -166,15 +188,15 @@ static void update_items()
 
 static void draw_item(int i)
 {
-		draw_tile_shadow(items[i].x - camera.x, items[i].y - camera.y, items[i].tile_index,max(0,10 - day_cycle_shade_amount)); // shadow
+		draw_tile_shadow(items[i].x - camera.x, items[i].y - camera.y, items[i].tileset_name,items[i].tile_index,max(0,10 - day_cycle_shade_amount)); // shadow
 
         if(items[i].highlighted)
         {
-            draw_tile(items[i].x - camera.x, items[i].y - camera.y - items[i].z*0.5f, items[i].tile_index,max(0,day_cycle_shade_amount-3));
+            draw_tile(items[i].x - camera.x, items[i].y - camera.y - items[i].z*0.5f,items[i].tileset_name, items[i].tile_index,max(0,day_cycle_shade_amount-3));
         }
         else
         {
-            draw_tile(items[i].x - camera.x, items[i].y - camera.y - items[i].z*0.5f, items[i].tile_index,day_cycle_shade_amount);
+            draw_tile(items[i].x - camera.x, items[i].y - camera.y - items[i].z*0.5f,items[i].tileset_name, items[i].tile_index,day_cycle_shade_amount);
         }
 }
 

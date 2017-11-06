@@ -3,5 +3,6 @@ type: 1 # Ranged
 min_damage: 2
 max_damage: 3
 attack_speed: 1.0 
-attack_range: 3 
-tile_index: 83
+attack_range: 3
+tileset_name: weapons
+tile_index: 3
