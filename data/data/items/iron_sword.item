@@ -1,7 +1,0 @@
-name: "Iron Sword"
-description: "A heavy, crude blade"
-value: 0
-tileset_name: weapons
-tile_index: 1
-consummable: 0 #FALSE
-type: 2 #Weapon

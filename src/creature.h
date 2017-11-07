@@ -244,9 +244,25 @@ static void creature_death(int i)
     {
         spawn_item("Mana Vial",creatures[i].x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)));
     }
-    else if(item_percent >= 41 && item_percent <= 50)
+    else if(item_percent >= 41 && item_percent <= 42)
     {
-        spawn_item("Iron Sword",creatures[i].x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)));
+        spawn_item("Knife",creatures[i].x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)));
+    }
+    else if(item_percent >= 43 && item_percent <= 44)
+    {
+        spawn_item("Sword",creatures[i].x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)));
+    }
+    else if(item_percent >= 45 && item_percent <= 46)
+    {
+        spawn_item("Axe",creatures[i].x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)));
+    }
+    else if(item_percent >= 47 && item_percent <= 48)
+    {
+        spawn_item("Bow",creatures[i].x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)));
+    }
+    else if(item_percent >= 49 && item_percent <= 50)
+    {
+        spawn_item("Staff",creatures[i].x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)));
     }
 
     remove_creature(i);
@@ -465,6 +481,7 @@ static void update_creatures()
                                 case 0:
                                     creatures[i].x_vel = +0;
                                     creatures[i].y_vel = +0;
+                                    break;
                                 case 1: 
                                     creatures[i].dir = DIR_UP;
                                     creatures[i].x_vel = +0;

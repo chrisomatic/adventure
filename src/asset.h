@@ -2,8 +2,7 @@ typedef enum
 {
 	ASSET_TYPE_CREATURE,
 	ASSET_TYPE_ITEM,
-	ASSET_TYPE_NPC,
-	ASSET_TYPE_WEAPON
+	ASSET_TYPE_NPC
 } ASSET_TYPE;
 
 static void load_assets(ASSET_TYPE type);
@@ -15,7 +14,6 @@ static void load_all_assets()
     load_assets(ASSET_TYPE_CREATURE);
     load_assets(ASSET_TYPE_ITEM);
     load_assets(ASSET_TYPE_NPC);
-    load_assets(ASSET_TYPE_WEAPON);
 }
 
 static void load_assets(ASSET_TYPE type)
@@ -36,10 +34,6 @@ static void load_assets(ASSET_TYPE type)
         case ASSET_TYPE_NPC:
             directory = "data\\npcs";
             file_extension = ".npc";
-            break;
-        case ASSET_TYPE_WEAPON:
-            directory = "data\\weapons";
-            file_extension = ".weapon";
             break;
         default:
             return;
@@ -120,6 +114,11 @@ static void load_assets(ASSET_TYPE type)
                         else if (strcmp(key, "tile_index") == 0) C_atoi(value, &item_list[asset_counter].tile_index);
                         else if (strcmp(key, "consummable") == 0) C_atoi(value, &item_list[asset_counter].consummable);
                         else if (strcmp(key, "type") == 0) C_atoi(value, &item_list[asset_counter].type);
+                        else if (strcmp(key, "weapon_type") == 0) C_atoi(value, &item_list[asset_counter].weapon_props.weapon_type);
+                        else if (strcmp(key, "min_damage") == 0) C_atoi(value, &item_list[asset_counter].weapon_props.min_damage);
+                        else if (strcmp(key, "max_damage") == 0) C_atoi(value, &item_list[asset_counter].weapon_props.max_damage);
+                        else if (strcmp(key, "attack_speed") == 0) item_list[asset_counter].weapon_props.attack_speed = atof(value);
+                        else if (strcmp(key, "attack_range") == 0) C_atoi(value, &item_list[asset_counter].weapon_props.attack_range);
 
                         break;
 
@@ -143,19 +142,6 @@ static void load_assets(ASSET_TYPE type)
 						else if (strcmp(key, "dialogue9") == 0) npc_list[asset_counter].dialogue[9] = _strdup(value);
 						else if (strcmp(key, "tileset_name") == 0) npc_list[asset_counter].tileset_name = _strdup(value);
                         else if (strcmp(key, "tile_index") == 0) C_atoi(value, &npc_list[asset_counter].tile_index);
-
-                        break;
-
-                    case ASSET_TYPE_WEAPON:
-
-						if (strcmp(key, "name") == 0) weapon_list[asset_counter].name = _strdup(value);
-                        else if (strcmp(key, "type") == 0) C_atoi(value, &weapon_list[asset_counter].type);
-                        else if (strcmp(key, "min_damage") == 0) C_atoi(value, &weapon_list[asset_counter].min_damage);
-                        else if (strcmp(key, "max_damage") == 0) C_atoi(value, &weapon_list[asset_counter].max_damage);
-                        else if (strcmp(key, "attack_speed") == 0) weapon_list[asset_counter].attack_speed = atof(value);
-                        else if (strcmp(key, "attack_range") == 0) C_atoi(value, &weapon_list[asset_counter].attack_range);
-						else if (strcmp(key, "tileset_name") == 0) weapon_list[asset_counter].tileset_name = _strdup(value);
-                        else if (strcmp(key, "tile_index") == 0) C_atoi(value, &weapon_list[asset_counter].tile_index);
 
                         break;
                 }
@@ -190,6 +176,5 @@ static void load_assets(ASSET_TYPE type)
         case ASSET_TYPE_CREATURE: num_creature_list = asset_counter; break;
         case ASSET_TYPE_ITEM: num_item_list = asset_counter; break;
         case ASSET_TYPE_NPC: num_npc_list = asset_counter; break;
-        case ASSET_TYPE_WEAPON: num_weapon_list = asset_counter; break;
     }
 }

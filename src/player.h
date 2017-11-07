@@ -47,7 +47,8 @@ static void init_player()
     player.anim.frame_order[3] = 2;
     player.attack_angle = 0.0f;
     player.attack_frame_counter = 0;
-    get_weapon_by_name("Sword",&player.weapon);
+    get_item_by_name("Sword",&player.weapon);
+    // get_weapon_by_name("Sword",&player.weapon);
 }
 
 static void update_player()
@@ -284,9 +285,9 @@ static void update_player()
             case PLAYER_ATTACK_DOWN: player.dir = DIR_DOWN; break; 
         }
 
-        if(player.weapon.type == WEAPON_TYPE_MELEE)
+        if(player.weapon.weapon_props.weapon_type == WEAPON_TYPE_MELEE)
         {
-            player.attack_angle += player.weapon.attack_speed*(PI/30.0f);
+            player.attack_angle += player.weapon.weapon_props.attack_speed*(PI/30.0f);
             player.attack_frame_counter++;
             
             // check for collision with creatures/objects
@@ -309,7 +310,7 @@ static void update_player()
                     if(relative_creature_position_y > 0 && relative_creature_position_y < buffer_height)
                     {
                         // check along weapon line
-                        for(int j = 0; j < player.weapon.attack_range; ++j)
+                        for(int j = 0; j < player.weapon.weapon_props.attack_range; ++j)
                         {
                             // only care about hitting an creature if it hasn't been hit yet.
                             if(creatures[i].state != CREATURE_STATE_STUNNED)
@@ -324,7 +325,7 @@ static void update_player()
                                 {
                                     if(start_weapon_y+delta_y >= relative_creature_position_y && start_weapon_y+delta_y <= relative_creature_position_y+0.75*TILE_HEIGHT)
                                     {
-                                        int damage = (rand() % (player.weapon.max_damage - player.weapon.min_damage + 1)) + player.weapon.min_damage;
+                                        int damage = (rand() % (player.weapon.weapon_props.max_damage - player.weapon.weapon_props.min_damage + 1)) + player.weapon.weapon_props.min_damage;
                                         
                                         // add floating number
                                         spawn_floating_number(start_weapon_x+delta_x+camera.x,start_weapon_y+delta_y+camera.y,damage,6);
@@ -365,7 +366,7 @@ static void update_player()
             }
         }
 
-        if(player.attack_frame_counter >= 15.0f/player.weapon.attack_speed)
+        if(player.attack_frame_counter >= 15.0f/player.weapon.weapon_props.attack_speed)
         {
             // end attacking
             player.attack_frame_counter = 0;
@@ -479,8 +480,8 @@ static void update_player()
 			{
                 projectiles[player.notch_index].shot = TRUE;
 
-				projectiles[player.notch_index].x_vel += ((shoot_x_vel*player.weapon.attack_range) + player.x_vel*player.speed);
-				projectiles[player.notch_index].y_vel += ((shoot_y_vel*player.weapon.attack_range) + player.y_vel*player.speed);
+				projectiles[player.notch_index].x_vel += ((shoot_x_vel*player.weapon.weapon_props.attack_range) + player.x_vel*player.speed);
+				projectiles[player.notch_index].y_vel += ((shoot_y_vel*player.weapon.weapon_props.attack_range) + player.y_vel*player.speed);
 				projectiles[player.notch_index].z_vel += (shoot_z_vel + player.z_vel);
 
 				player.notch_index = -1;
@@ -724,6 +725,14 @@ static void update_player()
                         }
                         break;
                 }
+            }
+
+            if(items[item_index_taken].type == ITEM_TYPE_WEAPON)
+            {
+                if(player.weapon.name)
+                    spawn_item(player.weapon.name,player.x,player.y);
+
+                get_item_by_name(items[item_index_taken].name,&player.weapon);
             }
             remove_item(item_index_taken);
         }

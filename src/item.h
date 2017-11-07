@@ -1,51 +1,9 @@
 #define MAX_ITEMS     1000
 #define MAX_ITEM_LIST 100
 
-typedef enum
-{
-    ITEM_TYPE_NONE,
-    ITEM_TYPE_HEALTH,
-    ITEM_TYPE_MANA,
-    ITEM_TYPE_WEAPON,
-    ITEM_TYPE_ARMOR,
-    ITEM_TYPE_QUEST
-} ItemType;
-
-/*
-typedef enum
-{
-    WEAPON_TYPE_MELEE,
-    WEAPON_TYPE_RANGED
-} WeaponType;
-*/
-typedef struct
-{
-    float attack_speed;
-    int attack_range;
-    int min_damage;
-    int max_damage;
-    WeaponType type;
-} WeaponProperties;
-
-typedef struct
-{
-    char* name;
-    char* description;
-    float x;
-    float y;
-    float z;
-    float x_vel;
-    float y_vel;
-    float z_vel;
-    float friction;
-    char* tileset_name;
-    int  tile_index;
-    int  value;
-    BOOL highlighted;
-    BOOL consummable;
-    ItemType type;
-    WeaponProperties weapon_props;
-} Item;
+#define BOW 3
+#define STAFF 5
+#define CROSSBOW 7
 
 Item items[MAX_ITEMS];
 Item item_list[MAX_ITEM_LIST];
@@ -69,6 +27,11 @@ static BOOL get_item_by_name(const char* name,Item* item)
 			item->tile_index = item_list[i].tile_index;
 			item->consummable = item_list[i].consummable;
 			item->type = item_list[i].type;
+            item->weapon_props.attack_speed = item_list[i].weapon_props.attack_speed;
+            item->weapon_props.attack_range = item_list[i].weapon_props.attack_range;
+            item->weapon_props.min_damage = item_list[i].weapon_props.min_damage;
+            item->weapon_props.max_damage = item_list[i].weapon_props.max_damage;
+            item->weapon_props.weapon_type = item_list[i].weapon_props.weapon_type;
 
             return TRUE;
         }
@@ -97,6 +60,11 @@ static BOOL spawn_item(const char* item_name,float x, float y)
     items[num_items].consummable = item.consummable;
     items[num_items].type = item.type;
     items[num_items].value = item.value;
+    items[num_items].weapon_props.attack_speed = item.weapon_props.attack_speed;
+    items[num_items].weapon_props.attack_range = item.weapon_props.attack_range;
+    items[num_items].weapon_props.min_damage = item.weapon_props.min_damage;
+    items[num_items].weapon_props.max_damage = item.weapon_props.max_damage;
+    items[num_items].weapon_props.weapon_type = item.weapon_props.weapon_type;
 
     ++num_items;
     if(num_items > MAX_ITEMS -1)

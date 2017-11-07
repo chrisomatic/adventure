@@ -1,6 +1,5 @@
 #TODO
 - Add attacking code for enemies
-- Expand "Item" so it will include weapons and armor
 - Improve creature behavior
 - Add creature reproduction cycle
 - Add grouping logic for creatures
@@ -21,3 +20,4 @@
 + Improved bouncing, so it has a cooldown and is less bouncy
 + Added support for window resizing
 + Add support for multiple tilesets
++ Expand "Item" so it will include weapons and armor

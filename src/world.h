@@ -32,6 +32,51 @@ typedef struct
 
 typedef enum
 {
+    ITEM_TYPE_NONE,
+    ITEM_TYPE_HEALTH,
+    ITEM_TYPE_MANA,
+    ITEM_TYPE_WEAPON,
+    ITEM_TYPE_ARMOR,
+    ITEM_TYPE_QUEST
+} ItemType;
+
+
+typedef enum
+{
+    WEAPON_TYPE_MELEE,
+    WEAPON_TYPE_RANGED
+} WeaponType;
+
+typedef struct
+{
+    float attack_speed;
+    int attack_range;
+    int min_damage;
+    int max_damage;
+    WeaponType weapon_type;
+} WeaponProperties;
+
+typedef struct
+{
+    char* name;
+    char* description;
+    float x;
+    float y;
+    float z;
+    float x_vel;
+    float y_vel;
+    float z_vel;
+    float friction;
+    char* tileset_name;
+    int  tile_index;
+    int  value;
+    BOOL highlighted;
+    BOOL consummable;
+    ItemType type;
+    WeaponProperties weapon_props;
+} Item;
+typedef enum
+{
 	KEYPRESS_NONE  = 0,
 	KEYPRESS_UP    = 1,
 	KEYPRESS_DOWN  = 2,
@@ -102,7 +147,8 @@ typedef struct
     BOOL shoot;
     int item_held_index;
     int notch_index;
-    Weapon weapon;
+    //Weapon weapon;
+    Item weapon;
     Direction dir;
     AttackDirection attack_dir;
     Animation anim;

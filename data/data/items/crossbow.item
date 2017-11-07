@@ -1,8 +1,11 @@
 name: Crossbow
-type: 1 # Ranged
+description: "Don't cross me, bro"
+type: 3 #Weapon
+weapon_type: 1 # Ranged
 min_damage: 1
 max_damage: 2
 attack_speed: 0.4
 attack_range: 5
 tileset_name: weapons
 tile_index: 7
+consummable: 0 #FALSE

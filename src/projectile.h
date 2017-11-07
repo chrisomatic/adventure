@@ -126,7 +126,7 @@ static void update_projectiles()
 
 					if(are_entities_colliding(&a, &b))
 					{
-                        int damage = (rand() % (player.weapon.max_damage - player.weapon.min_damage + 1)) + player.weapon.min_damage;
+                        int damage = (rand() % (player.weapon.weapon_props.max_damage - player.weapon.weapon_props.min_damage + 1)) + player.weapon.weapon_props.min_damage;
                         
                         // add floating number
                         spawn_floating_number(projectiles[i].x,projectiles[i].y,damage,6);

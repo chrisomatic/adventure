@@ -14,10 +14,9 @@
 #include "timer.h"
 #include "animation.h"
 #include "tile.h"
-#include "weapon.h"
 #include "world.h"
-#include "coin.h"
 #include "item.h"
+#include "coin.h"
 #include "particle.h"
 #include "floatingnumber.h"
 #include "creature.h"
@@ -398,16 +397,28 @@ static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM 
         {
             RECT* screen_coords = lparam;
 
-            window_width = (screen_coords->right - screen_coords->left);
-			window_height = (screen_coords->bottom - screen_coords->top);
+            int width = (screen_coords->right - screen_coords->left);
+            int height = (screen_coords->bottom - screen_coords->top);
+
+            if(width > 0 && height > 0)
+            {
+                window_width = width;
+                window_height = height;
+            }
 
         } break;
 		case WM_SIZE:
 		{
 			if (wparam == SIZE_MAXIMIZED || wparam == SIZE_RESTORED)
 			{
-				window_width = LOWORD(lparam);
-				window_height = HIWORD(lparam);
+                int width = LOWORD(lparam);
+                int height = HIWORD(lparam);
+
+                if(width > 0 && height > 0)
+                {
+                    window_width = width;
+                    window_height = height;
+                }
 			}
 		} break;
         case WM_KEYDOWN:
@@ -425,7 +436,7 @@ static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM 
             // start an attack if you are already not attacking
             if((player.state & PLAYER_STATE_ATTACK) != PLAYER_STATE_ATTACK)
             {
-                if(player.weapon.type == WEAPON_TYPE_MELEE)
+                if(player.weapon.weapon_props.weapon_type == WEAPON_TYPE_MELEE)
                 {
                     if(wparam == VK_LEFT)
                     {
@@ -455,7 +466,7 @@ static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM 
                 }
             }
 
-            if(player.weapon.type == WEAPON_TYPE_RANGED)
+            if(player.weapon.weapon_props.weapon_type == WEAPON_TYPE_RANGED)
             {
                 if(wparam == VK_LEFT)
                     keypress_attack |= KEYPRESS_LEFT;
@@ -525,31 +536,31 @@ static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM 
             // @DEV
             if(wparam == '1')
             {
-                get_weapon_by_name("Knife",&player.weapon);
+                get_item_by_name("Knife",&player.weapon);
             }
             else if(wparam == '2')
             {
-                get_weapon_by_name("Sword",&player.weapon);
+                get_item_by_name("Sword",&player.weapon);
             }
             else if(wparam == '3')
             {
-                get_weapon_by_name("Axe",&player.weapon);
+                get_item_by_name("Axe",&player.weapon);
             }
             else if(wparam == '4')
             {
-                get_weapon_by_name("Ultimate",&player.weapon);
+                get_item_by_name("Ultimate",&player.weapon);
             }
             else if(wparam == '5')
             {
-                get_weapon_by_name("Bow",&player.weapon);
+                get_item_by_name("Bow",&player.weapon);
             }
             else if(wparam == '6')
             {
-                get_weapon_by_name("Staff",&player.weapon);
+                get_item_by_name("Staff",&player.weapon);
             }
             else if(wparam == '7')
             {
-                get_weapon_by_name("Crossbow",&player.weapon);
+                get_item_by_name("Crossbow",&player.weapon);
             }
 
             if(wparam == 'H')
@@ -560,7 +571,6 @@ static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM 
                 init_creatures();
                 init_items();
                 init_npcs();
-                init_weapons();
             }
 
 			break;
@@ -582,7 +592,7 @@ static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM 
                 player.throw_coins = FALSE;
             }
             
-            if(player.weapon.type == WEAPON_TYPE_RANGED)
+            if(player.weapon.weapon_props.weapon_type == WEAPON_TYPE_RANGED)
             {
                 if(wparam == VK_LEFT)
                     keypress_attack ^= KEYPRESS_LEFT;
