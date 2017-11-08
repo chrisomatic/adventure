@@ -98,6 +98,7 @@ static void load_assets(ASSET_TYPE type)
                 {
                     case ASSET_TYPE_CREATURE:
 						if (strcmp(key, "name") == 0) creature_list[asset_counter].name = _strdup(value);
+						else if (strcmp(key, "species") == 0) creature_list[asset_counter].species = _strdup(value);
                         else if (strcmp(key, "hp") == 0) C_atoi(value, &creature_list[asset_counter].hp);
                         else if (strcmp(key, "max_hp") == 0) C_atoi(value, &creature_list[asset_counter].max_hp);
                         else if (strcmp(key, "xp") == 0) C_atoi(value, &creature_list[asset_counter].xp);
@@ -107,6 +108,7 @@ static void load_assets(ASSET_TYPE type)
                         else if (strcmp(key, "untargetable") == 0) C_atoi(value, &creature_list[asset_counter].untargetable);
 						else if (strcmp(key, "tileset_name") == 0) creature_list[asset_counter].tileset_name = _strdup(value);
                         else if (strcmp(key, "tile_index") == 0) C_atoi(value, &creature_list[asset_counter].tile_index);
+                        else if (strcmp(key, "reproductive") == 0) C_atoi(value, &creature_list[asset_counter].reproductive);
 
                         break;
 

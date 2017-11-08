@@ -8,3 +8,5 @@ behavior: 0 # Passive
 untargetable: 0 # FALSE
 tileset_name: creatures
 tile_index: 32
+species: Rat
+reproductive: 1 #TRUE

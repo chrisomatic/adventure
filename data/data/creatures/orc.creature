@@ -7,4 +7,6 @@ gold_drop_max: 12
 behavior: 1 # Aggressive
 untargetable: 0 # FALSE
 tileset_name: creatures
-tile_index: 48
+tile_index: 64
+species: Orc
+reproductive: 0 #FALSE
