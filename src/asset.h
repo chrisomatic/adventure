@@ -8,7 +8,6 @@ typedef enum
 static void load_assets(ASSET_TYPE type);
 static void load_all_assets();
 
-
 static void load_all_assets()
 {
     load_assets(ASSET_TYPE_CREATURE);
@@ -39,7 +38,12 @@ static void load_assets(ASSET_TYPE type)
             return;
     }
 
-	char paths[1000][MAX_PATH] = { 0 };
+	char paths[100][MAX_PATH];
+    for(int i = 0; i < 100; ++i)
+    {
+        memset(paths[i],0,MAX_PATH);
+    }
+
 	int num_files = get_files_in_directory_with_extension(directory, file_extension, paths);
 
 	int asset_counter = 0;
@@ -151,7 +155,7 @@ static void load_assets(ASSET_TYPE type)
             }
             else
             {
-                if(!is_string && (c == ' ' || c == '\t'))
+                if(!is_string && (c == ' ' || c == '\t' || c == '\r'))
                 {
                     // ignore white space unless it's inside a string
                 }
@@ -168,8 +172,9 @@ static void load_assets(ASSET_TYPE type)
 
         fclose(fp);
 
-		++asset_counter;
+        ++asset_counter;
     }
+
 
     switch(type)
     {

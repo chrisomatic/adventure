@@ -48,7 +48,6 @@ static void init_player()
     player.attack_angle = 0.0f;
     player.attack_frame_counter = 0;
     get_item_by_name("Sword",&player.weapon);
-    // get_weapon_by_name("Sword",&player.weapon);
 }
 
 static void update_player()

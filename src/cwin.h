@@ -13,7 +13,6 @@ DWORD playMIDIFile(HWND hWndNotify, LPSTR lpszMIDIFileName)
 	MCI_OPEN_PARMS mciOpenParms;
 	MCI_PLAY_PARMS mciPlayParms;
 	MCI_STATUS_PARMS mciStatusParms;
-	MCI_SEQ_SET_PARMS mciSeqSetParms;
 
 	// Open the device by specifying the device and filename.
 	// MCI will attempt to choose the MIDI mapper as the output port.
@@ -57,7 +56,6 @@ DWORD playMIDIFile(HWND hWndNotify, LPSTR lpszMIDIFileName)
 static int get_files_in_directory_with_extension(const char* directory_path, const char* extension,char file_paths[100][MAX_PATH])
 {
     WIN32_FIND_DATA ffd;
-    LARGE_INTEGER filesize;
     TCHAR szDir[MAX_PATH];
     HANDLE hFind = INVALID_HANDLE_VALUE;
     size_t length_of_arg;

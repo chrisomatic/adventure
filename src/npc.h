@@ -67,6 +67,8 @@ static BOOL get_npc_by_name(const char* name,NPC* npc)
             return TRUE;
         }
     }
+
+	return FALSE;
 }
 
 static BOOL spawn_npc(const char* npc_name)
@@ -74,7 +76,7 @@ static BOOL spawn_npc(const char* npc_name)
     NPC npc = {0};
 
     if(!get_npc_by_name(npc_name,&npc))
-        return;
+        return FALSE;
 
     npcs[num_npcs].x = npc.x; 
     npcs[num_npcs].y = npc.y;

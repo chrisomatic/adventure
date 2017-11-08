@@ -23,11 +23,11 @@ static BOOL draw_image(const char* image_path,int x, int y,float scale)
     unsigned char* dst = back_buffer;
     dst = dst + (buffer_width*y) + x;
 
-    int dst_w = w*scale;
-    int dst_h = h*scale;
+    int dst_w = (int)(w*scale);
+	int dst_h = (int)(h*scale);
 
-    if( x < 0 || x + dst_w > buffer_width)  return;
-    if( y < 0 || y + dst_h > buffer_height) return;
+    if( x < 0 || x + dst_w > buffer_width)  return FALSE;
+	if (y < 0 || y + dst_h > buffer_height) return FALSE;
 
     for(int i = 0; i < dst_w;++i)
     {
@@ -44,7 +44,6 @@ static BOOL draw_image(const char* image_path,int x, int y,float scale)
 
     return TRUE;
 }
-
 
 static void generate_palette_file(const char* image_path)
 {
@@ -124,7 +123,7 @@ static void shade_pixel8(int x, int y,int shade_amount)
 	if (dst < (unsigned char*)back_buffer)
 		return;
 
-	if (dst > (unsigned char*)back_buffer + (buffer_width*buffer_height))
+	if (dst >= (unsigned char*)back_buffer + (buffer_width*buffer_height))
 		return;
 
     if (x < 0 || x >= buffer_width)
@@ -145,7 +144,7 @@ static void draw_pixel8(int x, int y, unsigned char color)
 	if (dst < (unsigned char*)back_buffer)
 		return;
 
-	if (dst > (unsigned char*)back_buffer + (buffer_width*buffer_height))
+	if (dst >= (unsigned char*)back_buffer + (buffer_width*buffer_height))
 		return;
 
     if (x < 0 || x >= buffer_width)

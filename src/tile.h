@@ -2,11 +2,12 @@
 #define TILE_HEIGHT 16
 #define TILES_PER_ROW 16
 #define MAX_INDEX   256
+#define MAX_TILESET_LENGTH 65536
 
 typedef struct
 {
-    char name[260];
-    unsigned char data[256*256];
+    char name[MAX_PATH];
+    unsigned char data[MAX_TILESET_LENGTH];
 } Tileset;
 
 Tileset tileset_list[16];
@@ -14,7 +15,7 @@ int num_tilesets = 0;
 
 unsigned char *tileset;
 
-static int get_tileset_index_by_name(char* name)
+static int get_tileset_index_by_name(const char* name)
 {
     for(int i = 0; i < num_tilesets; ++i)
     {
@@ -76,12 +77,12 @@ static void generate_indexed_tileset(const char* rgb_image_path,const char* inde
 
 static void generate_all_tilesets()
 {
-	char paths[1000][MAX_PATH] = { 0 };
+	char paths[100][MAX_PATH] = { 0 };
 	int num_files = get_files_in_directory_with_extension("data\\tilesets", ".tileset.png", paths);
 
     for(int i = 0; i < num_files; ++i)
     {
-		char index_path[260] = {0};
+		char index_path[MAX_PATH] = {0};
 
         remove_file_extension(paths[i], index_path);
         generate_indexed_tileset(paths[i],index_path);
@@ -94,10 +95,14 @@ static void load_tileset(const char* tile_map_path, int tileset_index)
 	
 	int c;
     int i = 0;
+
 	while((c = fgetc(fp_tileset)) != EOF)
     {
 		tileset_list[tileset_index].data[i] = (unsigned char)c;
+        
         ++i;
+        if(i == MAX_TILESET_LENGTH)
+            break;
     }
 
     fclose(fp_tileset);
@@ -105,13 +110,13 @@ static void load_tileset(const char* tile_map_path, int tileset_index)
 
 static void load_all_tilesets()
 {
-	char paths[1000][MAX_PATH] = { 0 };
+	char paths[100][MAX_PATH] = { 0 };
 	int num_files = get_files_in_directory_with_extension("data\\tilesets", ".tileset", paths);
 
     for(int i = 0; i < num_files; ++i)
     {
-        char path_without_ext[260] = {0};
-        char tileset_name[260] = {0};
+        char path_without_ext[MAX_PATH] = {0};
+        char tileset_name[MAX_PATH] = {0};
 
         remove_file_extension(paths[i], path_without_ext);
         get_file_name(path_without_ext,tileset_name);
@@ -143,7 +148,8 @@ static void draw_tile_tinted(int x, int y, const char* tileset_name, int tile_in
     {
         for (int j = 0; j < TILE_WIDTH; ++j)
         {
-			if (dst > (unsigned char*)back_buffer + (buffer_width*(buffer_height))) return;
+			if (dst >= (unsigned char*)back_buffer + (buffer_width*buffer_height)) return;
+            if (p_tileset >= (tileset_list[tileset_index].data + MAX_TILESET_LENGTH)) return;
 
 			if(*p_tileset != 0xFF)
             {
@@ -153,9 +159,6 @@ static void draw_tile_tinted(int x, int y, const char* tileset_name, int tile_in
 
 			++dst;
 			++p_tileset;
-
-            if(p_tileset > (tileset_list[tileset_index].data + 256*256))
-                return;
         }
 
         dst += (buffer_width - TILE_HEIGHT);
@@ -170,6 +173,7 @@ static void draw_tile(int x, int y,const char* tileset_name, int tile_index,int 
     dst = dst + (buffer_width*y) + x;
 
     int tileset_index = get_tileset_index_by_name(tileset_name);
+
     if(tileset_index < 0)
         return;
 
@@ -184,7 +188,8 @@ static void draw_tile(int x, int y,const char* tileset_name, int tile_index,int 
     {
         for (int j = 0; j < TILE_WIDTH; ++j)
         {
-			if (dst > (unsigned char*)back_buffer + (buffer_width*(buffer_height))) return;
+			if (dst >= (unsigned char*)back_buffer + (buffer_width*buffer_height)) return;
+            if (p_tileset >= (tileset_list[tileset_index].data + MAX_TILESET_LENGTH)) return;
 
 			if(*p_tileset != 0xFF)
             {
@@ -194,9 +199,6 @@ static void draw_tile(int x, int y,const char* tileset_name, int tile_index,int 
 
 			++dst;
 			++p_tileset;
-
-            if(p_tileset > (tileset_list[tileset_index].data + 256*256))
-                return;
         }
 
         dst += (buffer_width - TILE_HEIGHT);
@@ -225,7 +227,8 @@ static void draw_tile_shadow(int x, int y,const char* tileset_name, int tile_ind
     {
         for (int j = 0; j < TILE_WIDTH; ++j)
         {
-			if (dst > (unsigned char*)back_buffer + (buffer_width*(buffer_height))) return;
+			if (dst >= (unsigned char*)back_buffer + (buffer_width*buffer_height)) return;
+            if (p_tileset >= (tileset_list[tileset_index].data + MAX_TILESET_LENGTH)) return;
 
 			if(*p_tileset != 0xFF)
             {
@@ -235,9 +238,6 @@ static void draw_tile_shadow(int x, int y,const char* tileset_name, int tile_ind
 
 			++dst;
 			++p_tileset;
-
-            if(p_tileset > (tileset_list[tileset_index].data + 256*256))
-                return;
         }
 
         dst += (buffer_width - TILE_HEIGHT);
@@ -299,7 +299,7 @@ static void draw_tile_rotated(int x, int y,const char* tileset_name, int tile_in
             }
 
             dst++;
-			if (dst > (unsigned char*)back_buffer + (buffer_width*buffer_height)) return;
+			if (dst >= (unsigned char*)back_buffer + (buffer_width*buffer_height)) return;
         }
 
         dst += (buffer_width - TILE_HEIGHT);
@@ -360,7 +360,7 @@ static void draw_tile_rotated_shadow(int x, int y, const char* tileset_name, int
             }
 
             dst++;
-			if (dst > (unsigned char*)back_buffer + (buffer_width*buffer_height)) return;
+			if (dst >= (unsigned char*)back_buffer + (buffer_width*buffer_height)) return;
         }
 
         dst += (buffer_width - TILE_HEIGHT);

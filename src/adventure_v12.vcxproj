@@ -82,39 +82,25 @@
     <ClCompile Include="program.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="canimation.h" />
-    <ClInclude Include="casset.h" />
-    <ClInclude Include="ccoin.h" />
+    <ClInclude Include="animation.h" />
+    <ClInclude Include="asset.h" />
     <ClInclude Include="cdraw.h" />
-    <ClInclude Include="cenemy.h" />
-    <ClInclude Include="centity.h" />
-    <ClInclude Include="cfloatingnumber.h" />
-    <ClInclude Include="cfontsimple.h" />
-    <ClInclude Include="citem.h" />
-    <ClInclude Include="cnpc.h" />
+    <ClInclude Include="coin.h" />
     <ClInclude Include="common.h" />
-    <ClInclude Include="cparticles.h" />
-    <ClInclude Include="cplayer.h" />
-    <ClInclude Include="cprojectile.h" />
+    <ClInclude Include="creature.h" />
     <ClInclude Include="cstr.h" />
-    <ClInclude Include="ctile.h" />
-    <ClInclude Include="ctimer.h" />
-    <ClInclude Include="cweapon.h" />
-    <ClInclude Include="cworld.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="..\data\16_color_palette.png">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</DeploymentContent>
-    </Image>
-    <Image Include="..\data\font.png">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</DeploymentContent>
-    </Image>
-    <Image Include="..\data\tileset0.png">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</DeploymentContent>
-    </Image>
+    <ClInclude Include="cwin.h" />
+    <ClInclude Include="entity.h" />
+    <ClInclude Include="floatingnumber.h" />
+    <ClInclude Include="font.h" />
+    <ClInclude Include="item.h" />
+    <ClInclude Include="npc.h" />
+    <ClInclude Include="particle.h" />
+    <ClInclude Include="player.h" />
+    <ClInclude Include="projectile.h" />
+    <ClInclude Include="tile.h" />
+    <ClInclude Include="timer.h" />
+    <ClInclude Include="world.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

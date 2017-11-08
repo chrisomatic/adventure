@@ -5,8 +5,8 @@
 #define STAFF 5
 #define CROSSBOW 7
 
-Item items[MAX_ITEMS];
-Item item_list[MAX_ITEM_LIST];
+Item items[MAX_ITEMS] = {0};
+Item item_list[MAX_ITEM_LIST] = {0};
 
 static int num_items = 0;
 static int num_item_list = 0;
@@ -36,6 +36,21 @@ static BOOL get_item_by_name(const char* name,Item* item)
             return TRUE;
         }
     }
+
+    // set item to "nothing"
+    item->name = "";
+    item->description = "";
+    item->value = 0;
+    item->tileset_name = "";
+    item->tile_index = 0;
+    item->type = 0;
+    item->weapon_props.attack_speed = 1.0f;
+    item->weapon_props.attack_range = 1;
+    item->weapon_props.min_damage = 0;
+    item->weapon_props.max_damage = 0;
+    item->weapon_props.weapon_type = 0;
+
+	return FALSE;
 }
 
 static BOOL spawn_item(const char* item_name,float x, float y)
@@ -43,7 +58,7 @@ static BOOL spawn_item(const char* item_name,float x, float y)
     Item item = {0};
 
     if(!get_item_by_name(item_name,&item))
-        return;
+        return FALSE;
 
     items[num_items].name = item.name;
     items[num_items].description = item.description;

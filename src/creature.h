@@ -104,13 +104,15 @@ static BOOL get_creature_by_name(const char* name,Creature* creature)
             return TRUE;
         }
     }
+
+	return FALSE;
 }
 static BOOL spawn_creature(const char* creature_name,float x, float y)
 {
     Creature creature = {0};
 
     if(!get_creature_by_name(creature_name,&creature))
-        return;
+        return FALSE;
 
     creatures[num_creatures].x = x; 
     creatures[num_creatures].y = y;
@@ -159,15 +161,6 @@ static BOOL spawn_creature(const char* creature_name,float x, float y)
     creatures[num_creatures].life_span_min = 2;
     creatures[num_creatures].life_span_max = 10;
 
-    int gestation_period;
-    int gestation_counter; 
-    int mating_radius;
-    int grouping_radius;
-    float age;
-    float adult_age;
-    int life_span_min;
-    int life_span_max;
-    
     ++num_creatures;
 
     if(num_creatures > MAX_CREATURES -1)
@@ -202,6 +195,9 @@ static void init_creatures()
             
             collision = (test_collision_1 == 5 && test_collision_2 == 5 || test_collision_3 == 5 || test_collision_4 == 5);
         }
+
+		if (num_creature_list == 0)
+			return;
 
         int creature_type = rand() % num_creature_list;
 
@@ -535,7 +531,7 @@ static void update_creatures()
                             float diff_y = creatures[i].y - player.y;
 
                             float angle  = atan(diff_y/diff_x);
-                            float EIGHTH_PI = PI/8.0f;
+                            double EIGHTH_PI = PI/8.0;
 
                             if(angle >= -4*EIGHTH_PI && angle < -3*EIGHTH_PI)
                             {
@@ -663,7 +659,7 @@ static void draw_creature(int i)
         if (creatures[i].state == CREATURE_STATE_STUNNED)
         {
             // draw red tint
-            draw_tile_tinted(creatures[i].x - camera.x, creatures[i].y - camera.y,creatures[i].tileset_name, creatures[i].tile_index + age_offset + creatures[i].dir + creatures[i].anim.frame_order[creatures[i].anim.frame],6,day_cycle_shade_amount);
+            draw_tile_tinted(creatures[i].x - camera.x, creatures[i].y - camera.y,creatures[i].tileset_name, creatures[i].tile_index + age_offset + creatures[i].dir + creatures[i].anim.frame_order[creatures[i].anim.frame],6);
         }
         else
         {

@@ -1,5 +1,5 @@
 #define WIN32_LEAN_AND_MEAN
-#define PI 3.14159265359 
+#define PI 3.14159265359f
 
 #include <windows.h>
 #include <mmsystem.h>
@@ -66,8 +66,8 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
 
     init_world("data\\world");
     init_creatures();
-    init_player();
     init_items();
+    init_player();
     init_npcs();
 
     // test

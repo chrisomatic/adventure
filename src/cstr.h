@@ -1,4 +1,4 @@
-static void remove_file_extension(const char* path, char return_path[260])
+static void remove_file_extension(const char* path, char return_path[MAX_PATH])
 {
     int length = length_of(path);
 
@@ -24,7 +24,7 @@ static void remove_file_extension(const char* path, char return_path[260])
     }
 }
 
-static void get_file_name(const char* path, char return_file_name[260])
+static void get_file_name(const char* path, char return_file_name[MAX_PATH])
 {
     int length = length_of(path);
 
