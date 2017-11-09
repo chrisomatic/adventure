@@ -109,6 +109,12 @@ static void load_assets(ASSET_TYPE type)
 						else if (strcmp(key, "tileset_name") == 0) creature_list[asset_counter].tileset_name = _strdup(value);
                         else if (strcmp(key, "tile_index") == 0) C_atoi(value, &creature_list[asset_counter].tile_index);
                         else if (strcmp(key, "reproductive") == 0) C_atoi(value, &creature_list[asset_counter].reproductive);
+                        else if (strcmp(key, "mating_radius") == 0) C_atoi(value, &creature_list[asset_counter].mating_radius);
+                        else if (strcmp(key, "birth_recovery_time") == 0) C_atoi(value, &creature_list[asset_counter].birth_recovery_time);
+                        else if (strcmp(key, "adult_age") == 0) C_atoi(value, &creature_list[asset_counter].adult_age);
+                        else if (strcmp(key, "gestation_period") == 0) C_atoi(value, &creature_list[asset_counter].gestation_period);
+                        else if (strcmp(key, "litter_max") == 0) C_atoi(value, &creature_list[asset_counter].litter_max);
+                        else if (strcmp(key, "max_age") == 0) C_atoi(value, &creature_list[asset_counter].max_age);
 
                         break;
 

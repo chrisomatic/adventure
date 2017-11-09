@@ -1,4 +1,4 @@
-#define MAX_PARTICLES 10000
+#define MAX_PARTICLES 100000
 
 typedef struct
 {

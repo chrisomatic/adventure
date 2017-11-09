@@ -1,4 +1,4 @@
-#define MAX_CREATURES    10000
+#define MAX_CREATURES    100000
 #define MAX_CREATURE_LIST 100
 
 typedef enum
@@ -63,15 +63,19 @@ typedef struct
     Gender gender;
     BOOL reproductive;
     BOOL pregnant;
+    BOOL birth_recovery;
     int gestation_period;
     int gestation_counter; 
     int mating_radius;
     int grouping_radius;
     int age;
+    int max_age;
     int age_counter;
     int adult_age;
-    int life_span_min;
-    int life_span_max;
+    int litter_max;
+    int birth_recovery_time;
+    int birth_recovery_counter;
+    int death_check_counter;
 } Creature;
 
 Creature creatures[MAX_CREATURES];
@@ -79,6 +83,12 @@ Creature creature_list[MAX_CREATURE_LIST];
 
 int num_creatures = 0;
 int num_creature_list = 0;
+
+// @TEMP:
+int num_pregs = 0;
+int num_births = 0;
+int num_deaths = 0;
+//
 
 static BOOL get_creature_by_name(const char* name,Creature* creature)
 {
@@ -104,6 +114,12 @@ static BOOL get_creature_by_name(const char* name,Creature* creature)
             creature->tile_index = creature_list[i].tile_index;
             creature->reproductive = creature_list[i].reproductive;
             creature->species = creature_list[i].species;
+            creature->mating_radius = creature_list[i].mating_radius;
+            creature->birth_recovery_time = creature_list[i].birth_recovery_time;
+            creature->adult_age = creature_list[i].adult_age;
+            creature->gestation_period = creature_list[i].gestation_period;
+            creature->litter_max = creature_list[i].litter_max;
+            creature->max_age = creature_list[i].max_age;
 
             return TRUE;
         }
@@ -157,18 +173,22 @@ static BOOL spawn_creature(const char* creature_name,float x, float y)
     creatures[num_creatures].anim.frame_order[1] = 1;
     creatures[num_creatures].anim.frame_order[2] = 0;
     creatures[num_creatures].anim.frame_order[3] = 2;
-    creatures[num_creatures].gestation_period = 3600;
+    creatures[num_creatures].gestation_period = creature.gestation_period;
     creatures[num_creatures].gestation_counter = 0;
-    creatures[num_creatures].mating_radius = 16;
+    creatures[num_creatures].mating_radius = creature.mating_radius;
     creatures[num_creatures].grouping_radius = 50;
-    creatures[num_creatures].age = (rand()%60 + 1);
+    creatures[num_creatures].adult_age = creature.adult_age;
+    creatures[num_creatures].age = rand()%(creatures[num_creatures].adult_age*2); // half babies, half adults
     creatures[num_creatures].age_counter = 0;
-    creatures[num_creatures].adult_age = 60;
-    creatures[num_creatures].life_span_min = 120;
-    creatures[num_creatures].life_span_max = 300;
+    creatures[num_creatures].max_age = creature.max_age;
 	creatures[num_creatures].reproductive = creature.reproductive;
 	creatures[num_creatures].species = creature.species;
 	creatures[num_creatures].pregnant = FALSE;
+    creatures[num_creatures].litter_max = creature.litter_max;
+    creatures[num_creatures].birth_recovery_time = creature.birth_recovery_time;
+    creatures[num_creatures].birth_recovery_counter = 0;
+    creatures[num_creatures].birth_recovery = FALSE;
+    creatures[num_creatures].death_check_counter = rand() % DAY_CYCLE_COUNTER_MAX;
 
     ++num_creatures;
 
@@ -185,7 +205,7 @@ static void init_creatures()
 {
     num_creatures = 0;
 
-    for (int i = 0; i < MAX_CREATURES ; ++i)
+    for (int i = 0; i < 150; ++i)
     {
         int creature_x, creature_y;
         int test_collision_1, test_collision_2, test_collision_3, test_collision_4;
@@ -278,6 +298,7 @@ static void creature_death(int i)
 
     remove_creature(i);
 
+    ++num_deaths;
 }
 
 static void update_creatures()
@@ -635,6 +656,7 @@ static void update_creatures()
                             }
                         break;
                     }
+
                 }
             }
             
@@ -659,67 +681,6 @@ static void update_creatures()
                 creatures[i].anim.frame = 0;
             }
 
-            // handle creature mating
-            if(creatures[i].reproductive && creatures[i].gender == MALE && creatures[i].age >= creatures[i].adult_age)
-            {
-                for(int j = 0; j < num_creatures; ++j)
-                {
-                    // is creature reproductive and an adult?
-                    if(creatures[j].reproductive && creatures[j].age >= creatures[j].adult_age)
-                    {
-                        // are creatures the same species?
-                        if(strcmp(creatures[j].species, creatures[i].species) == 0)
-                        {
-                            // are creatures opposite gender?
-                            if(creatures[j].gender = !creatures[i].gender)
-                            {
-                                // is female currently not pregnant?
-                                if(!creatures[j].pregnant)
-                                {
-                                    // look at distance
-                                    double distance = get_distance(creatures[i].x,creatures[i].y,creatures[j].x, creatures[j].y);
-
-                                    if(distance <= creatures[i].mating_radius)
-                                    {
-                                        // spawn flames
-                                        for(int k = 0; k < 50; ++k)
-                                            spawn_particle(creatures[j].x + (rand()%TILE_WIDTH), creatures[j].y + (rand()%(TILE_HEIGHT/2)), rand()%2 + 1,3,CHAR_FLAME,6); 
-
-                                        creatures[j].pregnant = TRUE;
-                                    }
-                                }
-                            }
-                        } 
-                    }
-                }
-            }
-            
-            // handle pregnancies
-            if(creatures[i].pregnant)
-            {
-                // spawn heart (indicates pregnancy)
-                spawn_particle(creatures[i].x + (rand()%TILE_WIDTH), creatures[i].y + (rand()%(TILE_HEIGHT/2)),1,3,CHAR_HEART,6); 
-
-                ++creatures[i].gestation_counter;
-                if(creatures[i].gestation_counter >= creatures[i].gestation_period)
-                {
-                    creatures[i].gestation_counter = 0;
-
-                    // have a baby
-                    spawn_creature(creatures[i].name,creatures[i].x,creatures[i].y);
-
-                    // have a party
-					int c[5] = { 6,9,11,13,14 };
-
-                    for(int j = 0; j < 50; ++j)
-                        spawn_particle(creatures[i].x + (rand()%TILE_WIDTH), creatures[i].y + (rand()%(TILE_HEIGHT/2)), rand()%2 + 1,3,0,c[rand()%5]); 
-
-                    creatures[num_creatures - 1].age = 0; // set age to zero (newborn)
-
-                    creatures[i].pregnant = FALSE;
-                }
-            }
-
             // handle aging
             ++creatures[i].age_counter;
             if(creatures[i].age_counter >= 60)
@@ -736,11 +697,121 @@ static void update_creatures()
                     for(int j = 0; j < 50; ++j)
                         spawn_particle(creatures[i].x + (rand()%TILE_WIDTH), creatures[i].y + (rand()%(TILE_HEIGHT/2)), rand()%2 + 1,3,0,c[rand()%5]); 
                 }
+                
+                // @TEMP: Indicate male reproductive creatures
+                if(creatures[i].reproductive)
+                {
+                    if(creatures[i].gender == MALE)
+                    {
+                        spawn_particle(creatures[i].x + (rand()%TILE_WIDTH), creatures[i].y + (rand()%(TILE_HEIGHT/2)),1,2,CHAR_MALE_SYMBOL,8); 
+                    }
+                }
+
+                // handle creature mating
+                if(creatures[i].reproductive && creatures[i].gender == MALE && creatures[i].age >= creatures[i].adult_age)
+                {
+                    for(int j = 0; j < num_creatures; ++j)
+                    {
+                        // are creatures opposite gender?
+                        if(creatures[j].gender == !creatures[i].gender)
+                        {
+                            // is creature reproductive and an adult and not currently pregnant?
+                            if(creatures[j].reproductive && creatures[j].age >= creatures[j].adult_age && !creatures[j].pregnant)
+                            {
+                                // is creature not recoverying from a pregnancy?
+                                if(!creatures[j].birth_recovery)
+                                {
+                                    // are creatures the same species?
+                                    if(strcmp(creatures[j].species, creatures[i].species) == 0)
+                                    {
+                                        // look at x distance
+                                        if(abs(creatures[i].x - creatures[j].x) <= creatures[i].mating_radius)
+                                        {
+                                            // look at y distance
+                                            if(abs(creatures[i].y - creatures[j].y) <= creatures[i].mating_radius)
+                                            {
+                                                // get direct distance
+                                                double distance = get_distance(creatures[i].x,creatures[i].y,creatures[j].x, creatures[j].y);
+
+                                                if(distance <= creatures[i].mating_radius)
+                                                {
+                                                    // spawn flames
+                                                    for(int k = 0; k < 10; ++k)
+                                                        spawn_particle(creatures[j].x + (rand()%TILE_WIDTH), creatures[j].y + (rand()%(TILE_HEIGHT/2)),1,3,CHAR_FLAME,9); 
+
+                                                    creatures[j].pregnant = TRUE;
+                                                    creatures[j].base_speed /= 2.0f; // reduce speed of pregnant creature
+                                                    ++num_pregs;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            } 
+                        }
+                    }
+                }
+
+                // handle pregnancies
+                if(creatures[i].pregnant)
+                {
+                    spawn_particle(creatures[i].x + (rand()%TILE_WIDTH), creatures[i].y + (rand()%(TILE_HEIGHT/2)),1,3,CHAR_HEART,6); 
+
+                    ++creatures[i].gestation_counter;
+                    if(creatures[i].gestation_counter >= creatures[i].gestation_period)
+                    {
+                        creatures[i].gestation_counter = 0;
+
+                        // have a baby
+                        int num_babies = (rand() % creatures[i].litter_max) + 1;
+
+                        for(int j = 0; j < num_babies; ++j)
+                        {
+                            spawn_creature(creatures[i].name,creatures[i].x,creatures[i].y);
+                            creatures[num_creatures - 1].age = 0; // set age to zero (newborn)
+                            ++num_births;
+                        }
+
+                        // have a party
+                        int c[5] = { 6,9,11,13,14 };
+
+                        for(int j = 0; j < 50; ++j)
+                            spawn_particle(creatures[i].x + (rand()%TILE_WIDTH), creatures[i].y + (rand()%(TILE_HEIGHT/2)), rand()%2 + 1,3,0,c[rand()%5]); 
+
+                        creatures[i].pregnant = FALSE;
+                        creatures[i].base_speed *= 2.0f; // return creature back to normal speed
+                        creatures[i].birth_recovery = TRUE;
+                        --num_pregs;
+                    }
+                }
+                else if(creatures[i].birth_recovery)
+                {
+                    ++creatures[i].birth_recovery_counter;
+                    if(creatures[i].birth_recovery_counter >= creatures[i].birth_recovery_time)
+                    {
+                        creatures[i].birth_recovery_counter = 0;
+                        creatures[i].birth_recovery = FALSE;
+                    }
+                }
+                
+                // handle death
+                ++creatures[i].death_check_counter;
+                if(creatures[i].death_check_counter >= DAY_CYCLE_COUNTER_MAX)
+                {
+                    // one day since last death check.
+                    creatures[i].death_check_counter = 0;
+
+                    int death_num = rand() % 100;
+                    float chance_of_death = (creatures[i].age / (float)creatures[i].max_age);
+
+                    if(death_num >= (100 - (100.0f*chance_of_death)))
+                    {
+                        // creature dies.
+                        creature_death(i);
+                    }
+                }
             }
         }
-        
-
-
     }
 }
 

@@ -13,6 +13,7 @@
 #define CHAR_HEART_HALF   134 
 #define CHAR_DIAMOND      135 
 #define CHAR_DIAMOND_HALF 136 
+#define CHAR_MALE_SYMBOL  137 
 
 //    int x,y,n;
 //    unsigned char *data = stbi_load(filename, &x, &y, &n, 0);
@@ -72,7 +73,7 @@ void draw_char_scaled(const unsigned char c, int x, int y, float scale_factor, c
 	{
 		for (float j = 0; j < ceil(GLYPH_WIDTH*scale_factor); j += 1)
 		{
-			if (dst < (unsigned char*)back_buffer || dst >(unsigned char*)back_buffer + (buffer_width*buffer_height))
+			if (dst < (unsigned char*)back_buffer || dst >= (unsigned char*)back_buffer + (buffer_width*buffer_height))
 				return;
 
 			if (x+j < 0 || x+j >= buffer_width)
@@ -126,7 +127,7 @@ void draw_char(const unsigned char c, int x, int y, char color)
 	{
 		for (int j = 0; j < GLYPH_WIDTH; ++j)
 		{
-			if (dst < (unsigned char*)back_buffer || dst >(unsigned char*)back_buffer + (buffer_width*buffer_height))
+			if (dst < (unsigned char*)back_buffer || dst >= (unsigned char*)back_buffer + (buffer_width*buffer_height))
 				return;
 
 			if (x+j < 0 || x+j >= buffer_width)
