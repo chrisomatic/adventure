@@ -40,8 +40,6 @@ int counter_for_seconds = 0;
 
 const int BYTES_PER_PIXEL = 1;
 
-double TARGET_FPS = 60.0f;
-
 static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam);
 static void setup_window(HINSTANCE hInstance);
 static void update_scene();

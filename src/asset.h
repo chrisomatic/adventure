@@ -131,6 +131,8 @@ static void load_assets(ASSET_TYPE type)
                         else if (strcmp(key, "max_damage") == 0) C_atoi(value, &item_list[asset_counter].weapon_props.max_damage);
                         else if (strcmp(key, "attack_speed") == 0) item_list[asset_counter].weapon_props.attack_speed = atof(value);
                         else if (strcmp(key, "attack_range") == 0) C_atoi(value, &item_list[asset_counter].weapon_props.attack_range);
+                        else if (strcmp(key, "defence") == 0) C_atoi(value, &item_list[asset_counter].armor_props.defence);
+                        else if (strcmp(key, "armor_type") == 0) C_atoi(value, &item_list[asset_counter].armor_props.armor_type);
 
                         break;
 

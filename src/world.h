@@ -4,6 +4,7 @@
 #define AIR_RESISTANCE 0.01f;
 #define GROUND_FRICTION 0.1f;
 #define DAY_CYCLE_COUNTER_MAX 14400 
+#define SECONDS_PER_DAY (DAY_CYCLE_COUNTER_MAX / TARGET_FPS)
 #define DAY_CYCLE_DAYTIME 3600 
 #define DAY_CYCLE_NIGHTTIME 10800
 
@@ -40,6 +41,14 @@ typedef enum
     ITEM_TYPE_QUEST
 } ItemType;
 
+typedef enum
+{
+	ARMOR_TYPE_NONE,
+	ARMOR_TYPE_HEAD,
+	ARMOR_TYPE_BODY,
+	ARMOR_TYPE_HANDS,
+	ARMOR_TYPE_FEET
+} ArmorType;
 
 typedef enum
 {
@@ -55,6 +64,12 @@ typedef struct
     int max_damage;
     WeaponType weapon_type;
 } WeaponProperties;
+
+typedef struct
+{
+    float defence;
+    ArmorType armor_type;
+} ArmorProperties;
 
 typedef struct
 {
@@ -74,7 +89,9 @@ typedef struct
     BOOL consummable;
     ItemType type;
     WeaponProperties weapon_props;
+    ArmorProperties  armor_props;
 } Item;
+
 typedef enum
 {
 	KEYPRESS_NONE  = 0,
@@ -147,8 +164,11 @@ typedef struct
     BOOL shoot;
     int item_held_index;
     int notch_index;
-    //Weapon weapon;
     Item weapon;
+    Item armor_head;
+    Item armor_body;
+    Item armor_hands;
+    Item armor_feet;
     Direction dir;
     AttackDirection attack_dir;
     Animation anim;

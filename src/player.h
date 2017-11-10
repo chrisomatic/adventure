@@ -728,11 +728,46 @@ static void update_player()
 
             if(items[item_index_taken].type == ITEM_TYPE_WEAPON)
             {
-                if(player.weapon.name)
+                if(player.weapon.name != "")
                     spawn_item(player.weapon.name,player.x,player.y);
 
                 get_item_by_name(items[item_index_taken].name,&player.weapon);
             }
+            else if(items[item_index_taken].type == ITEM_TYPE_ARMOR)
+            {
+                switch(items[item_index_taken].armor_props.armor_type)
+                {
+                    case ARMOR_TYPE_HEAD: 
+                        if(player.armor_head.name != "")
+                            spawn_item(player.armor_head.name,player.x,player.y);
+
+                        get_item_by_name(items[item_index_taken].name,&player.armor_head);
+
+                        break;
+                    case ARMOR_TYPE_BODY:
+                        if(player.armor_body.name != "")
+                            spawn_item(player.armor_body.name,player.x,player.y);
+
+                        get_item_by_name(items[item_index_taken].name,&player.armor_body);
+
+                        break;
+                    case ARMOR_TYPE_HANDS:
+                        if(player.armor_hands.name != "")
+                            spawn_item(player.armor_hands.name,player.x,player.y);
+
+                        get_item_by_name(items[item_index_taken].name,&player.armor_hands);
+                        
+                        break;
+                    case ARMOR_TYPE_FEET:
+                        if(player.armor_feet.name != "")
+                            spawn_item(player.armor_feet.name,player.x,player.y);
+
+                        get_item_by_name(items[item_index_taken].name,&player.armor_feet);
+                        
+                        break;
+                }
+            }
+
             remove_item(item_index_taken);
         }
     }
@@ -749,6 +784,31 @@ static void update_player()
         }
     }
 }
+static void draw_player_and_armor()
+{
+    // player
+    draw_tile_shadow(player.x - camera.x,player.y - camera.y,player.tileset_name,player.tile_index + player.dir+player.anim.frame_order[player.anim.frame],max(10-day_cycle_shade_amount,0));
+    draw_tile(player.x - camera.x,player.y - camera.y - 0.5*player.z,player.tileset_name,player.tile_index + player.dir+player.anim.frame_order[player.anim.frame],day_cycle_shade_amount);
+
+    // armor ...
+    
+    // helm
+    if(player.armor_head.name != NULL)
+        draw_tile(player.x - camera.x, player.y - camera.y - 1 - 0.5*player.z, player.armor_head.tileset_name, player.armor_head.tile_index + (player.dir/3), day_cycle_shade_amount);
+    
+    // body
+    
+
+    // hands
+    
+    // feet
+}
+
+static void draw_weapon()
+{
+    draw_tile_rotated_shadow(player.x - camera.x + cos(player.attack_angle)*2*TILE_WIDTH/3,player.y - camera.y - sin(player.attack_angle) * 2*TILE_HEIGHT/3,player.weapon.tileset_name,player.weapon.tile_index,player.attack_angle,max(10-day_cycle_shade_amount,0));
+    draw_tile_rotated(player.x - camera.x + cos(player.attack_angle)*2*TILE_WIDTH/3,player.y - camera.y - sin(player.attack_angle) * 2*TILE_HEIGHT/3 - 0.5*player.z,player.weapon.tileset_name,player.weapon.tile_index,player.attack_angle, day_cycle_shade_amount);
+}
 
 static void draw_player()
 {
@@ -760,23 +820,19 @@ static void draw_player()
     else
     {
         // draw player
-        if (player.dir != DIR_UP)
-        {
-            draw_tile_shadow(player.x - camera.x,player.y - camera.y,player.tileset_name,player.tile_index + player.dir+player.anim.frame_order[player.anim.frame],max(10-day_cycle_shade_amount,0));
-            draw_tile(player.x - camera.x,player.y - camera.y - 0.5*player.z,player.tileset_name,player.tile_index + player.dir+player.anim.frame_order[player.anim.frame],day_cycle_shade_amount);
-        }
-
-        if((player.state & PLAYER_STATE_ATTACK) == PLAYER_STATE_ATTACK || (player.state & PLAYER_STATE_NOTCHED) == PLAYER_STATE_NOTCHED)
-        {
-            // draw weapon
-            draw_tile_rotated_shadow(player.x - camera.x + cos(player.attack_angle)*2*TILE_WIDTH/3,player.y - camera.y - sin(player.attack_angle) * 2*TILE_HEIGHT/3,player.weapon.tileset_name,player.weapon.tile_index,player.attack_angle,max(10-day_cycle_shade_amount,0));
-            draw_tile_rotated(player.x - camera.x + cos(player.attack_angle)*2*TILE_WIDTH/3,player.y - camera.y - sin(player.attack_angle) * 2*TILE_HEIGHT/3 - 0.5*player.z,player.weapon.tileset_name,player.weapon.tile_index,player.attack_angle, day_cycle_shade_amount);
-        }
-        
         if (player.dir == DIR_UP)
         {
-            draw_tile_shadow(player.x - camera.x,player.y - camera.y,player.tileset_name,player.tile_index + player.dir+player.anim.frame_order[player.anim.frame],max(10-day_cycle_shade_amount,0));
-            draw_tile(player.x - camera.x,player.y - camera.y - 0.5*player.z,player.tileset_name,player.tile_index + player.dir+player.anim.frame_order[player.anim.frame],day_cycle_shade_amount);
+            if((player.state & PLAYER_STATE_ATTACK) == PLAYER_STATE_ATTACK || (player.state & PLAYER_STATE_NOTCHED) == PLAYER_STATE_NOTCHED)
+                draw_weapon();
+
+            draw_player_and_armor();
+        }
+        else 
+        {
+            draw_player_and_armor();
+
+            if((player.state & PLAYER_STATE_ATTACK) == PLAYER_STATE_ATTACK || (player.state & PLAYER_STATE_NOTCHED) == PLAYER_STATE_NOTCHED)
+                draw_weapon();
         }
     }
 

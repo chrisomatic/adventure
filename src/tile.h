@@ -17,6 +17,9 @@ unsigned char *tileset;
 
 static int get_tileset_index_by_name(const char* name)
 {
+	if (!name)
+		return;
+
     for(int i = 0; i < num_tilesets; ++i)
     {
         if(strcmp(tileset_list[i].name,name) == 0)

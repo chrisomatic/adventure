@@ -1,3 +1,5 @@
+#define TARGET_FPS 60.0f
+
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>

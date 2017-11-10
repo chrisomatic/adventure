@@ -13,6 +13,9 @@ static int num_item_list = 0;
 
 static BOOL get_item_by_name(const char* name,Item* item)
 {
+	if (name == NULL)
+		return FALSE;
+
     for(int i = 0; i < MAX_ITEM_LIST; ++i)
     {
 		if (item_list[i].name == NULL)
@@ -32,6 +35,8 @@ static BOOL get_item_by_name(const char* name,Item* item)
             item->weapon_props.min_damage = item_list[i].weapon_props.min_damage;
             item->weapon_props.max_damage = item_list[i].weapon_props.max_damage;
             item->weapon_props.weapon_type = item_list[i].weapon_props.weapon_type;
+            item->armor_props.defence = item_list[i].armor_props.defence;
+            item->armor_props.armor_type = item_list[i].armor_props.armor_type;
 
             return TRUE;
         }
@@ -49,6 +54,8 @@ static BOOL get_item_by_name(const char* name,Item* item)
     item->weapon_props.min_damage = 0;
     item->weapon_props.max_damage = 0;
     item->weapon_props.weapon_type = 0;
+    item->armor_props.defence = 0.0f;
+    item->armor_props.armor_type = ARMOR_TYPE_NONE; 
 
 	return FALSE;
 }
@@ -80,6 +87,8 @@ static BOOL spawn_item(const char* item_name,float x, float y)
     items[num_items].weapon_props.min_damage = item.weapon_props.min_damage;
     items[num_items].weapon_props.max_damage = item.weapon_props.max_damage;
     items[num_items].weapon_props.weapon_type = item.weapon_props.weapon_type;
+    items[num_items].armor_props.defence = item.armor_props.defence;
+    items[num_items].armor_props.armor_type = item.armor_props.armor_type;
 
     ++num_items;
     if(num_items > MAX_ITEMS -1)

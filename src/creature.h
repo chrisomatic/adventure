@@ -1,4 +1,4 @@
-#define MAX_CREATURES    100000
+#define MAX_CREATURES     100000
 #define MAX_CREATURE_LIST 100
 
 typedef enum
@@ -89,6 +89,69 @@ int num_pregs = 0;
 int num_births = 0;
 int num_deaths = 0;
 //
+
+float mortality_table[60] = {
+    0.003322137,
+    0.003322137,
+    0.003322137,
+    0.003322137,
+    0.003322137,
+    0.003322137,
+    0.003322137,
+    0.004008347,
+    0.004008347,
+    0.004008347,
+    0.004008347,
+    0.004008347,
+    0.004008347,
+    0.004008347,
+    0.004702207,
+    0.004702207,
+    0.004702207,
+    0.004702207,
+    0.004702207,
+    0.004702207,
+    0.004702207,
+    0.006831489,
+    0.006831489,
+    0.006831489,
+    0.006831489,
+    0.006831489,
+    0.006831489,
+    0.006831489,
+    0.010551209,
+    0.010551209,
+    0.010551209,
+    0.010551209,
+    0.010551209,
+    0.010551209,
+    0.010551209,
+    0.014509088,
+    0.014509088,
+    0.014509088,
+    0.014509088,
+    0.014509088,
+    0.014509088,
+    0.014509088,
+    0.023282192,
+    0.023282192,
+    0.023282192,
+    0.023282192,
+    0.023282192,
+    0.023282192,
+    0.023282192,
+    0.033531884,
+    0.033531884,
+    0.033531884,
+    0.033531884,
+    0.033531884,
+    0.033531884,
+    0.033531884,
+    0.082819994,
+    0.082819994,
+    0.082819994,
+    0.100000000
+};
 
 static BOOL get_creature_by_name(const char* name,Creature* creature)
 {
@@ -267,6 +330,8 @@ static void creature_death(int i)
 
     // drop item(s)
     int item_percent = rand() % 100 + 1;
+
+    
     if(item_percent >= 1 && item_percent <= 20)
     {
         spawn_item("Meat",creatures[i].x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)));
@@ -294,6 +359,10 @@ static void creature_death(int i)
     else if(item_percent >= 49 && item_percent <= 50)
     {
         spawn_item("Staff",creatures[i].x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)));
+    }
+    else if(item_percent >= 51 && item_percent <= 55)
+    {
+        spawn_item("Helm",creatures[i].x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)));
     }
 
     remove_creature(i);
@@ -802,7 +871,8 @@ static void update_creatures()
                     creatures[i].death_check_counter = 0;
 
                     int death_num = rand() % 100;
-                    float chance_of_death = (creatures[i].age / (float)creatures[i].max_age);
+                    int life_in_days = min(59,floor(creatures[i].age / SECONDS_PER_DAY));
+                    float chance_of_death = mortality_table[life_in_days];
 
                     if(death_num >= (100 - (100.0f*chance_of_death)))
                     {

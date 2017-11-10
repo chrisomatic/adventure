@@ -18,6 +18,7 @@
     <Image Include="..\data\tileset0.png">
       <Filter>data</Filter>
     </Image>
+    <Image Include="rat.ico" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="animation.h" />
@@ -40,5 +41,9 @@
     <ClInclude Include="weapon.h" />
     <ClInclude Include="world.h" />
     <ClInclude Include="creature.h" />
+    <ClInclude Include="resource1.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="adventure_V14.rc" />
   </ItemGroup>
 </Project>

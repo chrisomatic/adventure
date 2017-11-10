@@ -1,0 +1,10 @@
+name: Helm
+
+description: "This should protect my head"
+
+type: 4 #Armor
+armor_type: 1 #head
+defence: 2
+tileset_name: armor
+tile_index: 0
+consummable: 0 #FALSE

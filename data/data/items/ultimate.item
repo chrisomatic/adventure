@@ -1,11 +1,21 @@
 name: Ultimate
+
 description: "A feeling of immense power draws you in"
+
 type: 3 #Weapon
+
 weapon_type: 0 # Melee
+
 min_damage: 100 
+
 max_damage: 100 
+
 attack_speed: 3.0 
+
 attack_range: 100 
+
 tileset_name: weapons
+
 tile_index: 5
+
 consummable: 0 #FALSE
