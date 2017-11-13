@@ -1,7 +1,5 @@
 #TODO
 - Add attacking code for enemies
-- Improve creature behavior
-- Add creature reproduction cycle
 - Add grouping logic for creatures
 - Add vendors to buy/sell to
 - Add height to entities and integrate it into collision code
@@ -12,6 +10,8 @@
 - Experiment with an "Energy" system for swinging, running, etc
 
 #DONE
++ Improve creature behavior
++ Add creature reproduction cycle
 + Add mana for spells
 + Make projectiles disappear after a certain amount of time
 + Add collision for projectiles

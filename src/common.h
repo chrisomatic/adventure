@@ -52,4 +52,4 @@ typedef enum
 
 static void spawn_floating_number(float x, float y, int number,int color);
 static void spawn_floating_string(float x, float y, char* string,int color);
-static void spawn_particle(int x, int y, int size,int intensity,unsigned char character,unsigned char color);
+static void spawn_particle(int x, int y, int size,int intensity,unsigned char character,unsigned char color,int board_index);

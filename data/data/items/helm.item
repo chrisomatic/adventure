@@ -8,3 +8,4 @@ defence: 2
 tileset_name: armor
 tile_index: 0
 consummable: 0 #FALSE
+y_offset: -5

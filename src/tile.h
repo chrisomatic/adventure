@@ -13,8 +13,6 @@ typedef struct
 Tileset tileset_list[16];
 int num_tilesets = 0;
 
-unsigned char *tileset;
-
 static int get_tileset_index_by_name(const char* name)
 {
 	if (!name)

@@ -133,6 +133,7 @@ static void load_assets(ASSET_TYPE type)
                         else if (strcmp(key, "attack_range") == 0) C_atoi(value, &item_list[asset_counter].weapon_props.attack_range);
                         else if (strcmp(key, "defence") == 0) C_atoi(value, &item_list[asset_counter].armor_props.defence);
                         else if (strcmp(key, "armor_type") == 0) C_atoi(value, &item_list[asset_counter].armor_props.armor_type);
+                        else if (strcmp(key, "y_offset") == 0) C_atoi(value, &item_list[asset_counter].armor_props.y_offset);
 
                         break;
 

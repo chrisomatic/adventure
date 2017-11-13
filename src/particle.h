@@ -9,6 +9,7 @@ typedef struct
     int   life_counter;
     int   life_max;
     int   size;
+    int   board_index;
     unsigned char color;
     unsigned char character;
 } Particle;
@@ -16,8 +17,9 @@ typedef struct
 Particle particles[MAX_PARTICLES];
 int num_particles;
 
-static void spawn_particle(int x, int y, int size,int intensity,unsigned char character,unsigned char color)
+static void spawn_particle(int x, int y, int size,int intensity,unsigned char character,unsigned char color, int board_index)
 {
+    particles[num_particles].board_index = board_index;
     particles[num_particles].x = x;
     particles[num_particles].y = y;
     particles[num_particles].color = color;
@@ -67,6 +69,9 @@ static void update_particles()
 
 static void draw_particle(int i)
 {
+    if(particles[i].board_index != current_board_index)
+        return;
+
     int particle_x = particles[i].x - camera.x;
     int particle_y = particles[i].y - camera.y;
 

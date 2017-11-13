@@ -1,5 +1,5 @@
-#define WORLD_TILE_WIDTH  256
-#define WORLD_TILE_HEIGHT 256
+#define BOARD_TILE_WIDTH  256
+#define BOARD_TILE_HEIGHT 256
 #define GRAVITY 0.2f;
 #define AIR_RESISTANCE 0.01f;
 #define GROUND_FRICTION 0.1f;
@@ -69,11 +69,13 @@ typedef struct
 {
     float defence;
     ArmorType armor_type;
+    int y_offset;
 } ArmorProperties;
 
 typedef struct
 {
     char* name;
+    int board_index;
     char* description;
     float x;
     float y;
@@ -131,6 +133,7 @@ typedef enum
 typedef struct
 {
     char* name;
+    char* board_name;
     char* tileset_name;
     int tile_index;
     int lvl;
@@ -178,7 +181,9 @@ typedef struct
 Player player;
 
 int foes_killed = 0; // @TEMP
-long next_level = 10;
+long next_level = 100;
+
+static int current_board_index = 0;
 
 static void gain_level()
 {
@@ -188,11 +193,21 @@ static void gain_level()
 
     spawn_floating_string(player.x + TILE_WIDTH/2, player.y,"+Lvl",8);
     for(int i = 0; i < 10; ++i)
-        spawn_particle(rand() % TILE_WIDTH + player.x,player.y,2,5,'*',8);
+        spawn_particle(rand() % TILE_WIDTH + player.x,player.y,2,5,'*',8,current_board_index);
 }
 
-static int world[WORLD_TILE_HEIGHT][WORLD_TILE_WIDTH];
-static int world_collision[WORLD_TILE_HEIGHT][WORLD_TILE_WIDTH];
+typedef struct
+{
+    char name[100];
+    int map_x_index;
+    int map_y_index;
+    unsigned int data[BOARD_TILE_HEIGHT][BOARD_TILE_WIDTH];
+    unsigned int collision[BOARD_TILE_HEIGHT][BOARD_TILE_WIDTH];
+} Board;
+
+Board board_list[16];
+
+int num_boards = 0;
 
 static int world_water_anim_counter = 0;
 static int world_water_anim_counter_max = 5;
@@ -203,18 +218,120 @@ static int day_cycle_shade_amount = 0;
 
 const char* terrain_tileset_name = "terrain";
 
-static void generate_world_file(const char* image_path)
+static int get_board_index_by_name(const char* name)
+{
+	if (!name)
+		return;
+
+    for(int i = 0; i < num_boards; ++i)
+    {
+        if(strcmp(board_list[i].name,name) == 0)
+            return i;
+    }
+
+    return -1;
+}
+
+static int get_name_of_board_location(int x, int y,char* ret_name)
+{
+	if (x < 0 || y < 0)
+		return -1;
+
+    for(int i = 0; i < num_boards; ++i)
+    {
+        if(board_list[i].map_x_index == x && board_list[i].map_y_index == y)
+        {
+			ret_name = board_list[i].name;
+            return i;
+        }
+    }
+
+    return -1;
+
+}
+
+static void init_board()
+{
+    current_board_index = get_board_index_by_name(player.board_name);
+}
+
+static void load_board_map()
+{
+    FILE* fp_map = fopen("data\\boards\\board_map","r");
+
+	if (fp_map == NULL)
+		return;
+
+    int c;
+    int  board_name_counter = 0;
+    char board_name[100] = {0};
+
+    int x_index = 0;
+    int y_index = 0;
+    do
+    {
+        c = fgetc(fp_map);
+
+        if(c == '0')
+        {
+            // ignore
+        }
+        else if(c == ',')
+        {
+            // make sure board_name is not nothing
+            if(board_name[0] != '\0')
+            {
+                int board_index = get_board_index_by_name(board_name);
+				if (board_index >= 0)
+				{
+					board_list[board_index].map_x_index = x_index;
+					board_list[board_index].map_y_index = y_index;
+				}
+				memset(board_name, 0, 100);
+				board_name_counter = 0;
+            }
+			++x_index;
+        }
+        else if(c == '\n' || c == EOF)
+        {
+			if (board_name[0] != '\0')
+			{
+				int board_index = get_board_index_by_name(board_name);
+				if (board_index >= 0)
+				{
+					board_list[board_index].map_x_index = x_index;
+					board_list[board_index].map_y_index = y_index;
+				}
+
+				memset(board_name, 0, 100);
+				board_name_counter = 0;
+			}
+
+			++y_index;
+            x_index = 0;
+        }
+        else
+            board_name[board_name_counter++] = c;
+
+        
+
+    } while (c != EOF);
+
+    fclose(fp_map);
+}
+
+static void generate_indexed_board(const char* rgb_image_path,const char* indexed_path)
 {
     int w,h,n;
-    unsigned char *imgdata = stbi_load(image_path,&w,&h,&n,0);
+    unsigned char *imgdata = stbi_load(rgb_image_path,&w,&h,&n,0);
 
     if(imgdata == NULL)
         return;
 
     unsigned char *p = imgdata;
 
-    FILE * fp_world;
-    fp_world = fopen ("data\\world", "wb");
+    FILE * fp_board;
+    fp_board = fopen (indexed_path, "wb");
 
 	unsigned char r, g, b;
 	int val;
@@ -250,82 +367,117 @@ static void generate_world_file(const char* image_path)
             else if (r == 200 && g == 150 && b == 64)   // wood 
 				val = WOOD;
                 
-			if (fputc(val, fp_world) == EOF)
+			if (fputc(val, fp_board) == EOF)
 				return;
 
 			p += n;
 		}
     }
     
-    fclose(fp_world);
+    fclose(fp_board);
     stbi_image_free(imgdata);
 }
 
-static void init_world(const char* path_to_world_file)
+static void generate_all_boards()
 {
-    FILE* fp_world = fopen(path_to_world_file,"rb");
+	char paths[100][MAX_PATH] = { 0 };
+	int num_files = get_files_in_directory_with_extension("data\\boards", ".board.png", paths);
 
-	if (fp_world == NULL)
+    for(int i = 0; i < num_files; ++i)
+    {
+		char index_path[MAX_PATH] = {0};
+
+        remove_file_extension(paths[i], index_path);
+        generate_indexed_board(paths[i],index_path);
+    }
+}
+
+static void load_board(const char* path_to_board_file, int board_index)
+{
+    FILE* fp_board = fopen(path_to_board_file,"rb");
+
+	if (fp_board == NULL)
 		return;
 
     int c;
 	unsigned char uc;
 
-	for (int j = 0; j < WORLD_TILE_HEIGHT; ++j)
+	for (int j = 0; j < BOARD_TILE_HEIGHT; ++j)
 	{
-		for(int i = 0; i < WORLD_TILE_WIDTH; ++i)
+		for(int i = 0; i < BOARD_TILE_WIDTH; ++i)
 		{
-            c = fgetc(fp_world);
+            c = fgetc(fp_board);
             if(c == EOF) return;
 
 			uc = (unsigned char)c;
 
-			world[j][i] = uc;
+            board_list[board_index].data[j][i] = uc;
 
             switch(uc)
             {
-                case GRASS: world_collision[i][j] = 1; break;
-                case MARSH: world_collision[i][j] = 1; break;
-                case WOOD:  world_collision[i][j] = 1; break;
-                case SAND:  world_collision[i][j] = 2; break;
-                case MUD:   world_collision[i][j] = 3; break;
-                case WATER: world_collision[i][j] = 4; break;
-                case LAVA:  world_collision[i][j] = 6; break;
-                case MOUNTAIN: world_collision[i][j] = 5; break;
-                case STONE: world_collision[i][j] = 5; break;
+                case GRASS: board_list[board_index].collision[i][j] = 1; break;
+                case MARSH: board_list[board_index].collision[i][j] = 1; break;
+                case WOOD:  board_list[board_index].collision[i][j] = 1; break;
+                case SAND:  board_list[board_index].collision[i][j] = 2; break;
+                case MUD:   board_list[board_index].collision[i][j] = 3; break;
+                case WATER: board_list[board_index].collision[i][j] = 4; break;
+                case LAVA:  board_list[board_index].collision[i][j] = 6; break;
+                case MOUNTAIN: board_list[board_index].collision[i][j] = 5; break;
+                case STONE: board_list[board_index].collision[i][j] = 5; break;
             }
         }
     }
 
-    fclose(fp_world);
+    fclose(fp_board);
 }
 
-static void update_world()
+static void load_all_boards()
+{
+	char paths[100][MAX_PATH] = { 0 };
+	int num_files = get_files_in_directory_with_extension("data\\boards", ".board", paths);
+
+    for(int i = 0; i < num_files; ++i)
+    {
+        char path_without_ext[MAX_PATH] = {0};
+        char board_name[MAX_PATH] = {0};
+
+        remove_file_extension(paths[i], path_without_ext);
+        get_file_name(path_without_ext,board_name);
+
+        C_strcpy(board_name, board_list[num_boards].name);
+        load_board(paths[i],num_boards);
+
+        num_boards++;
+    }
+}
+
+static void update_board(int index)
 {
     world_water_anim_counter++;
 
 	if (world_water_anim_counter == world_water_anim_counter_max)
 	{
 		world_water_anim_counter = 0;
-		for(int j = 0; j < WORLD_TILE_HEIGHT; ++j)
+
+		for(int j = 0; j < BOARD_TILE_HEIGHT; ++j)
 		{
-			for(int i = 0; i < WORLD_TILE_WIDTH; ++i)
+			for(int i = 0; i < BOARD_TILE_WIDTH; ++i)
 			{
-				if(world[i][j] == WATER || world[i][j] == WATER2)
+				if(board_list[index].data[i][j] == WATER || board_list[index].data[i][j] == WATER2)
 				{
 					// animate water
-                    if(world[i][j] == WATER) 
-                        world[i][j] = WATER2;
+                    if(board_list[index].data[i][j] == WATER) 
+                        board_list[index].data[i][j] = WATER2;
                     else
-                        world[i][j] = WATER;
+                        board_list[index].data[i][j] = WATER;
                 }
-				if(world[i][j] == LAVA || world[i][j] == LAVA2)
+				if(board_list[index].data[i][j] == LAVA || board_list[index].data[i][j] == LAVA2)
                 {
 					// animate lava
-                    if(world[i][j] == LAVA) 
-                        world[i][j] = LAVA2;
+                    if(board_list[index].data[i][j] == LAVA) 
+                        board_list[index].data[i][j] = LAVA2;
                     else
-                        world[i][j] = LAVA;
+                        board_list[index].data[i][j] = LAVA;
                 }    
             }
         }
@@ -356,7 +508,7 @@ static void update_world()
         day_cycle_direction *= -1;
 
 }
-static void draw_world()
+static void draw_board(int index)
 {
     int start_x = camera.x / TILE_WIDTH;
     int start_y = camera.y / TILE_HEIGHT;
@@ -364,17 +516,17 @@ static void draw_world()
     int end_x = start_x + (buffer_width/TILE_WIDTH) + 1;
     int end_y = start_y + (buffer_height/TILE_HEIGHT) + 1;
 
-    if (end_x > WORLD_TILE_WIDTH)  end_x = WORLD_TILE_WIDTH;
-    if (end_y > WORLD_TILE_HEIGHT) end_y = WORLD_TILE_HEIGHT;
+    if (end_x > BOARD_TILE_WIDTH)  end_x = BOARD_TILE_WIDTH;
+    if (end_y > BOARD_TILE_HEIGHT) end_y = BOARD_TILE_HEIGHT;
 
     for(int j = start_y; j < end_y; ++j)
     {
         for(int i = start_x; i < end_x; ++i)
         {
-            if(world[j][i] == LAVA || world[j][i] == LAVA2)
-                draw_tile(i*TILE_WIDTH - camera.x,j*TILE_HEIGHT - camera.y,terrain_tileset_name, world[j][i],0); // don't shade lava tiles
+            if(board_list[index].data[j][i] == LAVA || board_list[index].data[j][i] == LAVA2)
+                draw_tile(i*TILE_WIDTH - camera.x,j*TILE_HEIGHT - camera.y,terrain_tileset_name, board_list[index].data[j][i],0); // don't shade lava tiles
             else
-                draw_tile(i*TILE_WIDTH - camera.x,j*TILE_HEIGHT - camera.y,terrain_tileset_name, world[j][i],day_cycle_shade_amount);
+                draw_tile(i*TILE_WIDTH - camera.x,j*TILE_HEIGHT - camera.y,terrain_tileset_name, board_list[index].data[j][i],day_cycle_shade_amount);
         }
     }
 }
@@ -393,4 +545,3 @@ static void draw_message()
     draw_string(message.name,42, 149,1.0f,8);
     draw_string(message.message,50,156,1.0f,message.color);
 }
-

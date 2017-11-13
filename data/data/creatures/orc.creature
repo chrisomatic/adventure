@@ -21,3 +21,4 @@ tile_index: 64
 species: Orc
 
 reproductive: 0 #FALSE
+adult_age: 5040

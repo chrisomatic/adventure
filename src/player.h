@@ -4,6 +4,7 @@ KeyPress keypress_attack = 0x0000;
 static void init_player()
 {
     player.name = "Hero";
+    player.board_name = "Astoria";
     player.tileset_name = "characters";
     player.tile_index = 0;
     player.lvl = 1;
@@ -13,8 +14,8 @@ static void init_player()
     player.mp  = 6;
     player.max_mp = 6;
     player.gold = 10;
-    player.x   = (WORLD_TILE_WIDTH*(TILE_WIDTH-1))/2;
-    player.y   = (WORLD_TILE_HEIGHT*(TILE_HEIGHT-1))/2;
+    player.x   = (BOARD_TILE_WIDTH*(TILE_WIDTH-1))/2;
+    player.y   = (BOARD_TILE_HEIGHT*(TILE_HEIGHT-1))/2;
     player.z   = 0;
     player.x_vel = 0;
     player.y_vel = 0;
@@ -48,6 +49,7 @@ static void init_player()
     player.attack_angle = 0.0f;
     player.attack_frame_counter = 0;
     get_item_by_name("Sword",&player.weapon);
+    //get_item_by_name("Cloak",&player.armor_head);
 }
 
 static void update_player()
@@ -61,11 +63,11 @@ static void update_player()
         int bronze_coins = player.gold / 1; player.gold -= bronze_coins;
 
         for(int c = 0; c < bronze_coins; ++c)
-            spawn_coin(player.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),player.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)),2,0,0,3.0f, COIN_BRONZE);
+            spawn_coin(player.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),player.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)),2,0,0,3.0f, COIN_BRONZE,current_board_index);
         for(int c = 0; c < silver_coins; ++c)
-            spawn_coin(player.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),player.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)),2,0,0,2.5f, COIN_SILVER);
+            spawn_coin(player.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),player.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)),2,0,0,2.5f, COIN_SILVER, current_board_index);
         for(int c = 0; c < gold_coins; ++c)
-            spawn_coin(player.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),player.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)),2,0,0,2.0f, COIN_GOLD);
+            spawn_coin(player.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),player.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)),2,0,0,2.0f, COIN_GOLD, current_board_index);
 
         player.state = PLAYER_STATE_DEAD;
     }
@@ -149,11 +151,10 @@ static void update_player()
     int player_check_x4 = (player.x + 3*TILE_WIDTH/4) / TILE_WIDTH;
     int player_check_y4 = (player.y + TILE_HEIGHT) / TILE_HEIGHT;
 
-    int collision_value_1 = world_collision[player_check_x1][player_check_y1];
-    int collision_value_2 = world_collision[player_check_x2][player_check_y2];
-    int collision_value_3 = world_collision[player_check_x3][player_check_y3];
-    int collision_value_4 = world_collision[player_check_x4][player_check_y4];
-
+    int collision_value_1 = board_list[current_board_index].collision[min(player_check_x1, BOARD_TILE_WIDTH - 1)][min(player_check_y1, BOARD_TILE_HEIGHT - 1)];
+    int collision_value_2 = board_list[current_board_index].collision[min(player_check_x2, BOARD_TILE_WIDTH - 1)][min(player_check_y2, BOARD_TILE_HEIGHT - 1)];
+    int collision_value_3 = board_list[current_board_index].collision[min(player_check_x3, BOARD_TILE_WIDTH - 1)][min(player_check_y3, BOARD_TILE_HEIGHT - 1)];
+    int collision_value_4 = board_list[current_board_index].collision[min(player_check_x4, BOARD_TILE_WIDTH - 1)][min(player_check_y4, BOARD_TILE_HEIGHT - 1)];
 
     if(collision_value_1 == 5 || collision_value_2 == 5 || collision_value_3 == 5 || collision_value_4 == 5)
     {
@@ -175,11 +176,16 @@ static void update_player()
         
         if(!correct_x && !correct_y)
         {
-            if(collision_value_1 == 5 || collision_value_3 == 5)
-				player.x += 1.0f*player.speed;
-            
-            if(collision_value_2 == 5 || collision_value_4 == 5)
-				player.x -= 1.0f*player.speed;
+            if(collision_value_1 == 5 || collision_value_4 == 5)
+            {
+                player.x -= player.y_vel*player.speed;
+                player.y -= player.x_vel*player.speed;
+            }
+            else if(collision_value_2 == 5 || collision_value_3 == 5)
+            {
+                player.x += player.y_vel*player.speed;
+                player.y += player.x_vel*player.speed;
+            }
         }
     }
     else if(collision_value_1 == 3 || collision_value_2 == 3 || collision_value_3 == 3 || collision_value_4 == 3)
@@ -189,7 +195,7 @@ static void update_player()
             // handle player in mud
             if(player.x_vel != 0 || player.y_vel != 0)
             {
-                spawn_particle(rand() % TILE_WIDTH + player.x,player.y+TILE_HEIGHT,2,1,0,4);
+                spawn_particle(rand() % TILE_WIDTH + player.x,player.y+TILE_HEIGHT,2,1,0,4,current_board_index);
             }
 
             player.speed = player.base_speed/2.0f;
@@ -203,7 +209,7 @@ static void update_player()
         {
             if(player.x_vel != 0 || player.y_vel != 0)
             {
-                spawn_particle(rand() % TILE_WIDTH + player.x,player.y+TILE_HEIGHT,2,2,0,8);
+                spawn_particle(rand() % TILE_WIDTH + player.x,player.y+TILE_HEIGHT,2,2,0,8,current_board_index);
             }
 
             player.speed = player.base_speed/3.0f;
@@ -216,7 +222,7 @@ static void update_player()
             // handle player in lava
             if(player.x_vel != 0 || player.y_vel != 0)
             {
-                spawn_particle(rand() % TILE_WIDTH + player.x,player.y+TILE_HEIGHT,2,2,0,6);
+                spawn_particle(rand() % TILE_WIDTH + player.x,player.y+TILE_HEIGHT,2,2,0,6,current_board_index);
             }
 
             player.environmental_hurt_counter++;
@@ -234,11 +240,59 @@ static void update_player()
         player.speed = player.base_speed;
     }
 
-    // keep player in world
-    if(player.x < 0) player.x = 0;
-    if(player.y < 0) player.y = 0;
-    if(player.x >TILE_WIDTH*(WORLD_TILE_WIDTH - 1)) player.x = TILE_WIDTH*(WORLD_TILE_WIDTH - 1);
-    if(player.y >TILE_HEIGHT*(WORLD_TILE_HEIGHT - 1)) player.y = TILE_HEIGHT*(WORLD_TILE_HEIGHT - 1);
+    // check board boundaries
+    if(player.x < 0)
+    {
+        int board_index = get_name_of_board_location(board_list[current_board_index].map_x_index -1, board_list[current_board_index].map_y_index,player.board_name);
+
+        if(board_index < 0)
+            player.x = 0;    
+        else
+        {
+            // go to board
+            player.x = (BOARD_TILE_HEIGHT - 1)*TILE_HEIGHT;
+            current_board_index = board_index;
+        }
+    }
+    else if(player.y < 0)
+    {
+        int board_index = get_name_of_board_location(board_list[current_board_index].map_x_index, board_list[current_board_index].map_y_index - 1,player.board_name);
+
+        if(board_index < 0)
+            player.y = 0;
+        else
+        {
+            // go to board
+            player.y = (BOARD_TILE_HEIGHT-1)*TILE_HEIGHT;
+            current_board_index = board_index;
+        }
+    }
+    else if(player.x > TILE_WIDTH*(BOARD_TILE_WIDTH - 1))
+    {
+        int board_index = get_name_of_board_location(board_list[current_board_index].map_x_index + 1, board_list[current_board_index].map_y_index,player.board_name);
+
+        if(board_index < 0)
+            player.x = TILE_WIDTH*(BOARD_TILE_WIDTH - 1); 
+        else
+        {
+            // go to board
+            player.x = 0;
+            current_board_index = board_index;
+        }
+    }
+    else if(player.y > TILE_HEIGHT*(BOARD_TILE_HEIGHT - 1))
+    {
+        int board_index = get_name_of_board_location(board_list[current_board_index].map_x_index, board_list[current_board_index].map_y_index + 1,player.board_name);
+
+        if(board_index < 0)
+            player.y = TILE_HEIGHT*(BOARD_TILE_HEIGHT - 1);
+        else
+        {
+            // go to board
+            player.y = 0;
+            current_board_index = board_index;
+        }
+    }
 
     // update player movement animation
     if(player.x_vel != 0 || player.y_vel != 0)
@@ -296,9 +350,10 @@ static void update_player()
             for(int i = num_creatures-1; i >= 0;--i)
             {
                 if(creatures[i].untargetable)
-                {
                     continue;
-                }
+
+                if(creatures[i].board_index != current_board_index)
+                    continue;
 
                 int relative_creature_position_x = creatures[i].x - camera.x;
                 int relative_creature_position_y = creatures[i].y - camera.y;
@@ -491,6 +546,9 @@ static void update_player()
     // check if player picked up coins
     for(int i = num_coins -1; i>= 0; --i)
     {
+        if(coins[i].board_index != current_board_index)
+            continue;
+
         int coin_x = coins[i].x + TILE_WIDTH/2 -2;
         int coin_y = coins[i].y + TILE_HEIGHT/2 -2;
 
@@ -572,7 +630,7 @@ static void update_player()
                 }
                 
 
-                if(spawn_coin(player.x + coin_x_offset, player.y + coin_y_offset,player.z + 5,player.x_vel*player.speed + coin_x_vel,player.y_vel*player.speed+coin_y_vel,2.0f,COIN_BRONZE))
+                if(spawn_coin(player.x + coin_x_offset, player.y + coin_y_offset,player.z + 5,player.x_vel*player.speed + coin_x_vel,player.y_vel*player.speed+coin_y_vel,2.0f,COIN_BRONZE,current_board_index))
                     player.gold--;
             }
         }
@@ -585,6 +643,9 @@ static void update_player()
 
     for(int i = 0; i < num_items; ++i)
     {
+        if(items[i].board_index != current_board_index)
+            continue;
+
         distance = get_distance(player.x + TILE_WIDTH/2,player.y + TILE_HEIGHT,items[i].x + TILE_WIDTH/2,items[i].y + TILE_HEIGHT/2);
 
         if(distance <= 14)
@@ -709,7 +770,7 @@ static void update_player()
 
                         for(int i = 0; i < 20; ++i)
                         {
-                            spawn_particle(rand() % TILE_WIDTH + player.x,player.y,rand() % 4 + 1,3,0,6);
+                            spawn_particle(rand() % TILE_WIDTH + player.x,player.y,rand() % 4 + 1,3,0,6,current_board_index);
                         }
                         break;
                     case ITEM_TYPE_MANA:
@@ -720,7 +781,7 @@ static void update_player()
 
                         for(int i = 0; i < 20; ++i)
                         {
-                            spawn_particle(rand() % TILE_WIDTH + player.x,player.y,rand() % 2 + 1,3,'*',8);
+                            spawn_particle(rand() % TILE_WIDTH + player.x,player.y,rand() % 2 + 1,3,'*',8,current_board_index);
                         }
                         break;
                 }
@@ -729,7 +790,7 @@ static void update_player()
             if(items[item_index_taken].type == ITEM_TYPE_WEAPON)
             {
                 if(player.weapon.name != "")
-                    spawn_item(player.weapon.name,player.x,player.y);
+                    spawn_item(player.weapon.name,player.x,player.y, current_board_index);
 
                 get_item_by_name(items[item_index_taken].name,&player.weapon);
             }
@@ -739,28 +800,28 @@ static void update_player()
                 {
                     case ARMOR_TYPE_HEAD: 
                         if(player.armor_head.name != "")
-                            spawn_item(player.armor_head.name,player.x,player.y);
+                            spawn_item(player.armor_head.name,player.x,player.y, current_board_index);
 
                         get_item_by_name(items[item_index_taken].name,&player.armor_head);
 
                         break;
                     case ARMOR_TYPE_BODY:
                         if(player.armor_body.name != "")
-                            spawn_item(player.armor_body.name,player.x,player.y);
+                            spawn_item(player.armor_body.name,player.x,player.y, current_board_index);
 
                         get_item_by_name(items[item_index_taken].name,&player.armor_body);
 
                         break;
                     case ARMOR_TYPE_HANDS:
                         if(player.armor_hands.name != "")
-                            spawn_item(player.armor_hands.name,player.x,player.y);
+                            spawn_item(player.armor_hands.name,player.x,player.y, current_board_index);
 
                         get_item_by_name(items[item_index_taken].name,&player.armor_hands);
                         
                         break;
                     case ARMOR_TYPE_FEET:
                         if(player.armor_feet.name != "")
-                            spawn_item(player.armor_feet.name,player.x,player.y);
+                            spawn_item(player.armor_feet.name,player.x,player.y, current_board_index);
 
                         get_item_by_name(items[item_index_taken].name,&player.armor_feet);
                         
@@ -794,7 +855,7 @@ static void draw_player_and_armor()
     
     // helm
     if(player.armor_head.name != NULL)
-        draw_tile(player.x - camera.x, player.y - camera.y - 1 - 0.5*player.z, player.armor_head.tileset_name, player.armor_head.tile_index + (player.dir/3), day_cycle_shade_amount);
+        draw_tile(player.x - camera.x, player.y - camera.y + player.armor_head.armor_props.y_offset - 0.5*player.z, player.armor_head.tileset_name, player.armor_head.tile_index + player.dir + player.anim.frame_order[player.anim.frame], day_cycle_shade_amount);
     
     // body
     

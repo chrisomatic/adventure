@@ -99,6 +99,7 @@
   <ItemGroup>
     <ClInclude Include="animation.h" />
     <ClInclude Include="asset.h" />
+    <ClInclude Include="board.h" />
     <ClInclude Include="cdraw.h" />
     <ClInclude Include="coin.h" />
     <ClInclude Include="common.h" />
@@ -117,7 +118,6 @@
     <ClInclude Include="tile.h" />
     <ClInclude Include="timer.h" />
     <ClInclude Include="weapon.h" />
-    <ClInclude Include="world.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="adventure_V14.rc" />

@@ -14,7 +14,7 @@
 #include "timer.h"
 #include "animation.h"
 #include "tile.h"
-#include "world.h"
+#include "board.h"
 #include "item.h"
 #include "coin.h"
 #include "particle.h"
@@ -54,7 +54,7 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
 	setup_window(hinstance);
 
     generate_all_tilesets();
-    generate_world_file("data\\world0.png");
+    generate_all_boards();
     
     // seed PRNG
 	srand(time(NULL));
@@ -62,19 +62,22 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
     init_font("data\\font.png");
 
     load_all_tilesets();
+    load_all_boards();
+    load_board_map();
 	load_all_assets();
 
-    init_world("data\\world");
     init_creatures();
     init_items();
     init_player();
     init_npcs();
+    init_board();
 
     // test
     //playMIDIFile(main_window,"data\\music\\village.mid");
     // 
 
     // @TEMP
+    /*
     time_t timer;
     char buffer[26];
     struct tm* tm_info;
@@ -93,6 +96,7 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
     fprintf(fp_rats,"num_rats,num_births,num_deaths,num_pregs\n");
     fclose(fp_rats);
     //
+    */
 
     timer_init(TARGET_FPS); 
     is_running = TRUE;
@@ -112,6 +116,7 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
 		if (timer_ready())
 		{
             // @TEMP
+            /*
             ++counter_for_seconds;
             if(counter_for_seconds == TARGET_FPS)
             {
@@ -123,12 +128,13 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
                 fclose(fp_rats);
             }
             //
+            */
             update_scene();
             draw_scene();
         }
 	}
 
-    fclose(fp_rats);
+    //fclose(fp_rats);
 
 	return EXIT_SUCCESS;
 }
@@ -139,8 +145,8 @@ static void update_scene()
     message.active = FALSE;
     player.notch = FALSE;
 
-    // update world
-    update_world();
+    // update board 
+    update_board(current_board_index);
 
     // update player
     update_player();
@@ -169,11 +175,11 @@ static void update_scene()
     // update camera
     camera.x = (player.x - (buffer_width / 2));
     camera.x = max(camera.x, 0);
-    camera.x = min(camera.x,TILE_WIDTH*WORLD_TILE_WIDTH-buffer_width);
+    camera.x = min(camera.x,TILE_WIDTH*BOARD_TILE_WIDTH-buffer_width);
 
     camera.y = (player.y - (buffer_height / 2));
     camera.y = max(camera.y, 0);
-    camera.y = min(camera.y,TILE_HEIGHT*WORLD_TILE_HEIGHT-buffer_height);
+    camera.y = min(camera.y,TILE_HEIGHT*BOARD_TILE_HEIGHT-buffer_height);
 
 }
 
@@ -182,8 +188,8 @@ static void draw_scene()
     // Clear buffer to bg_color 
     memset(back_buffer,1, buffer_width*buffer_height*BYTES_PER_PIXEL);
     
-    // draw world
-    draw_world();
+    // draw board
+    draw_board(current_board_index);
 
     sort_entities();
     draw_entities();

@@ -177,8 +177,8 @@ static void draw_projectile(int i)
         case ARROW:
             break;
         case FIREBALL:
-            spawn_particle(rand() % (TILE_WIDTH/2) + projectiles[i].x + TILE_WIDTH/4,projectiles[i].y+TILE_HEIGHT/2,rand() % 3 + 1,3,0,6);
-            spawn_particle(rand() % TILE_WIDTH + projectiles[i].x,projectiles[i].y,rand()%2+1,2,0,3);
+            spawn_particle(rand() % (TILE_WIDTH/2) + projectiles[i].x + TILE_WIDTH/4,projectiles[i].y+TILE_HEIGHT/2,rand() % 3 + 1,3,0,6,current_board_index);
+            spawn_particle(rand() % TILE_WIDTH + projectiles[i].x,projectiles[i].y,rand()%2+1,2,0,3, current_board_index);
             break;
     }
 		draw_tile_rotated_shadow(projectiles[i].x - camera.x, projectiles[i].y - camera.y,projectile_tileset_name, projectiles[i].tile_index,projectiles[i].angle,max(0,10 - day_cycle_shade_amount)); // shadow

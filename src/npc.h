@@ -4,6 +4,8 @@
 typedef struct
 {
     char* name;
+    char* board_name;
+    char* board_index;
     char* tileset_name;
     int tile_index;
     int xp;
@@ -87,6 +89,8 @@ static BOOL spawn_npc(const char* npc_name)
     npcs[num_npcs].state = CREATURE_STATE_NEUTRAL;
     npcs[num_npcs].talking = FALSE;
     npcs[num_npcs].name = npc.name;
+    npcs[num_npcs].board_name = "Astoria";
+    npcs[num_npcs].board_index = get_board_index_by_name(npcs[num_npcs].board_name);
 	npcs[num_npcs].num_dialogue = npc.num_dialogue;
     npcs[num_npcs].selected_dialogue_num = 0;
 	npcs[num_npcs].dialogue[0] = npc.dialogue[0];
@@ -292,10 +296,14 @@ static void update_npcs()
                 int npc_check_x4 = (npcs[i].x + 3*TILE_WIDTH/4) / TILE_WIDTH;
                 int npc_check_y4 = (npcs[i].y + TILE_HEIGHT) / TILE_HEIGHT;
 
-                int collision_value_1 = world_collision[npc_check_x1][npc_check_y1];
-                int collision_value_2 = world_collision[npc_check_x2][npc_check_y2];
-                int collision_value_3 = world_collision[npc_check_x3][npc_check_y3];
-                int collision_value_4 = world_collision[npc_check_x4][npc_check_y4];
+                int board_index = get_board_index_by_name("Astoria");
+                if(board_index < 0)
+                    return;
+
+                int collision_value_1 = board_list[board_index].collision[npc_check_x1][npc_check_y1];
+                int collision_value_2 = board_list[board_index].collision[npc_check_x2][npc_check_y2];
+                int collision_value_3 = board_list[board_index].collision[npc_check_x3][npc_check_y3];
+                int collision_value_4 = board_list[board_index].collision[npc_check_x4][npc_check_y4];
 
                 if(collision_value_1 == 5 || collision_value_2 == 5 || collision_value_3 == 5 || collision_value_4 == 5)
                 {
@@ -327,8 +335,8 @@ static void update_npcs()
 
                 if(npcs[i].x < 0) npcs[i].x = 0;
                 if(npcs[i].y < 0) npcs[i].y = 0;
-                if(npcs[i].x >TILE_WIDTH*(WORLD_TILE_WIDTH-1)) npcs[i].x = TILE_WIDTH*(WORLD_TILE_WIDTH-1);
-                if(npcs[i].y >TILE_HEIGHT*(WORLD_TILE_HEIGHT-1)) npcs[i].y = TILE_HEIGHT*(WORLD_TILE_HEIGHT-1);
+                if(npcs[i].x >TILE_WIDTH*(BOARD_TILE_WIDTH-1)) npcs[i].x = TILE_WIDTH*(BOARD_TILE_WIDTH-1);
+                if(npcs[i].y >TILE_HEIGHT*(BOARD_TILE_HEIGHT-1)) npcs[i].y = TILE_HEIGHT*(BOARD_TILE_HEIGHT-1);
 
                 break;
         }
@@ -418,16 +426,11 @@ static void update_npcs()
 
 static void draw_npc(int i)
 {
-        int npc_x = npcs[i].x - camera.x;
-        int npc_y = npcs[i].y - camera.y;
+    if(npcs[i].board_index != current_board_index)
+        return;
 
-        draw_tile(npcs[i].x - camera.x, npcs[i].y - camera.y, npcs[i].tileset_name,npcs[i].tile_index + npcs[i].dir + npcs[i].anim.frame_order[npcs[i].anim.frame],day_cycle_shade_amount);
-}
+    int npc_x = npcs[i].x - camera.x;
+    int npc_y = npcs[i].y - camera.y;
 
-static void draw_npcs()
-{
-	for (int i = 0; i < num_npcs; ++i)
-	{
-        draw_npc(i);
-	}
+    draw_tile(npcs[i].x - camera.x, npcs[i].y - camera.y, npcs[i].tileset_name,npcs[i].tile_index + npcs[i].dir + npcs[i].anim.frame_order[npcs[i].anim.frame],day_cycle_shade_amount);
 }
