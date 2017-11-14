@@ -132,31 +132,37 @@ typedef enum
 
 typedef struct
 {
-    char* name;
-    char* board_name;
-    char* tileset_name;
-    int tile_index;
-    int lvl;
-    float xp;
-    int hp;
-    int max_hp;
-    int mp;
-    int max_mp;
     float x;
     float y;
     float z;
     float x_vel;
     float y_vel;
     float z_vel;
+    float base_speed;
+    float speed;
+    float height;
+    int environmental_hurt_counter;
+    int environmental_hurt_max;
+    int hp;
+    int max_hp;
+} PhysicalProperties;
+
+typedef struct
+{
+    char* name;
+    char* board_name;
+    char* tileset_name;
+    int tile_index;
+    int lvl;
+    float xp;
+    int mp;
+    int max_mp;
+    PhysicalProperties phys;
     int gold;
     int coin_throw_counter;
     int coin_throw_max;
-    int environmental_hurt_counter;
-    int environmental_hurt_max;
     int bounce_counter;
     int bounce_counter_max;
-    float base_speed;
-    float speed;
     float attack_angle;
     int attack_frame_counter;
     BOOL throw_coins;
@@ -191,9 +197,9 @@ static void gain_level()
     player.xp -= next_level;
     next_level *= 2.00f;
 
-    spawn_floating_string(player.x + TILE_WIDTH/2, player.y,"+Lvl",8);
+    spawn_floating_string(player.phys.x + TILE_WIDTH/2, player.phys.y,"+Lvl",8);
     for(int i = 0; i < 10; ++i)
-        spawn_particle(rand() % TILE_WIDTH + player.x,player.y,2,5,'*',8,current_board_index);
+        spawn_particle(rand() % TILE_WIDTH + player.phys.x,player.phys.y,2,5,'*',8,current_board_index);
 }
 
 typedef struct
@@ -248,6 +254,128 @@ static int get_name_of_board_location(int x, int y,char* ret_name)
 
     return -1;
 
+}
+
+static void handle_terrain_collision(int board_index, PhysicalProperties* phys)
+{
+    // terrain collision
+    //
+    // 1            2
+    //  x----------x
+    //  |          |
+    //  |          |
+    //  x----------x
+    // 3            4
+    //
+
+    // if entity isn't currently moving, we can return 
+    if(phys->x_vel == 0.0f && phys->y_vel == 0.0f)
+        return;
+
+    int check_x1,check_y1, check_x2, check_y2, check_x3, check_y3, check_x4, check_y4;
+    int collision_value_1,collision_value_2, collision_value_3, collision_value_4;
+
+    // check collision
+    check_x1 = (phys->x + 1*TILE_WIDTH/4) / TILE_WIDTH; check_y1 = (phys->y + TILE_HEIGHT/2) / TILE_HEIGHT;
+    check_x2 = (phys->x + 3*TILE_WIDTH/4) / TILE_WIDTH; check_y2 = (phys->y + TILE_HEIGHT/2) / TILE_HEIGHT;
+    check_x3 = (phys->x + 1*TILE_WIDTH/4) / TILE_WIDTH; check_y3 = (phys->y + TILE_HEIGHT/1) / TILE_HEIGHT;
+    check_x4 = (phys->x + 3*TILE_WIDTH/4) / TILE_WIDTH; check_y4 = (phys->y + TILE_HEIGHT/1) / TILE_HEIGHT;
+
+    collision_value_1 = board_list[board_index].collision[min(check_x1, BOARD_TILE_WIDTH - 1)][min(check_y1, BOARD_TILE_HEIGHT - 1)];
+    collision_value_2 = board_list[board_index].collision[min(check_x2, BOARD_TILE_WIDTH - 1)][min(check_y2, BOARD_TILE_HEIGHT - 1)];
+    collision_value_3 = board_list[board_index].collision[min(check_x3, BOARD_TILE_WIDTH - 1)][min(check_y3, BOARD_TILE_HEIGHT - 1)];
+    collision_value_4 = board_list[board_index].collision[min(check_x4, BOARD_TILE_WIDTH - 1)][min(check_y4, BOARD_TILE_HEIGHT - 1)];
+
+    if(collision_value_1 == 5 || collision_value_2 == 5 || collision_value_3 == 5 || collision_value_4 == 5)
+    {
+        // correct collision along one axis
+        if((collision_value_1 == 5 && collision_value_3 == 5) || (collision_value_2 == 5 && collision_value_4 == 5))
+            phys->x -= phys->x_vel*phys->speed; // correct along x-axis
+        else if((collision_value_1 == 5 && collision_value_2 == 5) || (collision_value_3 == 5 && collision_value_4 == 5))
+            phys->y -= phys->y_vel*phys->speed; // correct along y-axis
+        else if(collision_value_1 == 5)
+        {
+            if(phys->y_vel != 0.0f) phys->x += 1.0f*phys->speed;
+            if(phys->x_vel != 0.0f) phys->y += 1.0f*phys->speed;
+        }
+        else if(collision_value_2 == 5)
+        {
+            if(phys->y_vel != 0.0f) phys->x -= 1.0f*phys->speed;
+            if(phys->x_vel != 0.0f) phys->y += 1.0f*phys->speed;
+        }
+        else if(collision_value_3 == 5)
+        {
+            if(phys->y_vel != 0.0f) phys->x += 1.0f*phys->speed;
+            if(phys->x_vel != 0.0f) phys->y -= 1.0f*phys->speed;
+        }
+        else if(collision_value_4 == 5)
+        {
+            if(phys->y_vel != 0.0f) phys->x -= 1.0f*phys->speed;
+            if(phys->x_vel != 0.0f) phys->y -= 1.0f*phys->speed;
+        }
+        
+        // check collision again
+        check_x1 = (phys->x + 1*TILE_WIDTH/4) / TILE_WIDTH; check_y1 = (phys->y + TILE_HEIGHT/2) / TILE_HEIGHT;
+        check_x2 = (phys->x + 3*TILE_WIDTH/4) / TILE_WIDTH; check_y2 = (phys->y + TILE_HEIGHT/2) / TILE_HEIGHT;
+        check_x3 = (phys->x + 1*TILE_WIDTH/4) / TILE_WIDTH; check_y3 = (phys->y + TILE_HEIGHT/1) / TILE_HEIGHT;
+        check_x4 = (phys->x + 3*TILE_WIDTH/4) / TILE_WIDTH; check_y4 = (phys->y + TILE_HEIGHT/1) / TILE_HEIGHT;
+
+        collision_value_1 = board_list[board_index].collision[min(check_x1, BOARD_TILE_WIDTH - 1)][min(check_y1, BOARD_TILE_HEIGHT - 1)];
+        collision_value_2 = board_list[board_index].collision[min(check_x2, BOARD_TILE_WIDTH - 1)][min(check_y2, BOARD_TILE_HEIGHT - 1)];
+        collision_value_3 = board_list[board_index].collision[min(check_x3, BOARD_TILE_WIDTH - 1)][min(check_y3, BOARD_TILE_HEIGHT - 1)];
+        collision_value_4 = board_list[board_index].collision[min(check_x4, BOARD_TILE_WIDTH - 1)][min(check_y4, BOARD_TILE_HEIGHT - 1)];
+
+        // correct collision along other axis (if needed)
+        if((collision_value_1 == 5 && collision_value_3 == 5) || (collision_value_2 == 5 && collision_value_4 == 5))
+            phys->x -= phys->x_vel*phys->speed; // correct along x-axis
+        else if((collision_value_1 == 5 && collision_value_2 == 5) || (collision_value_3 == 5 && collision_value_4 == 5))
+            phys->y -= phys->y_vel*phys->speed; // correct along y-axis
+    }
+    else if(collision_value_1 == 3 || collision_value_2 == 3 || collision_value_3 == 3 || collision_value_4 == 3)
+    {
+        if(phys->z == 0.0f)
+        {
+            // handle mud
+            if(phys->x_vel != 0 || phys->y_vel != 0)
+                spawn_particle(rand() % TILE_WIDTH + phys->x,phys->y+TILE_HEIGHT,2,1,0,4,board_index);
+
+            phys->speed = phys->base_speed/2.0f;
+        }
+    }
+    else if(collision_value_1 == 4 || collision_value_2 == 4 || collision_value_3 == 4 || collision_value_4 == 4)
+    {
+        // handle water
+		if (phys->z == 0.0f)
+        {
+            if(phys->x_vel != 0 || phys->y_vel != 0)
+            {
+                spawn_particle(rand() % TILE_WIDTH + phys->x,phys->y+TILE_HEIGHT,2,2,0,8,board_index);
+            }
+
+            phys->speed = phys->base_speed/3.0f;
+        }
+    }
+    else if(collision_value_1 == 6 || collision_value_2 == 6 || collision_value_3 == 6 || collision_value_4 == 6)
+    {
+        if(phys->z == 0.0f)
+        {
+            // handle lava
+            if(phys->x_vel != 0 || phys->y_vel != 0)
+                spawn_particle(rand() % TILE_WIDTH + phys->x,phys->y+TILE_HEIGHT,2,2,0,6,board_index);
+
+            phys->environmental_hurt_counter++;
+            if(phys->environmental_hurt_counter >= phys->environmental_hurt_max)
+            {
+                phys->environmental_hurt_counter = 0;
+                phys->hp--;
+                spawn_floating_number(phys->x+TILE_WIDTH/2,phys->y,1,6);
+            }
+            phys->speed = phys->base_speed/3.0f;
+        }
+    }
+    else if(phys->z == 0.0f)
+        phys->speed = phys->base_speed;
+    
 }
 
 static void init_board()

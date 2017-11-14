@@ -144,9 +144,9 @@ static void update_items()
                     item_offset_y = +1;
                     break;
             }
-            items[i].x = player.x + item_offset_x;
-            items[i].y = player.y + item_offset_y;
-            items[i].z = player.z + 5;
+            items[i].x = player.phys.x + item_offset_x;
+            items[i].y = player.phys.y + item_offset_y;
+            items[i].z = player.phys.z + 5;
         }
         else
         {

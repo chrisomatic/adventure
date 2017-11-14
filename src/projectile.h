@@ -103,7 +103,7 @@ static void update_projectiles()
 		{
 			for(int j = 0; j < num_creatures; ++j)
 			{
-				double distance = get_distance(projectiles[i].x + TILE_WIDTH / 2, projectiles[i].y + TILE_HEIGHT / 2, creatures[j].x + TILE_WIDTH / 2, creatures[j].y + TILE_HEIGHT / 2);
+				double distance = get_distance(projectiles[i].x + TILE_WIDTH / 2, projectiles[i].y + TILE_HEIGHT / 2, creatures[j].phys.x + TILE_WIDTH / 2, creatures[j].phys.y + TILE_HEIGHT / 2);
 				if(distance <= 20)
 				{
 					BoundingBox a,b;
@@ -116,13 +116,13 @@ static void update_projectiles()
 					a.length = TILE_HEIGHT/2.0f;
 					a.height = projectiles[i].height;
 
-					b.x = creatures[j].x;
-					b.y = creatures[j].y;
-					b.z = creatures[j].z;
+					b.x = creatures[j].phys.x;
+					b.y = creatures[j].phys.y;
+					b.z = creatures[j].phys.z;
 
 					b.width = TILE_WIDTH;
 					b.length = TILE_HEIGHT/2.0f;
-					b.height = creatures[j].height;
+					b.height = creatures[j].phys.height;
 
 					if(are_entities_colliding(&a, &b))
 					{
@@ -132,10 +132,10 @@ static void update_projectiles()
                         spawn_floating_number(projectiles[i].x,projectiles[i].y,damage,6);
                         
                         // creature hurt!
-                        creatures[j].hp -= damage;
+                        creatures[j].phys.hp -= damage;
 
                         // check if creature died
-                        if (creatures[j].hp <= 0)
+                        if (creatures[j].phys.hp <= 0)
                         {
                             foes_killed++;
                             

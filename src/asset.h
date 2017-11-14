@@ -99,10 +99,10 @@ static void load_assets(ASSET_TYPE type)
                     case ASSET_TYPE_CREATURE:
 						if (strcmp(key, "name") == 0) creature_list[asset_counter].name = _strdup(value);
 						else if (strcmp(key, "species") == 0) creature_list[asset_counter].species = _strdup(value);
-                        else if (strcmp(key, "hp") == 0) C_atoi(value, &creature_list[asset_counter].hp);
-                        else if (strcmp(key, "max_hp") == 0) C_atoi(value, &creature_list[asset_counter].max_hp);
+                        else if (strcmp(key, "hp") == 0) C_atoi(value, &creature_list[asset_counter].phys.hp);
+                        else if (strcmp(key, "max_hp") == 0) C_atoi(value, &creature_list[asset_counter].phys.max_hp);
                         else if (strcmp(key, "xp") == 0) C_atoi(value, &creature_list[asset_counter].xp);
-                        else if (strcmp(key, "speed") == 0) creature_list[asset_counter].speed = atof(value);
+                        else if (strcmp(key, "speed") == 0) creature_list[asset_counter].phys.speed = atof(value);
                         else if (strcmp(key, "gold_drop_max") == 0) C_atoi(value, &creature_list[asset_counter].gold_drop_max);
                         else if (strcmp(key, "behavior") == 0) C_atoi(value, &creature_list[asset_counter].behavior);
                         else if (strcmp(key, "untargetable") == 0) C_atoi(value, &creature_list[asset_counter].untargetable);

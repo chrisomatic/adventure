@@ -35,22 +35,11 @@ typedef struct
     char* tileset_name;
     int tile_index;
     int xp;
-    int hp;
-    int max_hp;
-    float x;
-    float y;
-    float z;
-    float height;
-    int x_vel;
-    int y_vel;
+    PhysicalProperties phys;
     int stun_counter;
     int stun_duration;
     int gold_drop_max;
     int aggro_radius;
-    float speed;
-    float base_speed;
-    int environmental_hurt_counter;
-    int environmental_hurt_max;
     int action_counter;
     int action_counter_max;
     int action_duration_counter;
@@ -92,67 +81,68 @@ int num_births = 0;
 int num_deaths = 0;
 //
 
-float mortality_table[60] = {
-    0.003322137,
-    0.003322137,
-    0.003322137,
-    0.003322137,
-    0.003322137,
-    0.003322137,
-    0.003322137,
-    0.004008347,
-    0.004008347,
-    0.004008347,
-    0.004008347,
-    0.004008347,
-    0.004008347,
-    0.004008347,
-    0.004702207,
-    0.004702207,
-    0.004702207,
-    0.004702207,
-    0.004702207,
-    0.004702207,
-    0.004702207,
-    0.006831489,
-    0.006831489,
-    0.006831489,
-    0.006831489,
-    0.006831489,
-    0.006831489,
-    0.006831489,
-    0.010551209,
-    0.010551209,
-    0.010551209,
-    0.010551209,
-    0.010551209,
-    0.010551209,
-    0.010551209,
-    0.014509088,
-    0.014509088,
-    0.014509088,
-    0.014509088,
-    0.014509088,
-    0.014509088,
-    0.014509088,
-    0.023282192,
-    0.023282192,
-    0.023282192,
-    0.023282192,
-    0.023282192,
-    0.023282192,
-    0.023282192,
-    0.033531884,
-    0.033531884,
-    0.033531884,
-    0.033531884,
-    0.033531884,
-    0.033531884,
-    0.033531884,
-    0.082819994,
-    0.082819994,
-    0.082819994,
-    0.100000000
+float mortality_table[61] = {
+    0.0033,
+    0.0033,
+    0.0033,
+    0.0033,
+    0.0033,
+    0.0033,
+    0.0033,
+    0.0040,
+    0.0040,
+    0.0040,
+    0.0040,
+    0.0040,
+    0.0040,
+    0.0040,
+    0.0044,
+    0.0045,
+    0.0046,
+    0.0047,
+    0.0048,
+    0.0049,
+    0.0040,
+    0.0061,
+    0.0062,
+    0.0063,
+    0.0064,
+    0.0065,
+    0.0066,
+    0.0067,
+    0.0108,
+    0.0109,
+    0.0100,
+    0.0101,
+    0.0102,
+    0.0103,
+    0.0104,
+    0.0145,
+    0.0146,
+    0.0147,
+    0.0148,
+    0.0149,
+    0.0140,
+    0.0141,
+    0.0232,
+    0.0233,
+    0.0234,
+    0.0235,
+    0.0236,
+    0.0237,
+    0.0238,
+    0.0339,
+    0.0330,
+    0.0335,
+    0.0335,
+    0.0335,
+    0.0335,
+    0.0335,
+    0.0828,
+    0.0828,
+    0.0828,
+    0.0828,
+    0.1000
 };
 
 static BOOL get_creature_by_name(const char* name,Creature* creature)
@@ -168,10 +158,10 @@ static BOOL get_creature_by_name(const char* name,Creature* creature)
         if(strcmp(creature_list[i].name, name) == 0)
         {
             creature->name = creature_list[i].name;
-			creature->hp = creature_list[i].hp;
-			creature->max_hp = creature_list[i].max_hp;
+			creature->phys.hp = creature_list[i].phys.hp;
+			creature->phys.max_hp = creature_list[i].phys.max_hp;
 			creature->xp = creature_list[i].xp;
-            creature->speed = creature_list[i].speed;
+            creature->phys.speed = creature_list[i].phys.speed;
             creature->gold_drop_max = creature_list[i].gold_drop_max;
             creature->behavior = creature_list[i].behavior;
             creature->untargetable = creature_list[i].untargetable;
@@ -200,14 +190,14 @@ static BOOL spawn_creature(const char* creature_name,float x, float y)
     if(!get_creature_by_name(creature_name,&creature))
         return FALSE;
 
-    creatures[num_creatures].x = x; 
-    creatures[num_creatures].y = y;
-    creatures[num_creatures].z = 0.0f;
-    creatures[num_creatures].x_vel = 0;
-    creatures[num_creatures].y_vel = 0;
-    creatures[num_creatures].height = 16.0f;
-    creatures[num_creatures].speed = creature.speed;
-    creatures[num_creatures].base_speed = creature.speed;
+    creatures[num_creatures].phys.x = x; 
+    creatures[num_creatures].phys.y = y;
+    creatures[num_creatures].phys.z = 0.0f;
+    creatures[num_creatures].phys.x_vel = 0;
+    creatures[num_creatures].phys.y_vel = 0;
+    creatures[num_creatures].phys.height = 16.0f;
+    creatures[num_creatures].phys.speed = creature.phys.speed;
+    creatures[num_creatures].phys.base_speed = creature.phys.speed;
     creatures[num_creatures].dir = DIR_DOWN;
     creatures[num_creatures].state = CREATURE_STATE_NEUTRAL;
     creatures[num_creatures].mode  = CREATURE_MODE_WANDER;
@@ -216,14 +206,14 @@ static BOOL spawn_creature(const char* creature_name,float x, float y)
     creatures[num_creatures].board_index = get_board_index_by_name(creatures[num_creatures].board_name);
     creatures[num_creatures].tileset_name = creature.tileset_name;
     creatures[num_creatures].tile_index = creature.tile_index;
-    creatures[num_creatures].hp = creature.hp;
-    creatures[num_creatures].max_hp = creature.max_hp;
+    creatures[num_creatures].phys.hp = creature.phys.hp;
+    creatures[num_creatures].phys.max_hp = creature.phys.max_hp;
     creatures[num_creatures].xp = creature.xp;
     creatures[num_creatures].gold_drop_max = creature.gold_drop_max;
     creatures[num_creatures].aggro_radius = 50;
     creatures[num_creatures].particle_spawn_counter = 0;
-    creatures[num_creatures].environmental_hurt_counter = 60;
-    creatures[num_creatures].environmental_hurt_max = 60;
+    creatures[num_creatures].phys.environmental_hurt_counter = 60;
+    creatures[num_creatures].phys.environmental_hurt_max = 60;
     creatures[num_creatures].stun_counter = 0;
     creatures[num_creatures].stun_duration = 20;
     creatures[num_creatures].untargetable = creature.untargetable;
@@ -300,8 +290,13 @@ static void init_creatures()
 		if (num_creature_list == 0)
 			return;
 
-		int creature_type = rand() % num_creature_list;
-        spawn_creature(creature_list[creature_type].name,creature_x,creature_y);
+		int creature_type = rand() % 2;//num_creature_list;
+        //spawn_creature(creature_list[creature_type].name,creature_x,creature_y);
+
+        if(creature_type == 0)
+            spawn_creature("Rat",creature_x,creature_y);
+        else
+            spawn_creature("White Rat",creature_x,creature_y);
 
     }
 }
@@ -315,7 +310,7 @@ static void remove_creature(int index)
 static void creature_death(int i)
 {
     for(int p = 0; p < 10; ++p)
-        spawn_particle(rand()%TILE_WIDTH + creatures[i].x,rand()%TILE_HEIGHT+creatures[i].y,rand() % 4 + 1,3,0,6,creatures[i].board_index);
+        spawn_particle(rand()%TILE_WIDTH + creatures[i].phys.x,rand()%TILE_HEIGHT+creatures[i].phys.y,rand() % 4 + 1,3,0,6,creatures[i].board_index);
 
     int coins_to_spawn = rand() % (creatures[i].gold_drop_max+1);
 
@@ -324,11 +319,11 @@ static void creature_death(int i)
     int bronze_coins = coins_to_spawn / 1; coins_to_spawn -= bronze_coins;
 
     for(int c = 0; c < bronze_coins; ++c)
-        spawn_coin(creatures[i].x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)),2,0,0,3.0f, COIN_BRONZE, creatures[i].board_index);
+        spawn_coin(creatures[i].phys.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].phys.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)),2,0,0,3.0f, COIN_BRONZE, creatures[i].board_index);
     for(int c = 0; c < silver_coins; ++c)
-        spawn_coin(creatures[i].x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)),2,0,0,2.5f, COIN_SILVER, creatures[i].board_index);
+        spawn_coin(creatures[i].phys.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].phys.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)),2,0,0,2.5f, COIN_SILVER, creatures[i].board_index);
     for(int c = 0; c < gold_coins; ++c)
-        spawn_coin(creatures[i].x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)),2,0,0,2.0f, COIN_GOLD, creatures[i].board_index);
+        spawn_coin(creatures[i].phys.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].phys.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)),2,0,0,2.0f, COIN_GOLD, creatures[i].board_index);
 
     // drop item(s)
     int item_percent = rand() % 100 + 1;
@@ -336,43 +331,43 @@ static void creature_death(int i)
     
     if(item_percent >= 1 && item_percent <= 20)
     {
-        spawn_item("Meat",creatures[i].x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)), creatures[i].board_index);
+        spawn_item("Meat",creatures[i].phys.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].phys.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)), creatures[i].board_index);
     }
     else if(item_percent >= 21 && item_percent <= 40)
     {
-        spawn_item("Mana Vial",creatures[i].x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)), creatures[i].board_index);
+        spawn_item("Mana Vial",creatures[i].phys.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].phys.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)), creatures[i].board_index);
     }
     else if(item_percent >= 41 && item_percent <= 42)
     {
-        spawn_item("Knife",creatures[i].x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)), creatures[i].board_index);
+        spawn_item("Knife",creatures[i].phys.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].phys.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)), creatures[i].board_index);
     }
     else if(item_percent >= 43 && item_percent <= 44)
     {
-        spawn_item("Sword",creatures[i].x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)), creatures[i].board_index);
+        spawn_item("Sword",creatures[i].phys.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].phys.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)), creatures[i].board_index);
     }
     else if(item_percent >= 45 && item_percent <= 46)
     {
-        spawn_item("Axe",creatures[i].x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)), creatures[i].board_index);
+        spawn_item("Axe",creatures[i].phys.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].phys.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)), creatures[i].board_index);
     }
     else if(item_percent >= 47 && item_percent <= 48)
     {
-        spawn_item("Bow",creatures[i].x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)), creatures[i].board_index);
+        spawn_item("Bow",creatures[i].phys.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].phys.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)), creatures[i].board_index);
     }
     else if(item_percent >= 49 && item_percent <= 50)
     {
-        spawn_item("Staff",creatures[i].x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)), creatures[i].board_index);
+        spawn_item("Staff",creatures[i].phys.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].phys.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)), creatures[i].board_index);
     }
     else if(item_percent >= 51 && item_percent <= 59)
     {
-        spawn_item("Helm",creatures[i].x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)), creatures[i].board_index);
+        spawn_item("Helm",creatures[i].phys.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].phys.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)), creatures[i].board_index);
     }
     else if(item_percent >= 60 && item_percent <= 69)
     {
-        spawn_item("Cloak",creatures[i].x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)), creatures[i].board_index);
+        spawn_item("Cloak",creatures[i].phys.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].phys.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)), creatures[i].board_index);
     }
     else if(item_percent >= 70 && item_percent <= 79)
     {
-        spawn_item("Red Cloak",creatures[i].x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)), creatures[i].board_index);
+        spawn_item("Red Cloak",creatures[i].phys.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].phys.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)), creatures[i].board_index);
     }
 
     remove_creature(i);
@@ -398,7 +393,7 @@ static void update_creatures()
             if(creatures[i].behavior == CREATURE_BEHAVIOR_AGGRESSIVE)
             {
                 // check distance from player
-                if(get_distance(player.x + TILE_WIDTH/2,player.y + TILE_HEIGHT/2,creatures[i].x + TILE_WIDTH/2,creatures[i].y+TILE_HEIGHT/2) <= creatures[i].aggro_radius)
+                if(get_distance(player.phys.x + TILE_WIDTH/2,player.phys.y + TILE_HEIGHT/2,creatures[i].phys.x + TILE_WIDTH/2,creatures[i].phys.y+TILE_HEIGHT/2) <= creatures[i].aggro_radius)
                 {
                     if(creatures[i].mode == CREATURE_MODE_WANDER)
                     {
@@ -431,16 +426,16 @@ static void update_creatures()
                         
                         if(creatures[i].mode != CREATURE_MODE_PURSUE)
                         {
-                            creatures[i].x_vel = +0;
-                            creatures[i].y_vel = +0;
+                            creatures[i].phys.x_vel = +0;
+                            creatures[i].phys.y_vel = +0;
                         }
                 }
                 
                 // update creature position
-                creatures[i].x += creatures[i].x_vel*creatures[i].speed;
-                creatures[i].y += creatures[i].y_vel*creatures[i].speed;
+                creatures[i].phys.x += creatures[i].phys.x_vel*creatures[i].phys.speed;
+                creatures[i].phys.y += creatures[i].phys.y_vel*creatures[i].phys.speed;
 
-                if(creatures[i].x_vel != 0 || creatures[i].y_vel != 0)
+                if(creatures[i].phys.x_vel != 0 || creatures[i].phys.y_vel != 0)
                 {
                     // resolve collisions
                     //
@@ -453,26 +448,22 @@ static void update_creatures()
                     //
 
                     // handle terrain collisions
-                    int creature_check_x1 = (creatures[i].x + TILE_WIDTH/4) / TILE_WIDTH;
-                    int creature_check_y1 = (creatures[i].y + TILE_HEIGHT/2) / TILE_HEIGHT;
+                    int creature_check_x1 = (creatures[i].phys.x + TILE_WIDTH/4) / TILE_WIDTH;
+                    int creature_check_y1 = (creatures[i].phys.y + TILE_HEIGHT/2) / TILE_HEIGHT;
 
-                    int creature_check_x2 = (creatures[i].x + 3*TILE_WIDTH/4) / TILE_WIDTH;
-                    int creature_check_y2 = (creatures[i].y + TILE_HEIGHT/2) / TILE_HEIGHT;
+                    int creature_check_x2 = (creatures[i].phys.x + 3*TILE_WIDTH/4) / TILE_WIDTH;
+                    int creature_check_y2 = (creatures[i].phys.y + TILE_HEIGHT/2) / TILE_HEIGHT;
 
-                    int creature_check_x3 = (creatures[i].x + TILE_WIDTH/4) / TILE_WIDTH;
-                    int creature_check_y3 = (creatures[i].y + TILE_HEIGHT) / TILE_HEIGHT;
+                    int creature_check_x3 = (creatures[i].phys.x + TILE_WIDTH/4) / TILE_WIDTH;
+                    int creature_check_y3 = (creatures[i].phys.y + TILE_HEIGHT) / TILE_HEIGHT;
 
-                    int creature_check_x4 = (creatures[i].x + 3*TILE_WIDTH/4) / TILE_WIDTH;
-                    int creature_check_y4 = (creatures[i].y + TILE_HEIGHT) / TILE_HEIGHT;
+                    int creature_check_x4 = (creatures[i].phys.x + 3*TILE_WIDTH/4) / TILE_WIDTH;
+                    int creature_check_y4 = (creatures[i].phys.y + TILE_HEIGHT) / TILE_HEIGHT;
 
-                    int board_index = get_board_index_by_name("Astoria");
-                    if(board_index < 0)
-                        return;
-                    
-                    int collision_value_1 = board_list[board_index].collision[creature_check_x1][creature_check_y1];
-                    int collision_value_2 = board_list[board_index].collision[creature_check_x2][creature_check_y2];
-                    int collision_value_3 = board_list[board_index].collision[creature_check_x3][creature_check_y3];
-                    int collision_value_4 = board_list[board_index].collision[creature_check_x4][creature_check_y4];
+                    int collision_value_1 = board_list[creatures[i].board_index].collision[creature_check_x1][creature_check_y1];
+                    int collision_value_2 = board_list[creatures[i].board_index].collision[creature_check_x2][creature_check_y2];
+                    int collision_value_3 = board_list[creatures[i].board_index].collision[creature_check_x3][creature_check_y3];
+                    int collision_value_4 = board_list[creatures[i].board_index].collision[creature_check_x4][creature_check_y4];
 
                     if(collision_value_1 == 5 || collision_value_2 == 5 || collision_value_3 == 5 || collision_value_4 == 5)
                     {
@@ -482,79 +473,79 @@ static void update_creatures()
                         if((collision_value_1 == 5 && collision_value_3 == 5) || (collision_value_2 == 5 && collision_value_4 == 5))
                         {
                             //correct collision x
-                            creatures[i].x -= creatures[i].x_vel*creatures[i].speed;
+                            creatures[i].phys.x -= creatures[i].phys.x_vel*creatures[i].phys.speed;
                             correct_x = TRUE;
                         }
                         if((collision_value_1 == 5 && collision_value_2 == 5) || (collision_value_3 == 5 && collision_value_4 == 5))
                         {
                             //correct collision y
-                            creatures[i].y -= creatures[i].y_vel*creatures[i].speed;
+                            creatures[i].phys.y -= creatures[i].phys.y_vel*creatures[i].phys.speed;
                             correct_y = TRUE;
                         }
                         
                         if(!correct_x && !correct_y)
                         {
                             if(collision_value_1 == 5 || collision_value_3 == 5)
-                                creatures[i].x += 1.0f*creatures[i].speed;
+                                creatures[i].phys.x += 1.0f*creatures[i].phys.speed;
                             
                             if(collision_value_2 == 5 || collision_value_4 == 5)
-                                creatures[i].x -= 1.0f*creatures[i].speed;
+                                creatures[i].phys.x -= 1.0f*creatures[i].phys.speed;
                         }
                     }
                     else if(collision_value_1 == 3 || collision_value_2 == 3 || collision_value_3 == 3 || collision_value_4 == 3)
                     {
                         // handle creature in mud
-                        if(creatures[i].x_vel != 0 || creatures[i].y_vel != 0)
+                        if(creatures[i].phys.x_vel != 0 || creatures[i].phys.y_vel != 0)
                         {
-                            spawn_particle(rand() % TILE_WIDTH + creatures[i].x,creatures[i].y+TILE_HEIGHT,2,1,0,4,creatures[i].board_index);
+                            spawn_particle(rand() % TILE_WIDTH + creatures[i].phys.x,creatures[i].phys.y+TILE_HEIGHT,2,1,0,4,creatures[i].board_index);
                         }
 
-                        creatures[i].speed = creatures[i].base_speed/2.0f;
+                        creatures[i].phys.speed = creatures[i].phys.base_speed/2.0f;
                     }
                     
                     else if(collision_value_1 == 4 || collision_value_2 == 4 || collision_value_3 == 4 || collision_value_4 == 4)
                     {
                         // handle creature in water
-                        if(creatures[i].x_vel != 0 || creatures[i].y_vel != 0)
+                        if(creatures[i].phys.x_vel != 0 || creatures[i].phys.y_vel != 0)
                         {
-                            spawn_particle(rand() % TILE_WIDTH + creatures[i].x,creatures[i].y+TILE_HEIGHT,2,2,0,8,creatures[i].board_index);
+                            spawn_particle(rand() % TILE_WIDTH + creatures[i].phys.x,creatures[i].phys.y+TILE_HEIGHT,2,2,0,8,creatures[i].board_index);
                         }
 
-                        creatures[i].speed = creatures[i].base_speed/3.0f;
+                        creatures[i].phys.speed = creatures[i].phys.base_speed/3.0f;
                     }
                     else if(collision_value_1 == 6 || collision_value_2 == 6 || collision_value_3 == 6 || collision_value_4 == 6)
                     {
                         // handle creature in lava
-                        if(creatures[i].x_vel != 0 || creatures[i].y_vel != 0)
+                        if(creatures[i].phys.x_vel != 0 || creatures[i].phys.y_vel != 0)
                         {
-                            spawn_particle(rand() % TILE_WIDTH + creatures[i].x,creatures[i].y+TILE_HEIGHT,2,2,0,6,creatures[i].board_index);
+                            spawn_particle(rand() % TILE_WIDTH + creatures[i].phys.x,creatures[i].phys.y+TILE_HEIGHT,2,2,0,6,creatures[i].board_index);
                         }
 
-                        creatures[i].environmental_hurt_counter++;
-                        if(creatures[i].environmental_hurt_counter >= creatures[i].environmental_hurt_max)
+                        creatures[i].phys.environmental_hurt_counter++;
+                        if(creatures[i].phys.environmental_hurt_counter >= creatures[i].phys.environmental_hurt_max)
                         {
-                            creatures[i].environmental_hurt_counter = 0;
-                            creatures[i].hp--;
-                            if(creatures[i].hp <= 0)
+                            creatures[i].phys.environmental_hurt_counter = 0;
+                            creatures[i].phys.hp--;
+                            if(creatures[i].phys.hp <= 0)
                             {
                                 creature_death(i);
                             }
 
-                            spawn_floating_number(creatures[i].x+TILE_WIDTH/2,creatures[i].y,1,6);
+                            spawn_floating_number(creatures[i].phys.x+TILE_WIDTH/2,creatures[i].phys.y,1,6);
                         }
 
-                        creatures[i].speed = creatures[i].base_speed/3.0f;
+                        creatures[i].phys.speed = creatures[i].phys.base_speed/3.0f;
                     }
                     else
                     {
-                        creatures[i].speed = creatures[i].base_speed;
+                        creatures[i].phys.speed = creatures[i].phys.base_speed;
                     }
 
                     // keep creature in board boundaries
-                    if(creatures[i].x < 0) creatures[i].x = 0;
-                    if(creatures[i].y < 0) creatures[i].y = 0;
-                    if(creatures[i].x >TILE_WIDTH*(BOARD_TILE_WIDTH-1)) creatures[i].x = TILE_WIDTH*(BOARD_TILE_WIDTH-1);
-                    if(creatures[i].y >TILE_HEIGHT*(BOARD_TILE_HEIGHT-1)) creatures[i].y = TILE_HEIGHT*(BOARD_TILE_HEIGHT-1);
+                    if(creatures[i].phys.x < 0) creatures[i].phys.x = 0;
+                    if(creatures[i].phys.y < 0) creatures[i].phys.y = 0;
+                    if(creatures[i].phys.x >TILE_WIDTH*(BOARD_TILE_WIDTH-1)) creatures[i].phys.x = TILE_WIDTH*(BOARD_TILE_WIDTH-1);
+                    if(creatures[i].phys.y >TILE_HEIGHT*(BOARD_TILE_HEIGHT-1)) creatures[i].phys.y = TILE_HEIGHT*(BOARD_TILE_HEIGHT-1);
 
                     if(creatures[i].mode == CREATURE_MODE_PURSUE)
                     {
@@ -563,9 +554,9 @@ static void update_creatures()
                         if(creatures[i].particle_spawn_counter >= 30)
                         {
                             creatures[i].particle_spawn_counter = 0;
-                            spawn_particle(rand() % TILE_WIDTH + creatures[i].x,creatures[i].y,1,2,CHAR_HEART,12,creatures[i].board_index);
-                            spawn_particle(rand() % TILE_WIDTH + creatures[i].x,creatures[i].y,1,2,CHAR_HEART,12,creatures[i].board_index);
-                            spawn_particle(rand() % TILE_WIDTH + creatures[i].x,creatures[i].y,1,2,CHAR_HEART,12,creatures[i].board_index);
+                            spawn_particle(rand() % TILE_WIDTH + creatures[i].phys.x,creatures[i].phys.y,1,2,CHAR_HEART,12,creatures[i].board_index);
+                            spawn_particle(rand() % TILE_WIDTH + creatures[i].phys.x,creatures[i].phys.y,1,2,CHAR_HEART,12,creatures[i].board_index);
+                            spawn_particle(rand() % TILE_WIDTH + creatures[i].phys.x,creatures[i].phys.y,1,2,CHAR_HEART,12,creatures[i].board_index);
                         }
 
                     }
@@ -594,48 +585,48 @@ static void update_creatures()
                             switch (d)
                             {
                                 case 0:
-                                    creatures[i].x_vel = +0;
-                                    creatures[i].y_vel = +0;
+                                    creatures[i].phys.x_vel = +0;
+                                    creatures[i].phys.y_vel = +0;
                                     break;
                                 case 1: 
                                     creatures[i].dir = DIR_UP;
-                                    creatures[i].x_vel = +0;
-                                    creatures[i].y_vel = -1;
+                                    creatures[i].phys.x_vel = +0;
+                                    creatures[i].phys.y_vel = -1;
                                     break;
                                 case 2: 
                                     creatures[i].dir = DIR_DOWN;
-                                    creatures[i].x_vel = +0;
-                                    creatures[i].y_vel = +1;
+                                    creatures[i].phys.x_vel = +0;
+                                    creatures[i].phys.y_vel = +1;
                                     break;
                                 case 3: 
                                     creatures[i].dir = DIR_LEFT;
-                                    creatures[i].x_vel = -1;
-                                    creatures[i].y_vel = +0;
+                                    creatures[i].phys.x_vel = -1;
+                                    creatures[i].phys.y_vel = +0;
                                     break;
                                 case 4: 
                                     creatures[i].dir = DIR_RIGHT;
-                                    creatures[i].x_vel = +1;
-                                    creatures[i].y_vel = +0;
+                                    creatures[i].phys.x_vel = +1;
+                                    creatures[i].phys.y_vel = +0;
                                     break;
                                 case 5: 
                                     creatures[i].dir = DIR_UP;
-                                    creatures[i].x_vel = -1;
-                                    creatures[i].y_vel = -1;
+                                    creatures[i].phys.x_vel = -1;
+                                    creatures[i].phys.y_vel = -1;
                                     break;
                                 case 6: 
                                     creatures[i].dir = DIR_UP;
-                                    creatures[i].x_vel = +1;
-                                    creatures[i].y_vel = -1;
+                                    creatures[i].phys.x_vel = +1;
+                                    creatures[i].phys.y_vel = -1;
                                     break;
                                 case 7: 
                                     creatures[i].dir = DIR_DOWN;
-                                    creatures[i].x_vel = -1;
-                                    creatures[i].y_vel = +1;
+                                    creatures[i].phys.x_vel = -1;
+                                    creatures[i].phys.y_vel = +1;
                                     break;
                                 case 8: 
                                     creatures[i].dir = DIR_DOWN;
-                                    creatures[i].x_vel = +1;
-                                    creatures[i].y_vel = +1;
+                                    creatures[i].phys.x_vel = +1;
+                                    creatures[i].phys.y_vel = +1;
                                     break;
                             }
 
@@ -646,8 +637,8 @@ static void update_creatures()
                             creatures[i].action_counter_max  = 0;
                             creatures[i].action_duration_counter_max = 20; 
 
-                            float diff_x = creatures[i].x - player.x;
-                            float diff_y = creatures[i].y - player.y;
+                            float diff_x = creatures[i].phys.x - player.phys.x;
+                            float diff_y = creatures[i].phys.y - player.phys.y;
 
                             float angle  = atan(diff_y/diff_x);
                             double EIGHTH_PI = PI/8.0;
@@ -658,15 +649,15 @@ static void update_creatures()
                                 {
                                     // UP 
                                     creatures[i].dir = DIR_UP;
-                                    creatures[i].x_vel = +0;
-                                    creatures[i].y_vel = -1;
+                                    creatures[i].phys.x_vel = +0;
+                                    creatures[i].phys.y_vel = -1;
                                 }
                                 else
                                 {
                                     // DOWN
                                     creatures[i].dir = DIR_DOWN;
-                                    creatures[i].x_vel = +0;
-                                    creatures[i].y_vel = +1;
+                                    creatures[i].phys.x_vel = +0;
+                                    creatures[i].phys.y_vel = +1;
                                 }
                             }
                             else if(angle >= -3*EIGHTH_PI && angle < -1*EIGHTH_PI)
@@ -675,15 +666,15 @@ static void update_creatures()
                                 {
                                     // DOWN LEFT
                                     creatures[i].dir = DIR_DOWN;
-                                    creatures[i].x_vel = -1;
-                                    creatures[i].y_vel = +1;
+                                    creatures[i].phys.x_vel = -1;
+                                    creatures[i].phys.y_vel = +1;
                                 }
                                 else
                                 {
                                     // UP RIGHT
                                     creatures[i].dir = DIR_UP;
-                                    creatures[i].x_vel = +1;
-                                    creatures[i].y_vel = -1;
+                                    creatures[i].phys.x_vel = +1;
+                                    creatures[i].phys.y_vel = -1;
                                 }
                             }
                             else if(angle >= -1*EIGHTH_PI && angle < +1*EIGHTH_PI)
@@ -692,15 +683,15 @@ static void update_creatures()
                                 {
                                     // LEFT
                                     creatures[i].dir = DIR_LEFT;
-                                    creatures[i].x_vel = -1;
-                                    creatures[i].y_vel = +0;
+                                    creatures[i].phys.x_vel = -1;
+                                    creatures[i].phys.y_vel = +0;
                                 }
                                 else
                                 {
                                     // RIGHT
                                     creatures[i].dir = DIR_RIGHT;
-                                    creatures[i].x_vel = +1;
-                                    creatures[i].y_vel = +0;
+                                    creatures[i].phys.x_vel = +1;
+                                    creatures[i].phys.y_vel = +0;
                                 }
                             }
                             else if(angle >= +1*EIGHTH_PI && angle < +3*EIGHTH_PI)
@@ -709,15 +700,15 @@ static void update_creatures()
                                 {
                                     // UP LEFT
                                     creatures[i].dir = DIR_UP;
-                                    creatures[i].x_vel = -1;
-                                    creatures[i].y_vel = -1;
+                                    creatures[i].phys.x_vel = -1;
+                                    creatures[i].phys.y_vel = -1;
                                 }
                                 else
                                 {
                                     // DOWN RIGHT
                                     creatures[i].dir = DIR_DOWN;
-                                    creatures[i].x_vel = +1;
-                                    creatures[i].y_vel = +1;
+                                    creatures[i].phys.x_vel = +1;
+                                    creatures[i].phys.y_vel = +1;
                                 }
                             }
                             else if(angle <= +4*EIGHTH_PI && angle >= +3*EIGHTH_PI)
@@ -726,15 +717,15 @@ static void update_creatures()
                                 {
                                     // UP 
                                     creatures[i].dir = DIR_UP;
-                                    creatures[i].x_vel = +0;
-                                    creatures[i].y_vel = -1;
+                                    creatures[i].phys.x_vel = +0;
+                                    creatures[i].phys.y_vel = -1;
                                 }
                                 else
                                 {
                                     // DOWN
                                     creatures[i].dir = DIR_DOWN;
-                                    creatures[i].x_vel = +0;
-                                    creatures[i].y_vel = +1;
+                                    creatures[i].phys.x_vel = +0;
+                                    creatures[i].phys.y_vel = +1;
                                 }
                             }
                         break;
@@ -744,11 +735,11 @@ static void update_creatures()
             }
             
             // handle creature animation
-            if(creatures[i].x_vel != 0 || creatures[i].y_vel != 0)
+            if(creatures[i].phys.x_vel != 0 || creatures[i].phys.y_vel != 0)
             {
                 creatures[i].anim.counter++;
 
-                if(creatures[i].anim.counter >= 10/creatures[i].speed)
+                if(creatures[i].anim.counter >= 10/creatures[i].phys.speed)
                 {
                     // cycle_animation
                     creatures[i].anim.counter = 0;
@@ -778,7 +769,7 @@ static void update_creatures()
                     int c[5] = { 6,9,11,13,14};
 
                     for(int j = 0; j < 50; ++j)
-                        spawn_particle(creatures[i].x + (rand()%TILE_WIDTH), creatures[i].y + (rand()%(TILE_HEIGHT/2)), rand()%2 + 1,3,0,c[rand()%5],creatures[i].board_index);
+                        spawn_particle(creatures[i].phys.x + (rand()%TILE_WIDTH), creatures[i].phys.y + (rand()%(TILE_HEIGHT/2)), rand()%2 + 1,3,0,c[rand()%5],creatures[i].board_index);
                 }
                 
                 // @TEMP: Indicate male reproductive creatures
@@ -786,7 +777,7 @@ static void update_creatures()
                 {
                     if(creatures[i].gender == MALE)
                     {
-                        spawn_particle(creatures[i].x + (rand()%TILE_WIDTH), creatures[i].y + (rand()%(TILE_HEIGHT/2)),1,2,CHAR_MALE_SYMBOL,8,creatures[i].board_index);
+                        spawn_particle(creatures[i].phys.x + (rand()%TILE_WIDTH), creatures[i].phys.y + (rand()%(TILE_HEIGHT/2)),1,2,CHAR_MALE_SYMBOL,8,creatures[i].board_index);
                     }
                 }
 
@@ -808,22 +799,22 @@ static void update_creatures()
                                     if(strcmp(creatures[j].species, creatures[i].species) == 0)
                                     {
                                         // look at x distance
-                                        if(abs(creatures[i].x - creatures[j].x) <= creatures[i].mating_radius)
+                                        if(abs(creatures[i].phys.x - creatures[j].phys.x) <= creatures[i].mating_radius)
                                         {
                                             // look at y distance
-                                            if(abs(creatures[i].y - creatures[j].y) <= creatures[i].mating_radius)
+                                            if(abs(creatures[i].phys.y - creatures[j].phys.y) <= creatures[i].mating_radius)
                                             {
                                                 // get direct distance
-                                                double distance = get_distance(creatures[i].x,creatures[i].y,creatures[j].x, creatures[j].y);
+                                                double distance = get_distance(creatures[i].phys.x,creatures[i].phys.y,creatures[j].phys.x, creatures[j].phys.y);
 
                                                 if(distance <= creatures[i].mating_radius)
                                                 {
                                                     // spawn flames
                                                     for(int k = 0; k < 10; ++k)
-                                                        spawn_particle(creatures[j].x + (rand()%TILE_WIDTH), creatures[j].y + (rand()%(TILE_HEIGHT/2)),1,3,CHAR_FLAME,9, creatures[i].board_index);
+                                                        spawn_particle(creatures[j].phys.x + (rand()%TILE_WIDTH), creatures[j].phys.y + (rand()%(TILE_HEIGHT/2)),1,3,CHAR_FLAME,9, creatures[i].board_index);
 
                                                     creatures[j].pregnant = TRUE;
-                                                    creatures[j].base_speed /= 2.0f; // reduce speed of pregnant creature
+                                                    creatures[j].phys.base_speed /= 2.0f; // reduce speed of pregnant creature
                                                     ++num_pregs;
                                                 }
                                             }
@@ -838,7 +829,7 @@ static void update_creatures()
                 // handle pregnancies
                 if(creatures[i].pregnant)
                 {
-                    spawn_particle(creatures[i].x + (rand()%TILE_WIDTH), creatures[i].y + (rand()%(TILE_HEIGHT/2)),1,3,CHAR_HEART,6, creatures[i].board_index); 
+                    spawn_particle(creatures[i].phys.x + (rand()%TILE_WIDTH), creatures[i].phys.y + (rand()%(TILE_HEIGHT/2)),1,3,CHAR_HEART,6, creatures[i].board_index); 
 
                     ++creatures[i].gestation_counter;
                     if(creatures[i].gestation_counter >= creatures[i].gestation_period)
@@ -850,7 +841,7 @@ static void update_creatures()
 
                         for(int j = 0; j < num_babies; ++j)
                         {
-                            spawn_creature(creatures[i].name,creatures[i].x,creatures[i].y);
+                            spawn_creature(creatures[i].name,creatures[i].phys.x,creatures[i].phys.y);
                             creatures[num_creatures - 1].age = 0; // set age to zero (newborn)
                             ++num_births;
                         }
@@ -859,10 +850,10 @@ static void update_creatures()
                         int c[5] = { 6,9,11,13,14 };
 
                         for(int j = 0; j < 50; ++j)
-                            spawn_particle(creatures[i].x + (rand()%TILE_WIDTH), creatures[i].y + (rand()%(TILE_HEIGHT/2)), rand()%2 + 1,3,0,c[rand()%5], creatures[i].board_index);
+                            spawn_particle(creatures[i].phys.x + (rand()%TILE_WIDTH), creatures[i].phys.y + (rand()%(TILE_HEIGHT/2)), rand()%2 + 1,3,0,c[rand()%5], creatures[i].board_index);
 
                         creatures[i].pregnant = FALSE;
-                        creatures[i].base_speed *= 2.0f; // return creature back to normal speed
+                        creatures[i].phys.base_speed *= 2.0f; // return creature back to normal speed
                         creatures[i].birth_recovery = TRUE;
                         --num_pregs;
                     }
@@ -884,11 +875,14 @@ static void update_creatures()
                     // one day since last death check.
                     creatures[i].death_check_counter = 0;
 
-                    int death_num = rand() % 100;
-                    int life_in_days = min(59,floor(creatures[i].age / SECONDS_PER_DAY));
-                    float chance_of_death = mortality_table[life_in_days];
+                    int death_num = rand() % 10000;
+                    int life_in_days = min(60,floor(creatures[i].age / SECONDS_PER_DAY));
 
-                    if(death_num >= (100 - (100.0f*chance_of_death)))
+                    // min(max((rats/200)^2,1),maxq_mult) * base_rate
+                    float num_rat_rate = num_creatures/200.0f;
+                    float chance_of_death = min(max(num_rat_rate*num_rat_rate,1),25) * mortality_table[life_in_days];
+
+                    if(death_num >= (10000 - (10000.0f*chance_of_death)))
                     {
                         // creature dies.
                         creature_death(i);
@@ -904,8 +898,8 @@ static void draw_creature(int i)
     if(creatures[i].board_index != current_board_index)
         return;
 
-    int creature_x = creatures[i].x - camera.x;
-    int creature_y = creatures[i].y - camera.y;
+    int creature_x = creatures[i].phys.x - camera.x;
+    int creature_y = creatures[i].phys.y - camera.y;
 
     int age_offset = 0;
     if(creatures[i].reproductive && creatures[i].age < creatures[i].adult_age)
@@ -914,11 +908,11 @@ static void draw_creature(int i)
     if (creatures[i].state == CREATURE_STATE_STUNNED)
     {
         // draw red tint
-        draw_tile_tinted(creatures[i].x - camera.x, creatures[i].y - camera.y,creatures[i].tileset_name, creatures[i].tile_index + age_offset + creatures[i].dir + creatures[i].anim.frame_order[creatures[i].anim.frame],6);
+        draw_tile_tinted(creatures[i].phys.x - camera.x, creatures[i].phys.y - camera.y,creatures[i].tileset_name, creatures[i].tile_index + age_offset + creatures[i].dir + creatures[i].anim.frame_order[creatures[i].anim.frame],6);
     }
     else
     {
-        draw_tile(creatures[i].x - camera.x, creatures[i].y - camera.y,creatures[i].tileset_name, creatures[i].tile_index + age_offset + creatures[i].dir + creatures[i].anim.frame_order[creatures[i].anim.frame],day_cycle_shade_amount);
+        draw_tile(creatures[i].phys.x - camera.x, creatures[i].phys.y - camera.y,creatures[i].tileset_name, creatures[i].tile_index + age_offset + creatures[i].dir + creatures[i].anim.frame_order[creatures[i].anim.frame],day_cycle_shade_amount);
     }
 
 }

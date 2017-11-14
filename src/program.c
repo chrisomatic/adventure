@@ -37,6 +37,7 @@ int window_width;
 int window_height;
 
 int counter_for_seconds = 0;
+int counter_for_minutes = 0;
 
 const int BYTES_PER_PIXEL = 1;
 
@@ -77,7 +78,6 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
     // 
 
     // @TEMP
-    /*
     time_t timer;
     char buffer[26];
     struct tm* tm_info;
@@ -95,8 +95,17 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
     FILE* fp_rats = fopen(outputname,"w");
     fprintf(fp_rats,"num_rats,num_births,num_deaths,num_pregs\n");
     fclose(fp_rats);
+
+    char outputnameplot[50] = {0};
+
+    strcpy(outputnameplot,"rat_plot");
+    strcat(outputnameplot,buffer);
+    strcat(outputnameplot,".csv");
+
+    FILE* fp_rat_plot = fopen(outputnameplot,"w");
+    fprintf(fp_rat_plot,"rat_index,x,y\n");
+    fclose(fp_rats);
     //
-    */
 
     timer_init(TARGET_FPS); 
     is_running = TRUE;
@@ -116,10 +125,22 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
 		if (timer_ready())
 		{
             // @TEMP
-            /*
             ++counter_for_seconds;
             if(counter_for_seconds == TARGET_FPS)
             {
+                counter_for_minutes++;
+                if(counter_for_minutes == 60)
+                {
+                    counter_for_minutes = 0;
+                    // write out data to CSV
+                    FILE* fp_rats_plot = fopen(outputnameplot,"a");
+                    for(int r = 0; r < num_creatures; ++r)
+                    {
+                        fprintf(fp_rat_plot,"%i,%f,%f\n",r,creatures[r].phys.x, creatures[r].phys.y);
+                    }
+                    fclose(fp_rat_plot);
+
+                }
                 counter_for_seconds = 0;
 
                 // write out data to CSV
@@ -128,13 +149,12 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
                 fclose(fp_rats);
             }
             //
-            */
             update_scene();
             draw_scene();
         }
 	}
 
-    //fclose(fp_rats);
+    fclose(fp_rats);
 
 	return EXIT_SUCCESS;
 }
@@ -173,11 +193,11 @@ static void update_scene()
     update_projectiles();
 
     // update camera
-    camera.x = (player.x - (buffer_width / 2));
+    camera.x = (player.phys.x - (buffer_width / 2));
     camera.x = max(camera.x, 0);
     camera.x = min(camera.x,TILE_WIDTH*BOARD_TILE_WIDTH-buffer_width);
 
-    camera.y = (player.y - (buffer_height / 2));
+    camera.y = (player.phys.y - (buffer_height / 2));
     camera.y = max(camera.y, 0);
     camera.y = min(camera.y,TILE_HEIGHT*BOARD_TILE_HEIGHT-buffer_height);
 
@@ -201,13 +221,13 @@ static void draw_scene()
     // health
     int ui_x = 0;
 
-    for(int i = 0; i < player.max_hp / 2.0f;++i)
+    for(int i = 0; i < player.phys.max_hp / 2.0f;++i)
     {
         draw_char_with_shadow(CHAR_HEART,ui_x,buffer_height -7,3);
         ui_x += 6;
     }
 
-    float num_hearts = player.hp / 2.0f;
+    float num_hearts = player.phys.hp / 2.0f;
     int heart_counter = 0;
 
     while(num_hearts >= 1)
@@ -257,7 +277,7 @@ static void draw_scene()
     draw_string_with_shadow("XP:",ui_x, buffer_height -7,1.0f,7); ui_x += 18;
     draw_rect8(ui_x,buffer_height-6,50,4,1,TRUE);
     draw_rect8(ui_x,buffer_height-6,50*xp_percentage,4,8,TRUE);
-    
+   
     // weapon
     draw_string_with_shadow(player.weapon.name,buffer_width - 50,0,1.0f,7);
 
@@ -574,7 +594,7 @@ static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM 
 
             if(wparam == VK_SHIFT)
             {
-                player.base_speed = 2.0f;
+                player.phys.base_speed = 2.0f;
             }
 
             // @DEV
@@ -657,7 +677,7 @@ static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM 
             // @DEV
             if(wparam == VK_SHIFT)
             {
-                player.base_speed = 1.0f;
+                player.phys.base_speed = 1.0f;
             }
 
 			break;

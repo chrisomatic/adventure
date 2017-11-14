@@ -89,8 +89,8 @@ static void sort_entities()
     // creatures
     for(int i = 0; i < num_creatures;++i)
     {
-        screen_x = creatures[i].x - camera.x;
-        screen_y = creatures[i].y - camera.y;
+        screen_x = creatures[i].phys.x - camera.x;
+        screen_y = creatures[i].phys.y - camera.y;
         
         if (screen_x+TILE_WIDTH < 0 || screen_x >= buffer_width)
             continue;
@@ -174,7 +174,7 @@ static void sort_entities()
     // player
     entities[num_entities].type = ENTITY_TYPE_PLAYER;
     entities[num_entities].index = 0;
-    entities[num_entities].y_value = player.y - camera.y;
+    entities[num_entities].y_value = player.phys.y - camera.y;
     num_entities++;
 
     // sort entities

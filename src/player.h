@@ -9,19 +9,19 @@ static void init_player()
     player.tile_index = 0;
     player.lvl = 1;
     player.xp  = 0;
-    player.hp  = 6;
-    player.max_hp = 6;
+    player.phys.hp  = 6;
+    player.phys.max_hp = 6;
     player.mp  = 6;
     player.max_mp = 6;
     player.gold = 10;
-    player.x   = (BOARD_TILE_WIDTH*(TILE_WIDTH-1))/2;
-    player.y   = (BOARD_TILE_HEIGHT*(TILE_HEIGHT-1))/2;
-    player.z   = 0;
-    player.x_vel = 0;
-    player.y_vel = 0;
-    player.z_vel = 0;
-    player.speed = 1.0f;
-    player.base_speed = 1.0f;
+    player.phys.x   = 1271.0f; //(BOARD_TILE_WIDTH*(TILE_WIDTH-1))/2;
+    player.phys.y   = 863.0f; //(BOARD_TILE_HEIGHT*(TILE_HEIGHT-1))/2;
+    player.phys.z   = 0;
+    player.phys.x_vel = 0;
+    player.phys.y_vel = 0;
+    player.phys.z_vel = 0;
+    player.phys.speed = 1.0f;
+    player.phys.base_speed = 1.0f;
     player.dir = DIR_DOWN;
     player.state = PLAYER_STATE_NONE;
     player.throw_coins = FALSE;
@@ -31,8 +31,8 @@ static void init_player()
     player.notch = FALSE;
     player.shoot = FALSE;
     player.notch_index = -1;
-    player.environmental_hurt_counter = 60;
-    player.environmental_hurt_max = 60;
+    player.phys.environmental_hurt_counter = 60;
+    player.phys.environmental_hurt_max = 60;
     player.bounce_counter = 0;
     player.bounce_counter_max = 12;
     player.item_held_index = -1;
@@ -55,7 +55,7 @@ static void init_player()
 static void update_player()
 {
     // check if died
-    if(player.hp <= 0)
+    if(player.phys.hp <= 0)
     {
         // drop all player gold
         int gold_coins = player.gold / 100; player.gold -= (gold_coins*100);
@@ -63,11 +63,11 @@ static void update_player()
         int bronze_coins = player.gold / 1; player.gold -= bronze_coins;
 
         for(int c = 0; c < bronze_coins; ++c)
-            spawn_coin(player.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),player.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)),2,0,0,3.0f, COIN_BRONZE,current_board_index);
+            spawn_coin(player.phys.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),player.phys.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)),2,0,0,3.0f, COIN_BRONZE,current_board_index);
         for(int c = 0; c < silver_coins; ++c)
-            spawn_coin(player.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),player.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)),2,0,0,2.5f, COIN_SILVER, current_board_index);
+            spawn_coin(player.phys.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),player.phys.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)),2,0,0,2.5f, COIN_SILVER, current_board_index);
         for(int c = 0; c < gold_coins; ++c)
-            spawn_coin(player.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),player.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)),2,0,0,2.0f, COIN_GOLD, current_board_index);
+            spawn_coin(player.phys.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),player.phys.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)),2,0,0,2.0f, COIN_GOLD, current_board_index);
 
         player.state = PLAYER_STATE_DEAD;
     }
@@ -83,225 +83,115 @@ static void update_player()
 	{
         player.state |= PLAYER_STATE_MOVE;
 		player.dir = DIR_LEFT;
-		player.x_vel = -1.0f;
+		player.phys.x_vel = -1.0f;
 	}
 	else if ((keypress & KEYPRESS_RIGHT) == KEYPRESS_RIGHT)
 	{
         player.state |= PLAYER_STATE_MOVE;
 		player.dir = DIR_RIGHT;
-		player.x_vel = +1.0f;
+		player.phys.x_vel = +1.0f;
 	}
 	else
-		player.x_vel = 0.0f;
+		player.phys.x_vel = 0.0f;
 
 	if ((keypress & KEYPRESS_UP) == KEYPRESS_UP)
 	{
         player.state |= PLAYER_STATE_MOVE;
 		player.dir = DIR_UP;
-		player.y_vel = -1.0f;
+		player.phys.y_vel = -1.0f;
 	}
 	else if ((keypress & KEYPRESS_DOWN) == KEYPRESS_DOWN)
 	{
         player.state |= PLAYER_STATE_MOVE;
 		player.dir = DIR_DOWN;
-		player.y_vel = +1.0f;
+		player.phys.y_vel = +1.0f;
 	}
 	else
-		player.y_vel = 0.0f;
+		player.phys.y_vel = 0.0f;
 
-    player.x += player.x_vel*player.speed;
-    player.y += player.y_vel*player.speed;
-    player.z += player.z_vel;
+    player.phys.x += player.phys.x_vel*player.phys.speed;
+    player.phys.y += player.phys.y_vel*player.phys.speed;
+    player.phys.z += player.phys.z_vel;
 
     // update z vel
     if((player.state & PLAYER_STATE_MIDAIR) == PLAYER_STATE_MIDAIR)
     {
-        if(player.z <= 0.0f)
+        if(player.phys.z <= 0.0f)
         {
-            player.z = 0.0f;
-            player.z_vel = 0.0f;
+            player.phys.z = 0.0f;
+            player.phys.z_vel = 0.0f;
             player.state ^= PLAYER_STATE_MIDAIR;
         }
         else
         {
-            player.z_vel -= GRAVITY;
+            player.phys.z_vel -= GRAVITY;
         }
     }
     
-    // handle player collision
-    // terrain collision
-    //
-    // 1            2
-    //  x----------x
-    //  |          |
-    //  |          |
-    //  x----------x
-    // 3            4
-    //
-
-    int player_check_x1 = (player.x + TILE_WIDTH/4) / TILE_WIDTH;
-    int player_check_y1 = (player.y + TILE_HEIGHT/2) / TILE_HEIGHT;
-
-    int player_check_x2 = (player.x + 3*TILE_WIDTH/4) / TILE_WIDTH;
-    int player_check_y2 = (player.y + TILE_HEIGHT/2) / TILE_HEIGHT;
-
-    int player_check_x3 = (player.x + TILE_WIDTH/4) / TILE_WIDTH;
-    int player_check_y3 = (player.y + TILE_HEIGHT) / TILE_HEIGHT;
-
-    int player_check_x4 = (player.x + 3*TILE_WIDTH/4) / TILE_WIDTH;
-    int player_check_y4 = (player.y + TILE_HEIGHT) / TILE_HEIGHT;
-
-    int collision_value_1 = board_list[current_board_index].collision[min(player_check_x1, BOARD_TILE_WIDTH - 1)][min(player_check_y1, BOARD_TILE_HEIGHT - 1)];
-    int collision_value_2 = board_list[current_board_index].collision[min(player_check_x2, BOARD_TILE_WIDTH - 1)][min(player_check_y2, BOARD_TILE_HEIGHT - 1)];
-    int collision_value_3 = board_list[current_board_index].collision[min(player_check_x3, BOARD_TILE_WIDTH - 1)][min(player_check_y3, BOARD_TILE_HEIGHT - 1)];
-    int collision_value_4 = board_list[current_board_index].collision[min(player_check_x4, BOARD_TILE_WIDTH - 1)][min(player_check_y4, BOARD_TILE_HEIGHT - 1)];
-
-    if(collision_value_1 == 5 || collision_value_2 == 5 || collision_value_3 == 5 || collision_value_4 == 5)
-    {
-        BOOL correct_x = FALSE;
-        BOOL correct_y = FALSE;
-
-        if((collision_value_1 == 5 && collision_value_3 == 5) || (collision_value_2 == 5 && collision_value_4 == 5))
-        {
-            //correct collision x
-            player.x -= player.x_vel*player.speed;
-            correct_x = TRUE;
-        }
-        if((collision_value_1 == 5 && collision_value_2 == 5) || (collision_value_3 == 5 && collision_value_4 == 5))
-        {
-            //correct collision y
-            player.y -= player.y_vel*player.speed;
-            correct_y = TRUE;
-        }
-        
-        if(!correct_x && !correct_y)
-        {
-            if(collision_value_1 == 5 || collision_value_4 == 5)
-            {
-                player.x -= player.y_vel*player.speed;
-                player.y -= player.x_vel*player.speed;
-            }
-            else if(collision_value_2 == 5 || collision_value_3 == 5)
-            {
-                player.x += player.y_vel*player.speed;
-                player.y += player.x_vel*player.speed;
-            }
-        }
-    }
-    else if(collision_value_1 == 3 || collision_value_2 == 3 || collision_value_3 == 3 || collision_value_4 == 3)
-    {
-        if((player.state & PLAYER_STATE_MIDAIR) != PLAYER_STATE_MIDAIR)
-        {
-            // handle player in mud
-            if(player.x_vel != 0 || player.y_vel != 0)
-            {
-                spawn_particle(rand() % TILE_WIDTH + player.x,player.y+TILE_HEIGHT,2,1,0,4,current_board_index);
-            }
-
-            player.speed = player.base_speed/2.0f;
-        }
-    }
+    handle_terrain_collision(current_board_index,&player.phys);
     
-    else if(collision_value_1 == 4 || collision_value_2 == 4 || collision_value_3 == 4 || collision_value_4 == 4)
-    {
-        // handle player in water
-        if((player.state & PLAYER_STATE_MIDAIR) != PLAYER_STATE_MIDAIR)
-        {
-            if(player.x_vel != 0 || player.y_vel != 0)
-            {
-                spawn_particle(rand() % TILE_WIDTH + player.x,player.y+TILE_HEIGHT,2,2,0,8,current_board_index);
-            }
-
-            player.speed = player.base_speed/3.0f;
-        }
-    }
-    else if(collision_value_1 == 6 || collision_value_2 == 6 || collision_value_3 == 6 || collision_value_4 == 6)
-    {
-        if((player.state & PLAYER_STATE_MIDAIR) != PLAYER_STATE_MIDAIR)
-        {
-            // handle player in lava
-            if(player.x_vel != 0 || player.y_vel != 0)
-            {
-                spawn_particle(rand() % TILE_WIDTH + player.x,player.y+TILE_HEIGHT,2,2,0,6,current_board_index);
-            }
-
-            player.environmental_hurt_counter++;
-            if(player.environmental_hurt_counter >= player.environmental_hurt_max)
-            {
-                player.environmental_hurt_counter = 0;
-                player.hp--;
-                spawn_floating_number(player.x+TILE_WIDTH/2,player.y,1,6);
-            }
-            player.speed = player.base_speed/3.0f;
-        }
-    }
-    else if((player.state & PLAYER_STATE_MIDAIR) != PLAYER_STATE_MIDAIR)
-    {
-        player.speed = player.base_speed;
-    }
-
     // check board boundaries
-    if(player.x < 0)
+    if(player.phys.x < 0)
     {
         int board_index = get_name_of_board_location(board_list[current_board_index].map_x_index -1, board_list[current_board_index].map_y_index,player.board_name);
 
         if(board_index < 0)
-            player.x = 0;    
+            player.phys.x = 0;    
         else
         {
             // go to board
-            player.x = (BOARD_TILE_HEIGHT - 1)*TILE_HEIGHT;
+            player.phys.x = (BOARD_TILE_HEIGHT - 1)*TILE_HEIGHT;
             current_board_index = board_index;
         }
     }
-    else if(player.y < 0)
+    else if(player.phys.y < 0)
     {
         int board_index = get_name_of_board_location(board_list[current_board_index].map_x_index, board_list[current_board_index].map_y_index - 1,player.board_name);
 
         if(board_index < 0)
-            player.y = 0;
+            player.phys.y = 0;
         else
         {
             // go to board
-            player.y = (BOARD_TILE_HEIGHT-1)*TILE_HEIGHT;
+            player.phys.y = (BOARD_TILE_HEIGHT-1)*TILE_HEIGHT;
             current_board_index = board_index;
         }
     }
-    else if(player.x > TILE_WIDTH*(BOARD_TILE_WIDTH - 1))
+    else if(player.phys.x > TILE_WIDTH*(BOARD_TILE_WIDTH - 1))
     {
         int board_index = get_name_of_board_location(board_list[current_board_index].map_x_index + 1, board_list[current_board_index].map_y_index,player.board_name);
 
         if(board_index < 0)
-            player.x = TILE_WIDTH*(BOARD_TILE_WIDTH - 1); 
+            player.phys.x = TILE_WIDTH*(BOARD_TILE_WIDTH - 1); 
         else
         {
             // go to board
-            player.x = 0;
+            player.phys.x = 0;
             current_board_index = board_index;
         }
     }
-    else if(player.y > TILE_HEIGHT*(BOARD_TILE_HEIGHT - 1))
+    else if(player.phys.y > TILE_HEIGHT*(BOARD_TILE_HEIGHT - 1))
     {
         int board_index = get_name_of_board_location(board_list[current_board_index].map_x_index, board_list[current_board_index].map_y_index + 1,player.board_name);
 
         if(board_index < 0)
-            player.y = TILE_HEIGHT*(BOARD_TILE_HEIGHT - 1);
+            player.phys.y = TILE_HEIGHT*(BOARD_TILE_HEIGHT - 1);
         else
         {
             // go to board
-            player.y = 0;
+            player.phys.y = 0;
             current_board_index = board_index;
         }
     }
 
     // update player movement animation
-    if(player.x_vel != 0 || player.y_vel != 0)
+    if(player.phys.x_vel != 0 || player.phys.y_vel != 0)
     {
         // make player bounce
-        if(player.z == 0.0f && player.base_speed > 1.5f && player.bounce_counter >= player.bounce_counter_max)
+        if(player.phys.z == 0.0f && player.phys.base_speed > 1.5f && player.bounce_counter >= player.bounce_counter_max)
         {
             player.state |= PLAYER_STATE_MIDAIR;
-            player.z_vel = 0.6f;
+            player.phys.z_vel = 0.6f;
             player.bounce_counter = 0;
         }
 
@@ -309,7 +199,7 @@ static void update_player()
 
         player.anim.counter++;
 
-        if(player.anim.counter >= 10/player.speed)
+        if(player.anim.counter >= 10/player.phys.speed)
         {
             // cycle_animation
             player.anim.counter = 0;
@@ -355,8 +245,8 @@ static void update_player()
                 if(creatures[i].board_index != current_board_index)
                     continue;
 
-                int relative_creature_position_x = creatures[i].x - camera.x;
-                int relative_creature_position_y = creatures[i].y - camera.y;
+                int relative_creature_position_x = creatures[i].phys.x - camera.x;
+                int relative_creature_position_y = creatures[i].phys.y - camera.y;
 
                 // only care about creatures on screen...
                 if(relative_creature_position_x > 0 && relative_creature_position_x < buffer_width)
@@ -369,8 +259,8 @@ static void update_player()
                             // only care about hitting an creature if it hasn't been hit yet.
                             if(creatures[i].state != CREATURE_STATE_STUNNED)
                             {
-                                int start_weapon_x = player.x - camera.x + TILE_WIDTH/2;
-                                int start_weapon_y = player.y - camera.y + TILE_HEIGHT/2;
+                                int start_weapon_x = player.phys.x - camera.x + TILE_WIDTH/2;
+                                int start_weapon_y = player.phys.y - camera.y + TILE_HEIGHT/2;
                             
                                 float delta_x = cosa*j;
                                 float delta_y = -sina*j;
@@ -385,10 +275,10 @@ static void update_player()
                                         spawn_floating_number(start_weapon_x+delta_x+camera.x,start_weapon_y+delta_y+camera.y,damage,6);
 
                                         // creature hurt!
-                                        creatures[i].hp -= damage;
+                                        creatures[i].phys.hp -= damage;
 
                                         // check if creature died
-                                        if (creatures[i].hp <= 0)
+                                        if (creatures[i].phys.hp <= 0)
                                         {
                                             foes_killed++;
                                             
@@ -476,9 +366,9 @@ static void update_player()
                     break;
             }
 
-            projectiles[player.notch_index].x = player.x + offset_x;
-            projectiles[player.notch_index].y = player.y + offset_y;
-            projectiles[player.notch_index].z = player.z + offset_z;
+            projectiles[player.notch_index].x = player.phys.x + offset_x;
+            projectiles[player.notch_index].y = player.phys.y + offset_y;
+            projectiles[player.notch_index].z = player.phys.z + offset_z;
             projectiles[player.notch_index].z_vel = 0.0f;
             projectiles[player.notch_index].angle = player.attack_angle;
         }
@@ -489,11 +379,11 @@ static void update_player()
             {
                 case BOW:
                 case CROSSBOW:
-                    player.notch_index = spawn_projectile(player.x, player.y, 5, 0, 0, 0, ARROW, player.attack_angle, 1.0f);
+                    player.notch_index = spawn_projectile(player.phys.x, player.phys.y, 5, 0, 0, 0, ARROW, player.attack_angle, 1.0f);
                     break;
                 case STAFF:
                     if(player.mp > 0)
-                        player.notch_index = spawn_projectile(player.x, player.y, 5, 0, 0, 0, FIREBALL, player.attack_angle, 1.0f);
+                        player.notch_index = spawn_projectile(player.phys.x, player.phys.y, 5, 0, 0, 0, FIREBALL, player.attack_angle, 1.0f);
 
                     --player.mp;
                     player.mp = max(0,player.mp);
@@ -534,9 +424,9 @@ static void update_player()
 			{
                 projectiles[player.notch_index].shot = TRUE;
 
-				projectiles[player.notch_index].x_vel += ((shoot_x_vel*player.weapon.weapon_props.attack_range) + player.x_vel*player.speed);
-				projectiles[player.notch_index].y_vel += ((shoot_y_vel*player.weapon.weapon_props.attack_range) + player.y_vel*player.speed);
-				projectiles[player.notch_index].z_vel += (shoot_z_vel + player.z_vel);
+				projectiles[player.notch_index].x_vel += ((shoot_x_vel*player.weapon.weapon_props.attack_range) + player.phys.x_vel*player.phys.speed);
+				projectiles[player.notch_index].y_vel += ((shoot_y_vel*player.weapon.weapon_props.attack_range) + player.phys.y_vel*player.phys.speed);
+				projectiles[player.notch_index].z_vel += (shoot_z_vel + player.phys.z_vel);
 
 				player.notch_index = -1;
 			}
@@ -558,9 +448,9 @@ static void update_player()
             if(coin_y - camera.y >= 0 && coin_y - camera.y <= buffer_height)
             {
                 // check for player collision
-                if(coin_x >= player.x && coin_x <= player.x + TILE_WIDTH)
+                if(coin_x >= player.phys.x && coin_x <= player.phys.x + TILE_WIDTH)
                 {
-                    if(coin_y >= player.y + TILE_HEIGHT/2 && coin_y <= player.y + TILE_HEIGHT)
+                    if(coin_y >= player.phys.y + TILE_HEIGHT/2 && coin_y <= player.phys.y + TILE_HEIGHT)
                     {
                         char color = 0;
                         int  amount = 0;
@@ -630,7 +520,7 @@ static void update_player()
                 }
                 
 
-                if(spawn_coin(player.x + coin_x_offset, player.y + coin_y_offset,player.z + 5,player.x_vel*player.speed + coin_x_vel,player.y_vel*player.speed+coin_y_vel,2.0f,COIN_BRONZE,current_board_index))
+                if(spawn_coin(player.phys.x + coin_x_offset, player.phys.y + coin_y_offset,player.phys.z + 5,player.phys.x_vel*player.phys.speed + coin_x_vel,player.phys.y_vel*player.phys.speed+coin_y_vel,2.0f,COIN_BRONZE,current_board_index))
                     player.gold--;
             }
         }
@@ -646,7 +536,7 @@ static void update_player()
         if(items[i].board_index != current_board_index)
             continue;
 
-        distance = get_distance(player.x + TILE_WIDTH/2,player.y + TILE_HEIGHT,items[i].x + TILE_WIDTH/2,items[i].y + TILE_HEIGHT/2);
+        distance = get_distance(player.phys.x + TILE_WIDTH/2,player.phys.y + TILE_HEIGHT,items[i].x + TILE_WIDTH/2,items[i].y + TILE_HEIGHT/2);
 
         if(distance <= 14)
         {
@@ -722,8 +612,8 @@ static void update_player()
             items[player.item_held_index].x += item_x_offset;
             items[player.item_held_index].y += item_y_offset;
             items[player.item_held_index].friction = AIR_RESISTANCE;
-            items[player.item_held_index].x_vel = player.x_vel*player.speed + item_x_vel;
-            items[player.item_held_index].y_vel = player.y_vel*player.speed + item_y_vel;
+            items[player.item_held_index].x_vel = player.phys.x_vel*player.phys.speed + item_x_vel;
+            items[player.item_held_index].y_vel = player.phys.y_vel*player.phys.speed + item_y_vel;
             items[player.item_held_index].z_vel = 2.0f;
 
             player.item_held_index = -1;
@@ -763,25 +653,25 @@ static void update_player()
                 switch(items[item_index_taken].type)
                 {
                     case ITEM_TYPE_HEALTH:
-                        player.hp += items[item_index_taken].value;
-                        player.hp = min(player.max_hp,player.hp);
+                        player.phys.hp += items[item_index_taken].value;
+                        player.phys.hp = min(player.phys.max_hp,player.phys.hp);
 
-                        spawn_floating_number(player.x+TILE_WIDTH/2,player.y,items[item_index_taken].value,11);
+                        spawn_floating_number(player.phys.x+TILE_WIDTH/2,player.phys.y,items[item_index_taken].value,11);
 
                         for(int i = 0; i < 20; ++i)
                         {
-                            spawn_particle(rand() % TILE_WIDTH + player.x,player.y,rand() % 4 + 1,3,0,6,current_board_index);
+                            spawn_particle(rand() % TILE_WIDTH + player.phys.x,player.phys.y,rand() % 4 + 1,3,0,6,current_board_index);
                         }
                         break;
                     case ITEM_TYPE_MANA:
                         player.mp += items[item_index_taken].value;
                         player.mp = min(player.max_mp,player.mp);
 
-                        spawn_floating_number(player.x+TILE_WIDTH/2,player.y,items[item_index_taken].value,8);
+                        spawn_floating_number(player.phys.x+TILE_WIDTH/2,player.phys.y,items[item_index_taken].value,8);
 
                         for(int i = 0; i < 20; ++i)
                         {
-                            spawn_particle(rand() % TILE_WIDTH + player.x,player.y,rand() % 2 + 1,3,'*',8,current_board_index);
+                            spawn_particle(rand() % TILE_WIDTH + player.phys.x,player.phys.y,rand() % 2 + 1,3,'*',8,current_board_index);
                         }
                         break;
                 }
@@ -790,7 +680,7 @@ static void update_player()
             if(items[item_index_taken].type == ITEM_TYPE_WEAPON)
             {
                 if(player.weapon.name != "")
-                    spawn_item(player.weapon.name,player.x,player.y, current_board_index);
+                    spawn_item(player.weapon.name,player.phys.x,player.phys.y, current_board_index);
 
                 get_item_by_name(items[item_index_taken].name,&player.weapon);
             }
@@ -800,28 +690,28 @@ static void update_player()
                 {
                     case ARMOR_TYPE_HEAD: 
                         if(player.armor_head.name != "")
-                            spawn_item(player.armor_head.name,player.x,player.y, current_board_index);
+                            spawn_item(player.armor_head.name,player.phys.x,player.phys.y, current_board_index);
 
                         get_item_by_name(items[item_index_taken].name,&player.armor_head);
 
                         break;
                     case ARMOR_TYPE_BODY:
                         if(player.armor_body.name != "")
-                            spawn_item(player.armor_body.name,player.x,player.y, current_board_index);
+                            spawn_item(player.armor_body.name,player.phys.x,player.phys.y, current_board_index);
 
                         get_item_by_name(items[item_index_taken].name,&player.armor_body);
 
                         break;
                     case ARMOR_TYPE_HANDS:
                         if(player.armor_hands.name != "")
-                            spawn_item(player.armor_hands.name,player.x,player.y, current_board_index);
+                            spawn_item(player.armor_hands.name,player.phys.x,player.phys.y, current_board_index);
 
                         get_item_by_name(items[item_index_taken].name,&player.armor_hands);
                         
                         break;
                     case ARMOR_TYPE_FEET:
                         if(player.armor_feet.name != "")
-                            spawn_item(player.armor_feet.name,player.x,player.y, current_board_index);
+                            spawn_item(player.armor_feet.name,player.phys.x,player.phys.y, current_board_index);
 
                         get_item_by_name(items[item_index_taken].name,&player.armor_feet);
                         
@@ -838,24 +728,24 @@ static void update_player()
     {
         player.jump = FALSE;
 
-        if(player.z < 4.0f)
+        if(player.phys.z < 4.0f)
         {
             player.state |= PLAYER_STATE_MIDAIR;
-            player.z_vel = 3.0f;
+            player.phys.z_vel = 3.0f;
         }
     }
 }
 static void draw_player_and_armor()
 {
     // player
-    draw_tile_shadow(player.x - camera.x,player.y - camera.y,player.tileset_name,player.tile_index + player.dir+player.anim.frame_order[player.anim.frame],max(10-day_cycle_shade_amount,0));
-    draw_tile(player.x - camera.x,player.y - camera.y - 0.5*player.z,player.tileset_name,player.tile_index + player.dir+player.anim.frame_order[player.anim.frame],day_cycle_shade_amount);
+    draw_tile_shadow(player.phys.x - camera.x,player.phys.y - camera.y,player.tileset_name,player.tile_index + player.dir+player.anim.frame_order[player.anim.frame],max(10-day_cycle_shade_amount,0));
+    draw_tile(player.phys.x - camera.x,player.phys.y - camera.y - 0.5*player.phys.z,player.tileset_name,player.tile_index + player.dir+player.anim.frame_order[player.anim.frame],day_cycle_shade_amount);
 
     // armor ...
     
     // helm
     if(player.armor_head.name != NULL)
-        draw_tile(player.x - camera.x, player.y - camera.y + player.armor_head.armor_props.y_offset - 0.5*player.z, player.armor_head.tileset_name, player.armor_head.tile_index + player.dir + player.anim.frame_order[player.anim.frame], day_cycle_shade_amount);
+        draw_tile(player.phys.x - camera.x, player.phys.y - camera.y + player.armor_head.armor_props.y_offset - 0.5*player.phys.z, player.armor_head.tileset_name, player.armor_head.tile_index + player.dir + player.anim.frame_order[player.anim.frame], day_cycle_shade_amount);
     
     // body
     
@@ -867,8 +757,8 @@ static void draw_player_and_armor()
 
 static void draw_weapon()
 {
-    draw_tile_rotated_shadow(player.x - camera.x + cos(player.attack_angle)*2*TILE_WIDTH/3,player.y - camera.y - sin(player.attack_angle) * 2*TILE_HEIGHT/3,player.weapon.tileset_name,player.weapon.tile_index,player.attack_angle,max(10-day_cycle_shade_amount,0));
-    draw_tile_rotated(player.x - camera.x + cos(player.attack_angle)*2*TILE_WIDTH/3,player.y - camera.y - sin(player.attack_angle) * 2*TILE_HEIGHT/3 - 0.5*player.z,player.weapon.tileset_name,player.weapon.tile_index,player.attack_angle, day_cycle_shade_amount);
+    draw_tile_rotated_shadow(player.phys.x - camera.x + cos(player.attack_angle)*2*TILE_WIDTH/3,player.phys.y - camera.y - sin(player.attack_angle) * 2*TILE_HEIGHT/3,player.weapon.tileset_name,player.weapon.tile_index,player.attack_angle,max(10-day_cycle_shade_amount,0));
+    draw_tile_rotated(player.phys.x - camera.x + cos(player.attack_angle)*2*TILE_WIDTH/3,player.phys.y - camera.y - sin(player.attack_angle) * 2*TILE_HEIGHT/3 - 0.5*player.phys.z,player.weapon.tileset_name,player.weapon.tile_index,player.attack_angle, day_cycle_shade_amount);
 }
 
 static void draw_player()
@@ -876,7 +766,7 @@ static void draw_player()
     if(player.state == PLAYER_STATE_DEAD)
     {
         // draw tombstone
-		draw_tile(player.x - camera.x, player.y - camera.y,"objects",2,day_cycle_shade_amount);
+		draw_tile(player.phys.x - camera.x, player.phys.y - camera.y,"objects",2,day_cycle_shade_amount);
     }
     else
     {

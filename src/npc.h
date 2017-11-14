@@ -5,7 +5,7 @@ typedef struct
 {
     char* name;
     char* board_name;
-    char* board_index;
+    int board_index;
     char* tileset_name;
     int tile_index;
     int xp;
@@ -161,8 +161,8 @@ static void update_npcs()
         if(npcs[i].talking)
         {
             // update direction to face player
-            float diff_x = player.x - npcs[i].x;
-            float diff_y = player.y - npcs[i].y;
+            float diff_x = player.phys.x - npcs[i].x;
+            float diff_y = player.phys.y - npcs[i].y;
 
             if(diff_x <0)
             {
@@ -296,14 +296,10 @@ static void update_npcs()
                 int npc_check_x4 = (npcs[i].x + 3*TILE_WIDTH/4) / TILE_WIDTH;
                 int npc_check_y4 = (npcs[i].y + TILE_HEIGHT) / TILE_HEIGHT;
 
-                int board_index = get_board_index_by_name("Astoria");
-                if(board_index < 0)
-                    return;
-
-                int collision_value_1 = board_list[board_index].collision[npc_check_x1][npc_check_y1];
-                int collision_value_2 = board_list[board_index].collision[npc_check_x2][npc_check_y2];
-                int collision_value_3 = board_list[board_index].collision[npc_check_x3][npc_check_y3];
-                int collision_value_4 = board_list[board_index].collision[npc_check_x4][npc_check_y4];
+                int collision_value_1 = board_list[npcs[i].board_index].collision[npc_check_x1][npc_check_y1];
+                int collision_value_2 = board_list[npcs[i].board_index].collision[npc_check_x2][npc_check_y2];
+                int collision_value_3 = board_list[npcs[i].board_index].collision[npc_check_x3][npc_check_y3];
+                int collision_value_4 = board_list[npcs[i].board_index].collision[npc_check_x4][npc_check_y4];
 
                 if(collision_value_1 == 5 || collision_value_2 == 5 || collision_value_3 == 5 || collision_value_4 == 5)
                 {
@@ -374,7 +370,7 @@ static void update_npcs()
         }
 
         // check if player is near
-        float distance = get_distance(player.x,player.y,npcs[i].x,npcs[i].y);
+        float distance = get_distance(player.phys.x,player.phys.y,npcs[i].x,npcs[i].y);
 
         if(distance <= npcs[i].talk_radius)
         {
