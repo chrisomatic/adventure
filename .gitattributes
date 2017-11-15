@@ -1,1 +1,4 @@
-*.* eol=crlf
+*.txt -text
+*.creature -text
+*.item -text
+*.npc -text
