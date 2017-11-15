@@ -1,1 +1,2 @@
-* eof=crlf
+[core]
+	autocrlf = true
