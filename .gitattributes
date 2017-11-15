@@ -1,4 +1,1 @@
-*.txt eof=crlf
-*.creature eof=crlf
-*.item eof=crlf
-*.npc eof=crlf
+* eof=crlf
