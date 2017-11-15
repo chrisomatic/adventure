@@ -1,5 +1,8 @@
 #define MAX_CREATURES     100000
 #define MAX_CREATURE_LIST 100
+#define CREATURE_GRID_X_MAX 32
+#define CREATURE_GRID_Y_MAX 32
+#define MAX_CREATURE_GRID MAX_CREATURES/CREATURE_GRID_X_MAX
 
 typedef enum
 {
@@ -67,10 +70,20 @@ typedef struct
     int birth_recovery_time;
     int birth_recovery_counter;
     int death_check_counter;
+    int grid_index_x;
+    int grid_index_y;
 } Creature;
+
+typedef struct
+{
+    Creature* creatures[MAX_CREATURE_GRID];
+    int num_creatures;
+} CreatureSection;
 
 Creature creatures[MAX_CREATURES];
 Creature creature_list[MAX_CREATURE_LIST];
+
+CreatureSection creature_grid[CREATURE_GRID_X_MAX][CREATURE_GRID_Y_MAX];
 
 int num_creatures = 0;
 int num_creature_list = 0;
@@ -262,7 +275,7 @@ static void init_creatures()
 {
     num_creatures = 0;
 
-    for (int i = 0; i < 15000; ++i)
+    for (int i = 0; i < 150; ++i)
     {
         int creature_x, creature_y;
         int test_collision_1, test_collision_2, test_collision_3, test_collision_4;
@@ -299,6 +312,7 @@ static void init_creatures()
             spawn_creature("White Rat",creature_x,creature_y);
 
     }
+    
 }
 
 static void remove_creature(int index)
@@ -377,8 +391,28 @@ static void creature_death(int i)
 
 static void update_creatures()
 {
+    
+    // init creature grid
+    for(int i = 0; i < CREATURE_GRID_X_MAX; ++i)
+    {
+        for(int j = 0; j < CREATURE_GRID_Y_MAX; ++j)
+        {
+            creature_grid[i][j].num_creatures = 0;
+        }
+    }
+
     for(int i = num_creatures -1; i >= 0;--i)
     {
+        // assign creatures to creature grids for optimizing creature-creature interactions
+        int grid_x = floor(CREATURE_GRID_X_MAX*(creatures[i].phys.x/(BOARD_TILE_WIDTH*TILE_WIDTH)));
+        int grid_y = floor(CREATURE_GRID_Y_MAX*(creatures[i].phys.y/(BOARD_TILE_HEIGHT*TILE_HEIGHT)));
+        
+        creature_grid[grid_x][grid_y].creatures[creature_grid[grid_x][grid_y].num_creatures++] = &creatures[i];
+        
+        creatures[i].grid_index_x = grid_x;
+        creatures[i].grid_index_y = grid_y;
+        //
+
         if(creatures[i].state == CREATURE_STATE_STUNNED)
         {
             creatures[i].stun_counter++;
@@ -681,6 +715,61 @@ static void update_creatures()
                 // handle creature mating
                 if(creatures[i].reproductive && creatures[i].gender == MALE && creatures[i].age >= creatures[i].adult_age)
                 {
+                    for(int grid_offset_x = -1; grid_offset_x <= +1; ++grid_offset_x)
+                    {
+                        int x_bound = creatures[i].grid_index_x + grid_offset_x;
+                        if(x_bound < 0 || x_bound >= CREATURE_GRID_X_MAX) continue;
+
+                        for(int grid_offset_y = -1; grid_offset_y <= +1; ++grid_offset_y)
+                        {
+                            int y_bound = creatures[i].grid_index_y + grid_offset_y;
+                            if(y_bound < 0 || y_bound >= CREATURE_GRID_X_MAX) continue;
+
+                            for(int j = 0; j < creature_grid[x_bound][y_bound].num_creatures; ++j)
+                            {
+                                Creature* creature_j = creature_grid[x_bound][y_bound].creatures[j];
+                                
+                                // are creatures opposite gender?
+                                if(creature_j->gender == !creatures[i].gender)
+                                {
+                                    // is creature reproductive and an adult and not currently pregnant?
+                                    if(creature_j->reproductive && creature_j->age >= creature_j->adult_age && !creature_j->pregnant)
+                                    {
+                                        // is creature not recoverying from a pregnancy?
+                                        if(!creature_j->birth_recovery)
+                                        {
+                                            // are creatures the same species?
+                                            if(strcmp(creature_j->species, creatures[i].species) == 0)
+                                            {
+                                                // look at x distance
+                                                if(abs(creatures[i].phys.x - creature_j->phys.x) <= creatures[i].mating_radius)
+                                                {
+                                                    // look at y distance
+                                                    if(abs(creatures[i].phys.y - creature_j->phys.y) <= creatures[i].mating_radius)
+                                                    {
+                                                        // get direct distance
+                                                        double distance = get_distance(creatures[i].phys.x,creatures[i].phys.y,creature_j->phys.x, creature_j->phys.y);
+
+                                                        if(distance <= creatures[i].mating_radius)
+                                                        {
+                                                            // spawn flames
+                                                            for(int k = 0; k < 10; ++k)
+                                                                spawn_particle(creature_j->phys.x + (rand()%TILE_WIDTH), creature_j->phys.y + (rand()%(TILE_HEIGHT/2)),1,3,CHAR_FLAME,9, creature_j->board_index);
+
+                                                            creature_j->pregnant = TRUE;
+                                                            creature_j->phys.base_speed /= 2.0f; // reduce speed of pregnant creature
+                                                            ++num_pregs;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    } 
+                                }
+                            }
+                        }
+                    }
+                    /*
                     for(int j = 0; j < num_creatures; ++j)
                     {
                         // are creatures opposite gender?
@@ -721,6 +810,7 @@ static void update_creatures()
                             } 
                         }
                     }
+                    */
                 }
 
                 // handle pregnancies
