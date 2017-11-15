@@ -72,12 +72,14 @@ static BOOL spawn_item(const char* item_name,float x, float y, int board_index)
     items[num_items].name = item.name;
     items[num_items].board_index = board_index;
     items[num_items].description = item.description;
-    items[num_items].x = x;
-    items[num_items].y = y;
-    items[num_items].z = 5.0f;
-    items[num_items].x_vel = 0.0f;
-    items[num_items].y_vel = 0.0f;
-    items[num_items].z_vel = 2.0f;
+    items[num_items].phys.x = x;
+    items[num_items].phys.y = y;
+    items[num_items].phys.z = 5.0f;
+    items[num_items].phys.x_vel = 0.0f;
+    items[num_items].phys.y_vel = 0.0f;
+    items[num_items].phys.z_vel = 2.0f;
+    items[num_items].phys.speed = 1.0f;
+    items[num_items].phys.base_speed = 1.0f;
     items[num_items].friction = AIR_RESISTANCE;
     items[num_items].tileset_name = item.tileset_name;
     items[num_items].tile_index = item.tile_index;
@@ -144,38 +146,40 @@ static void update_items()
                     item_offset_y = +1;
                     break;
             }
-            items[i].x = player.phys.x + item_offset_x;
-            items[i].y = player.phys.y + item_offset_y;
-            items[i].z = player.phys.z + 5;
+			items[i].phys.x = player.phys.x + item_offset_x;
+			items[i].phys.y = player.phys.y + item_offset_y;
+			items[i].phys.z = player.phys.z + 5;
         }
         else
         {
-            items[i].x += items[i].x_vel;
-            items[i].y += items[i].y_vel;
-            items[i].z += items[i].z_vel;
+            items[i].phys.x += items[i].phys.x_vel;
+            items[i].phys.y += items[i].phys.y_vel;
+            items[i].phys.z += items[i].phys.z_vel;
 
-            if(items[i].z < 0)
+            handle_terrain_collision(items[i].board_index,&items[i].phys);
+
+			if (items[i].phys.z < 0)
             {
                 // hit the ground
-                items[i].z = 0.0f;
-                items[i].z_vel = 0.0f;
+                items[i].phys.z = 0.0f;
+                items[i].phys.z_vel = 0.0f;
                 items[i].friction = GROUND_FRICTION;
             }
             else
             {
-                items[i].z_vel -= GRAVITY; // gravity acceleration
+                items[i].phys.z_vel -= GRAVITY; // gravity acceleration
             }
 
-            if(items[i].x_vel != 0 || items[i].y_vel != 0)
+            if(items[i].phys.x_vel != 0 || items[i].phys.y_vel != 0)
             {
                 // air resistance
-                if(items[i].x_vel < 0) items[i].x_vel += items[i].friction;
-                else items[i].x_vel -= items[i].friction;
-                if(items[i].y_vel < 0) items[i].y_vel += items[i].friction;
-                else items[i].y_vel -= items[i].friction;
+                if(items[i].phys.x_vel < 0) items[i].phys.x_vel += items[i].friction;
+                else items[i].phys.x_vel -= items[i].friction;
+                if(items[i].phys.y_vel < 0) items[i].phys.y_vel += items[i].friction;
+                else items[i].phys.y_vel -= items[i].friction;
 
-                if(abs(items[i].x_vel) <= 0.2f) items[i].x_vel = 0.0f;
-                if(abs(items[i].y_vel) <= 0.2f) items[i].y_vel = 0.0f;
+                if(abs(items[i].phys.x_vel) <= 0.2f) items[i].phys.x_vel = 0.0f;
+                if(abs(items[i].phys.y_vel) <= 0.2f) items[i].phys.y_vel = 0.0f;
             }
         }
 
@@ -184,10 +188,10 @@ static void update_items()
 
 static void draw_item(int i)
 {
-    draw_tile_shadow(items[i].x - camera.x, items[i].y - camera.y, items[i].tileset_name,items[i].tile_index,max(0,10 - day_cycle_shade_amount)); // shadow
+    draw_tile_shadow(items[i].phys.x - camera.x, items[i].phys.y - camera.y, items[i].tileset_name,items[i].tile_index,max(0,10 - day_cycle_shade_amount)); // shadow
 
     if(items[i].highlighted)
-        draw_tile(items[i].x - camera.x, items[i].y - camera.y - items[i].z*0.5f,items[i].tileset_name, items[i].tile_index,max(0,day_cycle_shade_amount-3));
+        draw_tile(items[i].phys.x - camera.x, items[i].phys.y - camera.y - items[i].phys.z*0.5f,items[i].tileset_name, items[i].tile_index,max(0,day_cycle_shade_amount-3));
     else
-        draw_tile(items[i].x - camera.x, items[i].y - camera.y - items[i].z*0.5f,items[i].tileset_name, items[i].tile_index,day_cycle_shade_amount);
+        draw_tile(items[i].phys.x - camera.x, items[i].phys.y - camera.y - items[i].phys.z*0.5f,items[i].tileset_name, items[i].tile_index,day_cycle_shade_amount);
 }

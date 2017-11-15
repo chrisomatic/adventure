@@ -12,13 +12,8 @@ typedef struct
     float angle;
     float damage_modifier;
     float friction;
-    float x;
-    float y;
-    float z;
-    float height;
-    float x_vel;
-    float y_vel;
-    float z_vel;
+    int board_index;
+    PhysicalProperties phys;
 	BOOL shot;
     BOOL collision;
 } Projectile;
@@ -32,13 +27,16 @@ static int spawn_projectile(float x, float y, float z, float x_vel, float y_vel,
     projectiles[num_projectiles].angle = rotation_angle;
     projectiles[num_projectiles].damage_modifier = damage_modifier;
     projectiles[num_projectiles].friction = AIR_RESISTANCE;
-    projectiles[num_projectiles].x = x;
-    projectiles[num_projectiles].y = y;
-    projectiles[num_projectiles].z = z;
-    projectiles[num_projectiles].height = 2;
-    projectiles[num_projectiles].x_vel = x_vel;
-    projectiles[num_projectiles].y_vel = y_vel;
-    projectiles[num_projectiles].z_vel = z_vel;
+    projectiles[num_projectiles].phys.x = x;
+    projectiles[num_projectiles].phys.y = y;
+    projectiles[num_projectiles].phys.z = z;
+    projectiles[num_projectiles].phys.height = 2;
+    projectiles[num_projectiles].phys.x_vel = x_vel;
+    projectiles[num_projectiles].phys.y_vel = y_vel;
+    projectiles[num_projectiles].phys.z_vel = z_vel;
+    projectiles[num_projectiles].phys.speed = 1.0f;
+    projectiles[num_projectiles].phys.base_speed = 1.0f;
+    projectiles[num_projectiles].board_index = current_board_index;
 	projectiles[num_projectiles].shot = FALSE;
     projectiles[num_projectiles].life_counter = 0;
     projectiles[num_projectiles].life_span = 180;
@@ -69,33 +67,35 @@ static void update_projectiles()
     for(int i = num_projectiles -1; i >= 0;--i)
     {
 
-        projectiles[i].x += projectiles[i].x_vel;
-        projectiles[i].y += projectiles[i].y_vel;
-        projectiles[i].z += projectiles[i].z_vel;
+        projectiles[i].phys.x += projectiles[i].phys.x_vel*projectiles[i].phys.speed;
+        projectiles[i].phys.y += projectiles[i].phys.y_vel*projectiles[i].phys.speed;
+        projectiles[i].phys.z += projectiles[i].phys.z_vel*projectiles[i].phys.speed;
 
-        if(projectiles[i].z < 0)
+        handle_terrain_collision(projectiles[i].board_index, &projectiles[i].phys);
+
+		if (projectiles[i].phys.z < 0)
         {
             // hit the ground
-            projectiles[i].z = 0.0f;
-            projectiles[i].z_vel = 0.0f;
+            projectiles[i].phys.z = 0.0f;
+            projectiles[i].phys.z_vel = 0.0f;
             projectiles[i].friction = GROUND_FRICTION;
         }
         else
         {
-            projectiles[i].z_vel -= GRAVITY; // gravity acceleration
+            projectiles[i].phys.z_vel -= GRAVITY; // gravity acceleration
         }
 
-        if(projectiles[i].x_vel != 0.0f || projectiles[i].y_vel != 0.0f)
+        if(projectiles[i].phys.x_vel != 0.0f || projectiles[i].phys.y_vel != 0.0f)
         {
             // friction
-            if(projectiles[i].x_vel < 0) projectiles[i].x_vel += projectiles[i].friction;
-            else projectiles[i].x_vel -= projectiles[i].friction;
+            if(projectiles[i].phys.x_vel < 0) projectiles[i].phys.x_vel += projectiles[i].friction;
+            else projectiles[i].phys.x_vel -= projectiles[i].friction;
 
-            if(projectiles[i].y_vel < 0) projectiles[i].y_vel += projectiles[i].friction;
-            else projectiles[i].y_vel -= projectiles[i].friction;
+            if(projectiles[i].phys.y_vel < 0) projectiles[i].phys.y_vel += projectiles[i].friction;
+            else projectiles[i].phys.y_vel -= projectiles[i].friction;
 
-            if(abs(projectiles[i].x_vel) <= 0.2f) projectiles[i].x_vel = 0.0f;
-            if(abs(projectiles[i].y_vel) <= 0.2f) projectiles[i].y_vel = 0.0f;
+            if(abs(projectiles[i].phys.x_vel) <= 0.2f) projectiles[i].phys.x_vel = 0.0f;
+            if(abs(projectiles[i].phys.y_vel) <= 0.2f) projectiles[i].phys.y_vel = 0.0f;
         }
         
         // check collisions with creatures
@@ -103,18 +103,18 @@ static void update_projectiles()
 		{
 			for(int j = 0; j < num_creatures; ++j)
 			{
-				double distance = get_distance(projectiles[i].x + TILE_WIDTH / 2, projectiles[i].y + TILE_HEIGHT / 2, creatures[j].phys.x + TILE_WIDTH / 2, creatures[j].phys.y + TILE_HEIGHT / 2);
+				double distance = get_distance(projectiles[i].phys.x + TILE_WIDTH / 2, projectiles[i].phys.y + TILE_HEIGHT / 2, creatures[j].phys.x + TILE_WIDTH / 2, creatures[j].phys.y + TILE_HEIGHT / 2);
 				if(distance <= 20)
 				{
 					BoundingBox a,b;
 
-					a.x = projectiles[i].x + TILE_WIDTH/4.0f;
-					a.y = projectiles[i].y + TILE_HEIGHT/4.0f;
-					a.z = projectiles[i].z;
+					a.x = projectiles[i].phys.x + TILE_WIDTH/4.0f;
+					a.y = projectiles[i].phys.y + TILE_HEIGHT/4.0f;
+					a.z = projectiles[i].phys.z;
 
 					a.width = TILE_WIDTH/2.0f;
 					a.length = TILE_HEIGHT/2.0f;
-					a.height = projectiles[i].height;
+					a.height = projectiles[i].phys.height;
 
 					b.x = creatures[j].phys.x;
 					b.y = creatures[j].phys.y;
@@ -129,7 +129,7 @@ static void update_projectiles()
                         int damage = (rand() % (player.weapon.weapon_props.max_damage - player.weapon.weapon_props.min_damage + 1)) + player.weapon.weapon_props.min_damage;
                         
                         // add floating number
-                        spawn_floating_number(projectiles[i].x,projectiles[i].y,damage,6);
+                        spawn_floating_number(projectiles[i].phys.x,projectiles[i].phys.y,damage,6);
                         
                         // creature hurt!
                         creatures[j].phys.hp -= damage;
@@ -158,7 +158,7 @@ static void update_projectiles()
 				}
 			}
 		}
-        if(projectiles[i].shot && projectiles[i].z == 0.0f)
+        if(projectiles[i].shot && projectiles[i].phys.z == 0.0f)
         {
             // projectile on ground, count down to remove
             ++projectiles[i].life_counter;
@@ -177,10 +177,10 @@ static void draw_projectile(int i)
         case ARROW:
             break;
         case FIREBALL:
-            spawn_particle(rand() % (TILE_WIDTH/2) + projectiles[i].x + TILE_WIDTH/4,projectiles[i].y+TILE_HEIGHT/2,rand() % 3 + 1,3,0,6,current_board_index);
-            spawn_particle(rand() % TILE_WIDTH + projectiles[i].x,projectiles[i].y,rand()%2+1,2,0,3, current_board_index);
+            spawn_particle(rand() % (TILE_WIDTH/2) + projectiles[i].phys.x + TILE_WIDTH/4,projectiles[i].phys.y+TILE_HEIGHT/2,rand() % 3 + 1,3,0,6,current_board_index);
+            spawn_particle(rand() % TILE_WIDTH + projectiles[i].phys.x,projectiles[i].phys.y,rand()%2+1,2,0,3, current_board_index);
             break;
     }
-		draw_tile_rotated_shadow(projectiles[i].x - camera.x, projectiles[i].y - camera.y,projectile_tileset_name, projectiles[i].tile_index,projectiles[i].angle,max(0,10 - day_cycle_shade_amount)); // shadow
-        draw_tile_rotated(projectiles[i].x - camera.x, projectiles[i].y - camera.y - projectiles[i].z*0.5f,projectile_tileset_name, projectiles[i].tile_index,projectiles[i].angle,day_cycle_shade_amount);
+		draw_tile_rotated_shadow(projectiles[i].phys.x - camera.x, projectiles[i].phys.y - camera.y,projectile_tileset_name, projectiles[i].tile_index,projectiles[i].angle,max(0,10 - day_cycle_shade_amount)); // shadow
+        draw_tile_rotated(projectiles[i].phys.x - camera.x, projectiles[i].phys.y - camera.y - projectiles[i].phys.z*0.5f,projectile_tileset_name, projectiles[i].tile_index,projectiles[i].angle,day_cycle_shade_amount);
 }

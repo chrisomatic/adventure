@@ -55,8 +55,8 @@ static void sort_entities()
     // items
     for(int i = 0; i < num_items;++i)
     {
-        screen_x = items[i].x - camera.x;
-        screen_y = items[i].y - camera.y;
+		screen_x = items[i].phys.x - camera.x;
+		screen_y = items[i].phys.y - camera.y;
         
         if (screen_x+TILE_WIDTH < 0 || screen_x >= buffer_width)
             continue;
@@ -72,8 +72,8 @@ static void sort_entities()
     // coins
     for(int i = 0; i < num_coins;++i)
     {
-        screen_x = coins[i].x - camera.x;
-        screen_y = coins[i].y - camera.y;
+		screen_x = coins[i].phys.x - camera.x;
+		screen_y = coins[i].phys.y - camera.y;
         
         if (screen_x+TILE_WIDTH < 0 || screen_x >= buffer_width)
             continue;
@@ -106,8 +106,8 @@ static void sort_entities()
     // npcs
     for(int i = 0; i < num_npcs;++i)
     {
-        screen_x = npcs[i].x - camera.x;
-        screen_y = npcs[i].y - camera.y;
+		screen_x = npcs[i].phys.x - camera.x;
+		screen_y = npcs[i].phys.y - camera.y;
         
         if (screen_x+TILE_WIDTH < 0 || screen_x >= buffer_width)
             continue;
@@ -140,8 +140,8 @@ static void sort_entities()
     // projectiles
     for(int i = 0; i < num_projectiles;++i)
     {
-        screen_x = projectiles[i].x - camera.x;
-        screen_y = projectiles[i].y - camera.y;
+		screen_x = projectiles[i].phys.x - camera.x;
+		screen_y = projectiles[i].phys.y - camera.y;
         
         if (screen_x+TILE_WIDTH < 0 || screen_x >= buffer_width)
             continue;

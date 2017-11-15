@@ -9,13 +9,7 @@ typedef struct
     char* tileset_name;
     int tile_index;
     int xp;
-    int hp;
-    int max_hp;
-    float x;
-    float y;
-    int x_vel;
-    int y_vel;
-    float speed;
+    PhysicalProperties phys;
     float distance_from_player;
     int action_counter;
     int action_counter_max;
@@ -47,10 +41,10 @@ static BOOL get_npc_by_name(const char* name,NPC* npc)
         if(strcmp(npc_list[i].name, name) == 0)
         {
             npc->name = npc_list[i].name;
-            npc->x = npc_list[i].x;
-            npc->y = npc_list[i].y;
-            npc->hp = npc_list[i].hp;
-            npc->max_hp = npc_list[i].max_hp;
+            npc->phys.x = npc_list[i].phys.x;
+            npc->phys.y = npc_list[i].phys.y;
+            npc->phys.hp = npc_list[i].phys.hp;
+            npc->phys.max_hp = npc_list[i].phys.max_hp;
             npc->xp = npc_list[i].xp;
 			npc->num_dialogue = npc_list[i].num_dialogue;
 			npc->dialogue[0] = npc_list[i].dialogue[0];
@@ -80,11 +74,12 @@ static BOOL spawn_npc(const char* npc_name)
     if(!get_npc_by_name(npc_name,&npc))
         return FALSE;
 
-    npcs[num_npcs].x = npc.x; 
-    npcs[num_npcs].y = npc.y;
-    npcs[num_npcs].x_vel = 0;
-    npcs[num_npcs].y_vel = 0;
-    npcs[num_npcs].speed = 0.5f;
+    npcs[num_npcs].phys.x = npc.phys.x; 
+    npcs[num_npcs].phys.y = npc.phys.y;
+    npcs[num_npcs].phys.x_vel = 0;
+    npcs[num_npcs].phys.y_vel = 0;
+    npcs[num_npcs].phys.base_speed = 0.5f;
+    npcs[num_npcs].phys.speed = 0.5f;
     npcs[num_npcs].dir = DIR_DOWN;
     npcs[num_npcs].state = CREATURE_STATE_NEUTRAL;
     npcs[num_npcs].talking = FALSE;
@@ -105,8 +100,8 @@ static BOOL spawn_npc(const char* npc_name)
 	npcs[num_npcs].dialogue[9] = npc.dialogue[4];
     npcs[num_npcs].tile_index = npc.tile_index;
     npcs[num_npcs].tileset_name = npc.tileset_name;
-    npcs[num_npcs].hp = npc.hp; 
-    npcs[num_npcs].max_hp = npc.max_hp; 
+    npcs[num_npcs].phys.hp = npc.phys.hp; 
+    npcs[num_npcs].phys.max_hp = npc.phys.max_hp; 
     npcs[num_npcs].xp = npc.xp;
     npcs[num_npcs].talk_radius = 20;
     npcs[num_npcs].distance_from_player = -1.0f;
@@ -161,8 +156,8 @@ static void update_npcs()
         if(npcs[i].talking)
         {
             // update direction to face player
-            float diff_x = player.phys.x - npcs[i].x;
-            float diff_y = player.phys.y - npcs[i].y;
+            float diff_x = player.phys.x - npcs[i].phys.x;
+            float diff_y = player.phys.y - npcs[i].phys.y;
 
             if(diff_x <0)
             {
@@ -215,50 +210,50 @@ static void update_npcs()
                     case 1: 
                         npcs[i].state = CREATURE_STATE_ACTING;
                         npcs[i].dir = DIR_UP;
-                        npcs[i].x_vel = +0;
-                        npcs[i].y_vel = -1;
+                        npcs[i].phys.x_vel = +0;
+                        npcs[i].phys.y_vel = -1;
                         break;
                     case 2: 
                         npcs[i].state = CREATURE_STATE_ACTING;
                         npcs[i].dir = DIR_DOWN;
-                        npcs[i].x_vel = +0;
-                        npcs[i].y_vel = +1;
+                        npcs[i].phys.x_vel = +0;
+                        npcs[i].phys.y_vel = +1;
                         break;
                     case 3: 
                         npcs[i].state = CREATURE_STATE_ACTING;
                         npcs[i].dir = DIR_LEFT;
-                        npcs[i].x_vel = -1;
-                        npcs[i].y_vel = +0;
+                        npcs[i].phys.x_vel = -1;
+                        npcs[i].phys.y_vel = +0;
                         break;
                     case 4: 
                         npcs[i].state = CREATURE_STATE_ACTING;
                         npcs[i].dir = DIR_RIGHT;
-                        npcs[i].x_vel = +1;
-                        npcs[i].y_vel = +0;
+                        npcs[i].phys.x_vel = +1;
+                        npcs[i].phys.y_vel = +0;
                         break;
                     case 5: 
                         npcs[i].state = CREATURE_STATE_ACTING;
                         npcs[i].dir = DIR_UP;
-                        npcs[i].x_vel = -1;
-                        npcs[i].y_vel = -1;
+                        npcs[i].phys.x_vel = -1;
+                        npcs[i].phys.y_vel = -1;
                         break;
                     case 6: 
                         npcs[i].state = CREATURE_STATE_ACTING;
                         npcs[i].dir = DIR_UP;
-                        npcs[i].x_vel = +1;
-                        npcs[i].y_vel = -1;
+                        npcs[i].phys.x_vel = +1;
+                        npcs[i].phys.y_vel = -1;
                         break;
                     case 7: 
                         npcs[i].state = CREATURE_STATE_ACTING;
                         npcs[i].dir = DIR_DOWN;
-                        npcs[i].x_vel = -1;
-                        npcs[i].y_vel = +1;
+                        npcs[i].phys.x_vel = -1;
+                        npcs[i].phys.y_vel = +1;
                         break;
                     case 8: 
                         npcs[i].state = CREATURE_STATE_ACTING;
                         npcs[i].dir = DIR_DOWN;
-                        npcs[i].x_vel = +1;
-                        npcs[i].y_vel = +1;
+                        npcs[i].phys.x_vel = +1;
+                        npcs[i].phys.y_vel = +1;
                         break;
                 }
             }
@@ -270,75 +265,21 @@ static void update_npcs()
         {
             case CREATURE_STATE_ACTING:
 
-                npcs[i].x += npcs[i].x_vel*npcs[i].speed;
-                npcs[i].y += npcs[i].y_vel*npcs[i].speed;
+                npcs[i].phys.x += npcs[i].phys.x_vel*npcs[i].phys.speed;
+                npcs[i].phys.y += npcs[i].phys.y_vel*npcs[i].phys.speed;
                         
-                // handle npcs[i] collision
-                // terrain collision
-                //
-                // 1            2
-                //  x----------x
-                //  |          |
-                //  |          |
-                //  x----------x
-                // 3            4
-                //
+                handle_terrain_collision(npcs[i].board_index, &npcs[i].phys);
 
-                int npc_check_x1 = (npcs[i].x + TILE_WIDTH/4) / TILE_WIDTH;
-                int npc_check_y1 = (npcs[i].y + TILE_HEIGHT/2) / TILE_HEIGHT;
-
-                int npc_check_x2 = (npcs[i].x + 3*TILE_WIDTH/4) / TILE_WIDTH;
-                int npc_check_y2 = (npcs[i].y + TILE_HEIGHT/2) / TILE_HEIGHT;
-
-                int npc_check_x3 = (npcs[i].x + TILE_WIDTH/4) / TILE_WIDTH;
-                int npc_check_y3 = (npcs[i].y + TILE_HEIGHT) / TILE_HEIGHT;
-
-                int npc_check_x4 = (npcs[i].x + 3*TILE_WIDTH/4) / TILE_WIDTH;
-                int npc_check_y4 = (npcs[i].y + TILE_HEIGHT) / TILE_HEIGHT;
-
-                int collision_value_1 = board_list[npcs[i].board_index].collision[npc_check_x1][npc_check_y1];
-                int collision_value_2 = board_list[npcs[i].board_index].collision[npc_check_x2][npc_check_y2];
-                int collision_value_3 = board_list[npcs[i].board_index].collision[npc_check_x3][npc_check_y3];
-                int collision_value_4 = board_list[npcs[i].board_index].collision[npc_check_x4][npc_check_y4];
-
-                if(collision_value_1 == 5 || collision_value_2 == 5 || collision_value_3 == 5 || collision_value_4 == 5)
-                {
-                    BOOL correct_x = FALSE;
-                    BOOL correct_y = FALSE;
-
-                    if((collision_value_1 == 5 && collision_value_3 == 5) || (collision_value_2 == 5 && collision_value_4 == 5))
-                    {
-                        //correct collision x
-                        npcs[i].x -= npcs[i].x_vel*npcs[i].speed;
-                        correct_x = TRUE;
-                    }
-                    if((collision_value_1 == 5 && collision_value_2 == 5) || (collision_value_3 == 5 && collision_value_4 == 5))
-                    {
-                        //correct collision y
-                        npcs[i].y -= npcs[i].y_vel*npcs[i].speed;
-                        correct_y = TRUE;
-                    }
-                            
-                    if(!correct_x && !correct_y)
-                    {
-                        if(collision_value_1 == 5 || collision_value_3 == 5)
-                            npcs[i].x += 1.0f*npcs[i].speed;
-                                
-                        if(collision_value_2 == 5 || collision_value_4 == 5)
-                            npcs[i].x -= 1.0f*npcs[i].speed;
-                    }
-                }
-
-                if(npcs[i].x < 0) npcs[i].x = 0;
-                if(npcs[i].y < 0) npcs[i].y = 0;
-                if(npcs[i].x >TILE_WIDTH*(BOARD_TILE_WIDTH-1)) npcs[i].x = TILE_WIDTH*(BOARD_TILE_WIDTH-1);
-                if(npcs[i].y >TILE_HEIGHT*(BOARD_TILE_HEIGHT-1)) npcs[i].y = TILE_HEIGHT*(BOARD_TILE_HEIGHT-1);
+                if(npcs[i].phys.x < 0) npcs[i].phys.x = 0;
+                if(npcs[i].phys.y < 0) npcs[i].phys.y = 0;
+                if(npcs[i].phys.x >TILE_WIDTH*(BOARD_TILE_WIDTH-1)) npcs[i].phys.x = TILE_WIDTH*(BOARD_TILE_WIDTH-1);
+                if(npcs[i].phys.y >TILE_HEIGHT*(BOARD_TILE_HEIGHT-1)) npcs[i].phys.y = TILE_HEIGHT*(BOARD_TILE_HEIGHT-1);
 
                 break;
         }
                 
         // handle npc animation
-        if(npcs[i].x_vel != 0 || npcs[i].y_vel != 0)
+        if(npcs[i].phys.x_vel != 0 || npcs[i].phys.y_vel != 0)
         {
             npcs[i].anim.counter++;
 
@@ -365,12 +306,12 @@ static void update_npcs()
         {
             npcs[i].action_duration_counter = 0;
             npcs[i].state = CREATURE_STATE_NEUTRAL; // return to neutral state
-            npcs[i].x_vel = +0;
-            npcs[i].y_vel = +0;
+            npcs[i].phys.x_vel = +0;
+            npcs[i].phys.y_vel = +0;
         }
 
         // check if player is near
-        float distance = get_distance(player.phys.x,player.phys.y,npcs[i].x,npcs[i].y);
+        float distance = get_distance(player.phys.x,player.phys.y,npcs[i].phys.x,npcs[i].phys.y);
 
         if(distance <= npcs[i].talk_radius)
         {
@@ -385,8 +326,8 @@ static void update_npcs()
             npcs[i].talking = TRUE;
             npcs[i].distance_from_player = distance;
             npcs[i].state = CREATURE_STATE_NEUTRAL; // return to neutral state
-            npcs[i].x_vel = +0;
-            npcs[i].y_vel = +0;
+            npcs[i].phys.x_vel = +0;
+            npcs[i].phys.y_vel = +0;
         }
         else
         {
@@ -425,8 +366,8 @@ static void draw_npc(int i)
     if(npcs[i].board_index != current_board_index)
         return;
 
-    int npc_x = npcs[i].x - camera.x;
-    int npc_y = npcs[i].y - camera.y;
+    int npc_x = npcs[i].phys.x - camera.x;
+    int npc_y = npcs[i].phys.y - camera.y;
 
-    draw_tile(npcs[i].x - camera.x, npcs[i].y - camera.y, npcs[i].tileset_name,npcs[i].tile_index + npcs[i].dir + npcs[i].anim.frame_order[npcs[i].anim.frame],day_cycle_shade_amount);
+    draw_tile(npc_x, npc_y, npcs[i].tileset_name,npcs[i].tile_index + npcs[i].dir + npcs[i].anim.frame_order[npcs[i].anim.frame],day_cycle_shade_amount);
 }

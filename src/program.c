@@ -39,6 +39,8 @@ int window_height;
 int counter_for_seconds = 0;
 int counter_for_minutes = 0;
 
+int current_fps = 0;
+
 const int BYTES_PER_PIXEL = 1;
 
 static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam);
@@ -122,9 +124,10 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
         
         timer_tick();
 
-		if (timer_ready())
+		if (timer_ready(&current_fps))
 		{
             // @TEMP
+            
             ++counter_for_seconds;
             if(counter_for_seconds == TARGET_FPS)
             {
@@ -149,6 +152,7 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
                 fclose(fp_rats);
             }
             //
+            
             update_scene();
             draw_scene();
         }
@@ -288,6 +292,9 @@ static void draw_scene()
     draw_string_with_shadow("Num Rats:",0,7,1.0f,7);
     draw_number_string_with_shadow(num_creatures,55,7,1.0f,9);
     
+    // @TEMP: fps
+    draw_number_string_with_shadow(current_fps,buffer_width - 12,7,1.0f,14);
+
     // Blit buffer to screen
     StretchDIBits(dc, 0, 0, window_width, window_height, 0, 0, buffer_width, buffer_height, back_buffer, (BITMAPINFO*)&bmi, DIB_RGB_COLORS, SRCCOPY);
 }

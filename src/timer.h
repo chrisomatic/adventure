@@ -42,10 +42,13 @@ static void timer_tick()
     t0 = t1;
 }
 
-static BOOL timer_ready()
+static BOOL timer_ready(int* frames_per_second)
 {
     if(accum_time >= target_spf)
     {
+        // just for reporting fps back
+        *frames_per_second = ceil(1.0f / accum_time);
+
         while(accum_time >= target_spf)
             accum_time -= target_spf;
 

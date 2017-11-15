@@ -74,15 +74,26 @@ typedef struct
 
 typedef struct
 {
-    char* name;
-    int board_index;
-    char* description;
     float x;
     float y;
     float z;
     float x_vel;
     float y_vel;
     float z_vel;
+    float base_speed;
+    float speed;
+    float height;
+    int environmental_hurt_counter;
+    int environmental_hurt_max;
+    int hp;
+    int max_hp;
+} PhysicalProperties;
+
+typedef struct
+{
+    char* name;
+    int board_index;
+    char* description;
     float friction;
     char* tileset_name;
     int  tile_index;
@@ -92,6 +103,7 @@ typedef struct
     ItemType type;
     WeaponProperties weapon_props;
     ArmorProperties  armor_props;
+    PhysicalProperties phys;
 } Item;
 
 typedef enum
@@ -129,23 +141,6 @@ typedef enum
 	PLAYER_STATE_NOTCHED  = 16,
 	PLAYER_STATE_DEAD   = 32 
 } PlayerState;
-
-typedef struct
-{
-    float x;
-    float y;
-    float z;
-    float x_vel;
-    float y_vel;
-    float z_vel;
-    float base_speed;
-    float speed;
-    float height;
-    int environmental_hurt_counter;
-    int environmental_hurt_max;
-    int hp;
-    int max_hp;
-} PhysicalProperties;
 
 typedef struct
 {

@@ -366,10 +366,10 @@ static void update_player()
                     break;
             }
 
-            projectiles[player.notch_index].x = player.phys.x + offset_x;
-            projectiles[player.notch_index].y = player.phys.y + offset_y;
-            projectiles[player.notch_index].z = player.phys.z + offset_z;
-            projectiles[player.notch_index].z_vel = 0.0f;
+			projectiles[player.notch_index].phys.x = player.phys.x + offset_x;
+			projectiles[player.notch_index].phys.y = player.phys.y + offset_y;
+			projectiles[player.notch_index].phys.z = player.phys.z + offset_z;
+			projectiles[player.notch_index].phys.z_vel = 0.0f;
             projectiles[player.notch_index].angle = player.attack_angle;
         }
         else
@@ -424,9 +424,9 @@ static void update_player()
 			{
                 projectiles[player.notch_index].shot = TRUE;
 
-				projectiles[player.notch_index].x_vel += ((shoot_x_vel*player.weapon.weapon_props.attack_range) + player.phys.x_vel*player.phys.speed);
-				projectiles[player.notch_index].y_vel += ((shoot_y_vel*player.weapon.weapon_props.attack_range) + player.phys.y_vel*player.phys.speed);
-				projectiles[player.notch_index].z_vel += (shoot_z_vel + player.phys.z_vel);
+				projectiles[player.notch_index].phys.x_vel += ((shoot_x_vel*player.weapon.weapon_props.attack_range) + player.phys.x_vel*player.phys.speed);
+				projectiles[player.notch_index].phys.y_vel += ((shoot_y_vel*player.weapon.weapon_props.attack_range) + player.phys.y_vel*player.phys.speed);
+				projectiles[player.notch_index].phys.z_vel += (shoot_z_vel + player.phys.z_vel);
 
 				player.notch_index = -1;
 			}
@@ -439,8 +439,8 @@ static void update_player()
         if(coins[i].board_index != current_board_index)
             continue;
 
-        int coin_x = coins[i].x + TILE_WIDTH/2 -2;
-        int coin_y = coins[i].y + TILE_HEIGHT/2 -2;
+		int coin_x = coins[i].phys.x + TILE_WIDTH / 2 - 2;
+		int coin_y = coins[i].phys.y + TILE_HEIGHT / 2 - 2;
 
         // only consider coins on screen
         if(coin_x - camera.x >= 0 && coin_x - camera.x <= buffer_width)
@@ -471,7 +471,7 @@ static void update_player()
                                 break;
                         }
                         player.gold += amount;
-                        spawn_floating_string(coins[i].x,coins[i].y,"$",color);
+						spawn_floating_string(coins[i].phys.x, coins[i].phys.y, "$", color);
 						remove_coin(i);
                     }
                 }
@@ -536,7 +536,7 @@ static void update_player()
         if(items[i].board_index != current_board_index)
             continue;
 
-        distance = get_distance(player.phys.x + TILE_WIDTH/2,player.phys.y + TILE_HEIGHT,items[i].x + TILE_WIDTH/2,items[i].y + TILE_HEIGHT/2);
+		distance = get_distance(player.phys.x + TILE_WIDTH / 2, player.phys.y + TILE_HEIGHT, items[i].phys.x + TILE_WIDTH / 2, items[i].phys.y + TILE_HEIGHT / 2);
 
         if(distance <= 14)
         {
@@ -609,12 +609,12 @@ static void update_player()
                     break;
             }
 
-            items[player.item_held_index].x += item_x_offset;
-            items[player.item_held_index].y += item_y_offset;
+            items[player.item_held_index].phys.x += item_x_offset;
+			items[player.item_held_index].phys.y += item_y_offset;
             items[player.item_held_index].friction = AIR_RESISTANCE;
-            items[player.item_held_index].x_vel = player.phys.x_vel*player.phys.speed + item_x_vel;
-            items[player.item_held_index].y_vel = player.phys.y_vel*player.phys.speed + item_y_vel;
-            items[player.item_held_index].z_vel = 2.0f;
+			items[player.item_held_index].phys.x_vel = player.phys.x_vel*player.phys.speed + item_x_vel;
+			items[player.item_held_index].phys.y_vel = player.phys.y_vel*player.phys.speed + item_y_vel;
+			items[player.item_held_index].phys.z_vel = 2.0f;
 
             player.item_held_index = -1;
         }

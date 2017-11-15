@@ -139,10 +139,10 @@ static void load_assets(ASSET_TYPE type)
 
                     case ASSET_TYPE_NPC:
 						if (strcmp(key, "name") == 0) npc_list[asset_counter].name = _strdup(value);
-                        else if (strcmp(key, "x") == 0) npc_list[asset_counter].x = atof(value);
-                        else if (strcmp(key, "y") == 0) npc_list[asset_counter].y = atof(value);
-                        else if (strcmp(key, "hp") == 0) C_atoi(value, &npc_list[asset_counter].hp);
-                        else if (strcmp(key, "max_hp") == 0) C_atoi(value, &npc_list[asset_counter].max_hp);
+						else if (strcmp(key, "x") == 0) npc_list[asset_counter].phys.x = atof(value);
+						else if (strcmp(key, "y") == 0) npc_list[asset_counter].phys.y = atof(value);
+                        else if (strcmp(key, "hp") == 0) C_atoi(value, &npc_list[asset_counter].phys.hp);
+						else if (strcmp(key, "max_hp") == 0) C_atoi(value, &npc_list[asset_counter].phys.max_hp);
                         else if (strcmp(key, "xp") == 0) C_atoi(value, &npc_list[asset_counter].xp);
                         else if (strcmp(key, "num_dialogue") == 0) C_atoi(value, &npc_list[asset_counter].num_dialogue);
 						else if (strcmp(key, "dialogue0") == 0) npc_list[asset_counter].dialogue[0] = _strdup(value);

@@ -262,7 +262,7 @@ static void init_creatures()
 {
     num_creatures = 0;
 
-    for (int i = 0; i < 150; ++i)
+    for (int i = 0; i < 15000; ++i)
     {
         int creature_x, creature_y;
         int test_collision_1, test_collision_2, test_collision_3, test_collision_4;
@@ -416,7 +416,6 @@ static void update_creatures()
             // if creature is performing an action, let it play out
             if(creatures[i].state == CREATURE_STATE_ACTING)
             {
-
                 creatures[i].action_duration_counter++;
 
                 if(creatures[i].action_duration_counter >= creatures[i].action_duration_counter_max)
@@ -437,109 +436,7 @@ static void update_creatures()
 
                 if(creatures[i].phys.x_vel != 0 || creatures[i].phys.y_vel != 0)
                 {
-                    // resolve collisions
-                    //
-                    // 1            2
-                    //  x----------x
-                    //  |          |
-                    //  |          |
-                    //  x----------x
-                    // 3            4
-                    //
-
-                    // handle terrain collisions
-                    int creature_check_x1 = (creatures[i].phys.x + TILE_WIDTH/4) / TILE_WIDTH;
-                    int creature_check_y1 = (creatures[i].phys.y + TILE_HEIGHT/2) / TILE_HEIGHT;
-
-                    int creature_check_x2 = (creatures[i].phys.x + 3*TILE_WIDTH/4) / TILE_WIDTH;
-                    int creature_check_y2 = (creatures[i].phys.y + TILE_HEIGHT/2) / TILE_HEIGHT;
-
-                    int creature_check_x3 = (creatures[i].phys.x + TILE_WIDTH/4) / TILE_WIDTH;
-                    int creature_check_y3 = (creatures[i].phys.y + TILE_HEIGHT) / TILE_HEIGHT;
-
-                    int creature_check_x4 = (creatures[i].phys.x + 3*TILE_WIDTH/4) / TILE_WIDTH;
-                    int creature_check_y4 = (creatures[i].phys.y + TILE_HEIGHT) / TILE_HEIGHT;
-
-                    int collision_value_1 = board_list[creatures[i].board_index].collision[creature_check_x1][creature_check_y1];
-                    int collision_value_2 = board_list[creatures[i].board_index].collision[creature_check_x2][creature_check_y2];
-                    int collision_value_3 = board_list[creatures[i].board_index].collision[creature_check_x3][creature_check_y3];
-                    int collision_value_4 = board_list[creatures[i].board_index].collision[creature_check_x4][creature_check_y4];
-
-                    if(collision_value_1 == 5 || collision_value_2 == 5 || collision_value_3 == 5 || collision_value_4 == 5)
-                    {
-                        BOOL correct_x = FALSE;
-                        BOOL correct_y = FALSE;
-
-                        if((collision_value_1 == 5 && collision_value_3 == 5) || (collision_value_2 == 5 && collision_value_4 == 5))
-                        {
-                            //correct collision x
-                            creatures[i].phys.x -= creatures[i].phys.x_vel*creatures[i].phys.speed;
-                            correct_x = TRUE;
-                        }
-                        if((collision_value_1 == 5 && collision_value_2 == 5) || (collision_value_3 == 5 && collision_value_4 == 5))
-                        {
-                            //correct collision y
-                            creatures[i].phys.y -= creatures[i].phys.y_vel*creatures[i].phys.speed;
-                            correct_y = TRUE;
-                        }
-                        
-                        if(!correct_x && !correct_y)
-                        {
-                            if(collision_value_1 == 5 || collision_value_3 == 5)
-                                creatures[i].phys.x += 1.0f*creatures[i].phys.speed;
-                            
-                            if(collision_value_2 == 5 || collision_value_4 == 5)
-                                creatures[i].phys.x -= 1.0f*creatures[i].phys.speed;
-                        }
-                    }
-                    else if(collision_value_1 == 3 || collision_value_2 == 3 || collision_value_3 == 3 || collision_value_4 == 3)
-                    {
-                        // handle creature in mud
-                        if(creatures[i].phys.x_vel != 0 || creatures[i].phys.y_vel != 0)
-                        {
-                            spawn_particle(rand() % TILE_WIDTH + creatures[i].phys.x,creatures[i].phys.y+TILE_HEIGHT,2,1,0,4,creatures[i].board_index);
-                        }
-
-                        creatures[i].phys.speed = creatures[i].phys.base_speed/2.0f;
-                    }
-                    
-                    else if(collision_value_1 == 4 || collision_value_2 == 4 || collision_value_3 == 4 || collision_value_4 == 4)
-                    {
-                        // handle creature in water
-                        if(creatures[i].phys.x_vel != 0 || creatures[i].phys.y_vel != 0)
-                        {
-                            spawn_particle(rand() % TILE_WIDTH + creatures[i].phys.x,creatures[i].phys.y+TILE_HEIGHT,2,2,0,8,creatures[i].board_index);
-                        }
-
-                        creatures[i].phys.speed = creatures[i].phys.base_speed/3.0f;
-                    }
-                    else if(collision_value_1 == 6 || collision_value_2 == 6 || collision_value_3 == 6 || collision_value_4 == 6)
-                    {
-                        // handle creature in lava
-                        if(creatures[i].phys.x_vel != 0 || creatures[i].phys.y_vel != 0)
-                        {
-                            spawn_particle(rand() % TILE_WIDTH + creatures[i].phys.x,creatures[i].phys.y+TILE_HEIGHT,2,2,0,6,creatures[i].board_index);
-                        }
-
-                        creatures[i].phys.environmental_hurt_counter++;
-                        if(creatures[i].phys.environmental_hurt_counter >= creatures[i].phys.environmental_hurt_max)
-                        {
-                            creatures[i].phys.environmental_hurt_counter = 0;
-                            creatures[i].phys.hp--;
-                            if(creatures[i].phys.hp <= 0)
-                            {
-                                creature_death(i);
-                            }
-
-                            spawn_floating_number(creatures[i].phys.x+TILE_WIDTH/2,creatures[i].phys.y,1,6);
-                        }
-
-                        creatures[i].phys.speed = creatures[i].phys.base_speed/3.0f;
-                    }
-                    else
-                    {
-                        creatures[i].phys.speed = creatures[i].phys.base_speed;
-                    }
+                    handle_terrain_collision(creatures[i].board_index, &creatures[i].phys);
 
                     // keep creature in board boundaries
                     if(creatures[i].phys.x < 0) creatures[i].phys.x = 0;
@@ -870,7 +767,7 @@ static void update_creatures()
                 
                 // handle death
                 ++creatures[i].death_check_counter;
-                if(creatures[i].death_check_counter >= DAY_CYCLE_COUNTER_MAX)
+                if(creatures[i].death_check_counter >= SECONDS_PER_DAY)
                 {
                     // one day since last death check.
                     creatures[i].death_check_counter = 0;
