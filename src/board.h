@@ -93,6 +93,7 @@ typedef struct
 {
     char* name;
     int board_index;
+    char* board_name;
     char* description;
     float friction;
     char* tileset_name;
@@ -168,6 +169,8 @@ typedef struct
     BOOL shoot;
     int item_held_index;
     int notch_index;
+    int hurt_counter;
+    int hurt_counter_max;
     Item weapon;
     Item armor_head;
     Item armor_body;

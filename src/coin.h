@@ -12,6 +12,7 @@ typedef enum
 typedef struct
 {
     float friction;
+    char* board_name;
     int board_index;
     CoinType type;
     Animation anim;
@@ -90,6 +91,59 @@ static void update_coins()
 
             if(abs(coins[i].phys.x_vel) <= 0.1f) coins[i].phys.x_vel = 0.0f;
             if(abs(coins[i].phys.y_vel) <= 0.1f) coins[i].phys.y_vel = 0.0f;
+
+            if(coins[i].phys.x < 0)
+            {
+                int board_index = get_name_of_board_location(board_list[current_board_index].map_x_index -1, board_list[current_board_index].map_y_index,coins[i].board_name);
+
+                if(board_index < 0)
+                    coins[i].phys.x = 0;    
+                else
+                {
+                    // go to board
+                    coins[i].phys.x = (BOARD_TILE_HEIGHT - 1)*TILE_HEIGHT;
+                    coins[i].board_index = board_index;
+                }
+            }
+            else if(coins[i].phys.y < 0)
+            {
+                int board_index = get_name_of_board_location(board_list[current_board_index].map_x_index, board_list[current_board_index].map_y_index - 1,coins[i].board_name);
+
+                if(board_index < 0)
+                    coins[i].phys.y = 0;
+                else
+                {
+                    // go to board
+                    coins[i].phys.y = (BOARD_TILE_HEIGHT-1)*TILE_HEIGHT;
+                    coins[i].board_index = board_index;
+                }
+            }
+            else if(coins[i].phys.x > TILE_WIDTH*(BOARD_TILE_WIDTH - 1))
+            {
+                int board_index = get_name_of_board_location(board_list[current_board_index].map_x_index + 1, board_list[current_board_index].map_y_index,coins[i].board_name);
+
+                if(board_index < 0)
+                    coins[i].phys.x = TILE_WIDTH*(BOARD_TILE_WIDTH - 1); 
+                else
+                {
+                    // go to board
+                    coins[i].phys.x = 0;
+                    coins[i].board_index = board_index;
+                }
+            }
+            else if(coins[i].phys.y > TILE_HEIGHT*(BOARD_TILE_HEIGHT - 1))
+            {
+                int board_index = get_name_of_board_location(board_list[current_board_index].map_x_index, board_list[current_board_index].map_y_index + 1,coins[i].board_name);
+
+                if(board_index < 0)
+                    coins[i].phys.y = TILE_HEIGHT*(BOARD_TILE_HEIGHT - 1);
+                else
+                {
+                    // go to board
+                    coins[i].phys.y = 0;
+                    coins[i].board_index = board_index;
+                }
+            }
         }
 
         // update coin animation

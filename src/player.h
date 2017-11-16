@@ -31,6 +31,8 @@ static void init_player()
     player.notch = FALSE;
     player.shoot = FALSE;
     player.notch_index = -1;
+    player.hurt_counter = 0;
+    player.hurt_counter_max = 10;
     player.phys.environmental_hurt_counter = 60;
     player.phys.environmental_hurt_max = 60;
     player.bounce_counter = 0;
@@ -49,7 +51,24 @@ static void init_player()
     player.attack_angle = 0.0f;
     player.attack_frame_counter = 0;
     get_item_by_name("Sword",&player.weapon);
-    //get_item_by_name("Cloak",&player.armor_head);
+}
+
+static void player_die()
+{
+    // drop all player gold
+    int gold_coins = player.gold / 100; player.gold -= (gold_coins*100);
+    int silver_coins = player.gold / 10; player.gold -= (silver_coins*10);
+    int bronze_coins = player.gold / 1; player.gold -= bronze_coins;
+
+    for(int c = 0; c < bronze_coins; ++c)
+        spawn_coin(player.phys.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),player.phys.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)),2,0,0,3.0f, COIN_BRONZE,current_board_index);
+    for(int c = 0; c < silver_coins; ++c)
+        spawn_coin(player.phys.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),player.phys.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)),2,0,0,2.5f, COIN_SILVER, current_board_index);
+    for(int c = 0; c < gold_coins; ++c)
+        spawn_coin(player.phys.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),player.phys.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)),2,0,0,2.0f, COIN_GOLD, current_board_index);
+
+    player.state = PLAYER_STATE_DEAD;
+
 }
 
 static void update_player()
@@ -57,25 +76,23 @@ static void update_player()
     // check if died
     if(player.phys.hp <= 0)
     {
-        // drop all player gold
-        int gold_coins = player.gold / 100; player.gold -= (gold_coins*100);
-        int silver_coins = player.gold / 10; player.gold -= (silver_coins*10);
-        int bronze_coins = player.gold / 1; player.gold -= bronze_coins;
-
-        for(int c = 0; c < bronze_coins; ++c)
-            spawn_coin(player.phys.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),player.phys.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)),2,0,0,3.0f, COIN_BRONZE,current_board_index);
-        for(int c = 0; c < silver_coins; ++c)
-            spawn_coin(player.phys.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),player.phys.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)),2,0,0,2.5f, COIN_SILVER, current_board_index);
-        for(int c = 0; c < gold_coins; ++c)
-            spawn_coin(player.phys.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),player.phys.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)),2,0,0,2.0f, COIN_GOLD, current_board_index);
-
-        player.state = PLAYER_STATE_DEAD;
+        player_die();
     }
 
     if(player.state == PLAYER_STATE_DEAD)
     {
         // TODO
         return;
+    }
+    
+    if((player.state & PLAYER_STATE_HURT) == PLAYER_STATE_HURT)
+    {
+        ++player.hurt_counter;
+        if(player.hurt_counter == player.hurt_counter_max)
+        {
+            player.hurt_counter = 0;
+            player.state ^= PLAYER_STATE_HURT;
+        }
     }
     
     // update player movement
@@ -739,7 +756,16 @@ static void draw_player_and_armor()
 {
     // player
     draw_tile_shadow(player.phys.x - camera.x,player.phys.y - camera.y,player.tileset_name,player.tile_index + player.dir+player.anim.frame_order[player.anim.frame],max(10-day_cycle_shade_amount,0));
-    draw_tile(player.phys.x - camera.x,player.phys.y - camera.y - 0.5*player.phys.z,player.tileset_name,player.tile_index + player.dir+player.anim.frame_order[player.anim.frame],day_cycle_shade_amount);
+    if((player.state & PLAYER_STATE_HURT) == PLAYER_STATE_HURT)
+    {
+        draw_tile_tinted(player.phys.x - camera.x,player.phys.y - camera.y - 0.5*player.phys.z,player.tileset_name,player.tile_index + player.dir+player.anim.frame_order[player.anim.frame],6);
+
+    }
+    else
+    {
+        draw_tile(player.phys.x - camera.x,player.phys.y - camera.y - 0.5*player.phys.z,player.tileset_name,player.tile_index + player.dir+player.anim.frame_order[player.anim.frame],day_cycle_shade_amount);
+
+    }
 
     // armor ...
     

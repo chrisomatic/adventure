@@ -1,0 +1,13 @@
+name: "Mana Vial"
+
+description: "Heals you 1 mana!"
+
+value: 2
+
+tileset_name: items
+
+tile_index: 17
+
+consummable: 1 #TRUE
+
+type: 2 #Mana

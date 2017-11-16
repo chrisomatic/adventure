@@ -152,6 +152,11 @@ static void update_projectiles()
                         else
                         {
                             creatures[j].state = CREATURE_STATE_STUNNED;
+
+                            if(creatures[j].behavior == CREATURE_BEHAVIOR_PASSIVE)
+                            {
+                                creatures[j].behavior = CREATURE_BEHAVIOR_AGGRESSIVE;
+                            }
                         }
 						remove_projectile(i);
 					}

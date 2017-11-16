@@ -149,6 +149,8 @@ static void update_items()
 			items[i].phys.x = player.phys.x + item_offset_x;
 			items[i].phys.y = player.phys.y + item_offset_y;
 			items[i].phys.z = player.phys.z + 5;
+
+            items[i].board_index = current_board_index;
         }
         else
         {
@@ -180,6 +182,60 @@ static void update_items()
 
                 if(abs(items[i].phys.x_vel) <= 0.2f) items[i].phys.x_vel = 0.0f;
                 if(abs(items[i].phys.y_vel) <= 0.2f) items[i].phys.y_vel = 0.0f;
+                
+                // check board boundaries
+                if(items[i].phys.x < 0)
+                {
+                    int board_index = get_name_of_board_location(board_list[current_board_index].map_x_index -1, board_list[current_board_index].map_y_index,items[i].board_name);
+
+                    if(board_index < 0)
+                        items[i].phys.x = 0;    
+                    else
+                    {
+                        // go to board
+                        items[i].phys.x = (BOARD_TILE_HEIGHT - 1)*TILE_HEIGHT;
+                        items[i].board_index = board_index;
+                    }
+                }
+                else if(items[i].phys.y < 0)
+                {
+                    int board_index = get_name_of_board_location(board_list[current_board_index].map_x_index, board_list[current_board_index].map_y_index - 1,items[i].board_name);
+
+                    if(board_index < 0)
+                        items[i].phys.y = 0;
+                    else
+                    {
+                        // go to board
+                        items[i].phys.y = (BOARD_TILE_HEIGHT-1)*TILE_HEIGHT;
+                        items[i].board_index = board_index;
+                    }
+                }
+                else if(items[i].phys.x > TILE_WIDTH*(BOARD_TILE_WIDTH - 1))
+                {
+                    int board_index = get_name_of_board_location(board_list[current_board_index].map_x_index + 1, board_list[current_board_index].map_y_index,items[i].board_name);
+
+                    if(board_index < 0)
+                        items[i].phys.x = TILE_WIDTH*(BOARD_TILE_WIDTH - 1); 
+                    else
+                    {
+                        // go to board
+                        items[i].phys.x = 0;
+                        items[i].board_index = board_index;
+                    }
+                }
+                else if(items[i].phys.y > TILE_HEIGHT*(BOARD_TILE_HEIGHT - 1))
+                {
+                    int board_index = get_name_of_board_location(board_list[current_board_index].map_x_index, board_list[current_board_index].map_y_index + 1,items[i].board_name);
+
+                    if(board_index < 0)
+                        items[i].phys.y = TILE_HEIGHT*(BOARD_TILE_HEIGHT - 1);
+                    else
+                    {
+                        // go to board
+                        items[i].phys.y = 0;
+                        items[i].board_index = board_index;
+                    }
+                }
             }
         }
 
@@ -188,6 +244,9 @@ static void update_items()
 
 static void draw_item(int i)
 {
+    if(items[i].board_index != current_board_index)
+        return;
+
     draw_tile_shadow(items[i].phys.x - camera.x, items[i].phys.y - camera.y, items[i].tileset_name,items[i].tile_index,max(0,10 - day_cycle_shade_amount)); // shadow
 
     if(items[i].highlighted)

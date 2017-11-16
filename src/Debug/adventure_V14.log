@@ -1,0 +1,155 @@
+﻿  program.c
+c:\dev\git\adventure\src\cwin.h(21): warning C4047: 'function': 'MCIDEVICEID' differs in levels of indirection from 'void *'
+c:\dev\git\adventure\src\cwin.h(21): warning C4024: 'mciSendCommandA': different types for formal and actual parameter 1
+c:\dev\git\adventure\src\cwin.h(37): warning C4047: 'function': 'DWORD_PTR' differs in levels of indirection from 'void *'
+c:\dev\git\adventure\src\cwin.h(37): warning C4024: 'mciSendCommandA': different types for formal and actual parameter 4
+c:\dev\git\adventure\src\cwin.h(49): warning C4047: 'function': 'DWORD_PTR' differs in levels of indirection from 'void *'
+c:\dev\git\adventure\src\cwin.h(49): warning C4024: 'mciSendCommandA': different types for formal and actual parameter 4
+c:\dev\git\adventure\src\cstr.h(3): warning C4013: 'length_of' undefined; assuming extern returning int
+c:\dev\git\adventure\src\cdraw.h(37): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+c:\dev\git\adventure\src\font.h(166): warning C4244: '+=': conversion from 'double' to 'int', possible loss of data
+c:\dev\git\adventure\src\font.h(184): warning C4244: '+=': conversion from 'double' to 'int', possible loss of data
+c:\dev\git\adventure\src\timer.h(50): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\dev\git\adventure\src\tile.h(19): warning C4033: 'get_tileset_index_by_name' must return a value
+c:\dev\git\adventure\src\tile.h(266): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\dev\git\adventure\src\tile.h(267): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\dev\git\adventure\src\tile.h(327): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\dev\git\adventure\src\tile.h(328): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\dev\git\adventure\src\board.h(196): warning C4244: '*=': conversion from 'float' to 'long', possible loss of data
+c:\dev\git\adventure\src\board.h(200): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\board.h(228): warning C4033: 'get_board_index_by_name' must return a value
+c:\dev\git\adventure\src\board.h(277): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\board.h(278): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\board.h(279): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\board.h(280): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\board.h(316): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\board.h(317): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\board.h(318): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\board.h(319): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\board.h(338): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\board.h(350): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\board.h(362): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\board.h(630): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\item.h(183): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\item.h(184): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\item.h(250): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\item.h(253): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\item.h(255): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\coin.h(92): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\coin.h(93): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\coin.h(169): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\coin.h(170): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\particle.h(23): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+c:\dev\git\adventure\src\particle.h(24): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+c:\dev\git\adventure\src\particle.h(82): warning C4244: 'function': conversion from 'int' to 'float', possible loss of data
+c:\dev\git\adventure\src\particle.h(83): warning C4244: 'function': conversion from 'int' to 'float', possible loss of data
+c:\dev\git\adventure\src\particle.h(75): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\particle.h(76): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\floatingnumber.h(71): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\floatingnumber.h(72): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\creature.h(100): warning C4305: 'initializing': truncation from 'double' to 'float'
+c:\dev\git\adventure\src\creature.h(326): warning C4244: 'function': conversion from 'int' to 'float', possible loss of data
+c:\dev\git\adventure\src\creature.h(328): warning C4244: 'function': conversion from 'int' to 'float', possible loss of data
+c:\dev\git\adventure\src\creature.h(344): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\creature.h(514): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\creature.h(515): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\creature.h(516): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\creature.h(646): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\creature.h(648): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\creature.h(649): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\creature.h(800): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\creature.h(808): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\creature.h(842): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\creature.h(845): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\creature.h(854): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\creature.h(880): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\creature.h(901): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\creature.h(430): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+c:\dev\git\adventure\src\creature.h(431): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+c:\dev\git\adventure\src\creature.h(528): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\dev\git\adventure\src\creature.h(529): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\dev\git\adventure\src\creature.h(539): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\creature.h(540): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\creature.h(669): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\dev\git\adventure\src\creature.h(927): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+c:\dev\git\adventure\src\creature.h(956): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\creature.h(960): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\creature.h(946): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\creature.h(947): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\creature.h(965): warning C4244: 'function': conversion from 'double' to 'int', possible loss of data
+c:\dev\git\adventure\src\creature.h(966): warning C4244: 'function': conversion from 'double' to 'int', possible loss of data
+c:\dev\git\adventure\src\projectile.h(97): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\projectile.h(98): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\projectile.h(127): warning C4013: 'are_entities_colliding' undefined; assuming extern returning int
+c:\dev\git\adventure\src\projectile.h(185): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\projectile.h(186): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\projectile.h(189): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\projectile.h(190): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\player.h(369): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+c:\dev\git\adventure\src\player.h(373): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+c:\dev\git\adventure\src\player.h(378): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+c:\dev\git\adventure\src\player.h(382): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+c:\dev\git\adventure\src\player.h(556): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\dev\git\adventure\src\player.h(680): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\player.h(691): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\player.h(254): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\dev\git\adventure\src\player.h(255): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\dev\git\adventure\src\player.h(265): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\player.h(266): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\player.h(279): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\player.h(280): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\player.h(459): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\player.h(460): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\player.h(758): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\player.h(761): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\player.h(761): warning C4244: 'function': conversion from 'double' to 'int', possible loss of data
+c:\dev\git\adventure\src\player.h(766): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\player.h(766): warning C4244: 'function': conversion from 'double' to 'int', possible loss of data
+c:\dev\git\adventure\src\player.h(774): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\player.h(774): warning C4244: 'function': conversion from 'double' to 'int', possible loss of data
+c:\dev\git\adventure\src\player.h(786): warning C4244: 'function': conversion from 'double' to 'int', possible loss of data
+c:\dev\git\adventure\src\player.h(787): warning C4244: 'function': conversion from 'double' to 'int', possible loss of data
+c:\dev\git\adventure\src\player.h(795): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\npc.h(166): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\npc.h(173): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\npc.h(183): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\npc.h(190): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\npc.h(314): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\dev\git\adventure\src\npc.h(369): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\npc.h(370): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\entity.h(58): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\entity.h(59): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\entity.h(75): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\entity.h(76): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\entity.h(92): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\entity.h(93): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\entity.h(109): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\entity.h(110): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\entity.h(126): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\entity.h(127): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\entity.h(143): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\entity.h(144): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\entity.h(160): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\entity.h(161): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\entity.h(177): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\asset.h(105): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\dev\git\adventure\src\asset.h(107): warning C4133: 'function': incompatible types - from 'CreatureBehavior *' to 'int *'
+c:\dev\git\adventure\src\asset.h(128): warning C4133: 'function': incompatible types - from 'ItemType *' to 'int *'
+c:\dev\git\adventure\src\asset.h(129): warning C4133: 'function': incompatible types - from 'WeaponType *' to 'int *'
+c:\dev\git\adventure\src\asset.h(132): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\dev\git\adventure\src\asset.h(134): warning C4133: 'function': incompatible types - from 'float *' to 'int *'
+c:\dev\git\adventure\src\asset.h(135): warning C4133: 'function': incompatible types - from 'ArmorType *' to 'int *'
+c:\dev\git\adventure\src\asset.h(142): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\dev\git\adventure\src\asset.h(143): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\dev\git\adventure\src\program.c(63): warning C4244: 'function': conversion from 'time_t' to 'unsigned int', possible loss of data
+c:\dev\git\adventure\src\program.c(200): warning C4244: '=': conversion from 'float' to 'LONG', possible loss of data
+c:\dev\git\adventure\src\program.c(204): warning C4244: '=': conversion from 'float' to 'LONG', possible loss of data
+c:\dev\git\adventure\src\program.c(283): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\program.c(422): warning C4244: '=': conversion from 'float' to 'BYTE', possible loss of data
+c:\dev\git\adventure\src\program.c(423): warning C4244: '=': conversion from 'float' to 'BYTE', possible loss of data
+c:\dev\git\adventure\src\program.c(424): warning C4244: '=': conversion from 'float' to 'BYTE', possible loss of data
+c:\dev\git\adventure\src\program.c(469): warning C4047: 'initializing': 'RECT *' differs in levels of indirection from 'LPARAM'
+c:\dev\git\adventure\src\board.h(237): warning C4715: 'get_board_index_by_name': not all control paths return a value
+c:\dev\git\adventure\src\tile.h(28): warning C4715: 'get_tileset_index_by_name': not all control paths return a value
+  adventure_V14.vcxproj -> C:\dev\git\adventure\src\Debug\adventure_V14.exe
+  adventure_V14.vcxproj -> C:\dev\git\adventure\src\Debug\adventure_V14.pdb (Full PDB)

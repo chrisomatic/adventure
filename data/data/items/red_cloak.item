@@ -1,18 +1,9 @@
 name: "Red Cloak"
-
 description: "So stylish and silky"
-
-
 type: 4 #Armor
-
 armor_type: 1 #head
-
 defence: 1
-
 tileset_name: armor
-
 tile_index: 32
-
 consummable: 0 #FALSE
-
 y_offset: 0

@@ -1,0 +1,35 @@
+name: "White Rat"
+
+hp: 10
+
+max_hp: 10
+
+xp: 2
+
+speed: 0.9
+
+gold_drop_max: 5
+
+behavior: 0 # Passive
+
+untargetable: 0 # FALSE
+
+tileset_name: creatures
+
+tile_index: 32
+
+species: Rat
+
+reproductive: 1 #TRUE
+
+mating_radius: 8 #pixels
+
+birth_recovery_time: 432 #seconds
+
+adult_age: 5040 #seconds
+
+gestation_period: 2880 #seconds
+
+litter_max: 7
+
+max_age: 28800
