@@ -2,7 +2,8 @@ name: "Claw"
 description: "Quick and Sharp!"
 type: 3 #Weapon
 weapon_type: 0 #Melee
-min_damage: 1max_damage: 1
+min_damage: 1
+max_damage: 1
 attack_speed: 2.0
 attack_range: 10
 tileset_name: weapons

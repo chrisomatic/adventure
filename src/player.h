@@ -274,7 +274,7 @@ static void update_player()
                         for(int j = 0; j < player.weapon.weapon_props.attack_range; ++j)
                         {
                             // only care about hitting an creature if it hasn't been hit yet.
-                            if(creatures[i].state != CREATURE_STATE_STUNNED)
+                            if(!creatures[i].stunned)
                             {
                                 int start_weapon_x = player.phys.x - camera.x + TILE_WIDTH/2;
                                 int start_weapon_y = player.phys.y - camera.y + TILE_HEIGHT/2;
@@ -311,10 +311,11 @@ static void update_player()
                                         }
                                         else
                                         {
-                                            creatures[i].state = CREATURE_STATE_STUNNED;
+                                            creatures[i].stunned = TRUE;
                                             if(creatures[i].behavior == CREATURE_BEHAVIOR_PASSIVE)
                                             {
                                                 creatures[i].behavior = CREATURE_BEHAVIOR_AGGRESSIVE;
+                                                creatures[i].deaggress = TRUE;
                                             }
                                         }
                                         break;

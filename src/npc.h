@@ -20,6 +20,11 @@ typedef struct
     int selected_dialogue_num;
     char* dialogue[10];
     BOOL talking;
+    Item weapon;
+    Item armor_head;
+    Item armor_body;
+    Item armor_hands;
+    Item armor_feet;
     CreatureState state;
     Direction dir;
     Animation anim;
@@ -128,6 +133,8 @@ static BOOL spawn_npc(const char* npc_name)
     npcs[num_npcs].anim.frame_order[13] = 1;
     npcs[num_npcs].anim.frame_order[14] = 1;
     npcs[num_npcs].anim.frame_order[15] = 1;
+    get_item_by_name("Rat Helm",&npcs[num_npcs].armor_head);
+
     ++num_npcs;
 
     if(num_npcs > MAX_NPCS -1)
@@ -207,6 +214,7 @@ static void update_npcs()
                 {
                     case 0:
                         npcs[i].state = CREATURE_STATE_NEUTRAL;
+                        break;
                     case 1: 
                         npcs[i].state = CREATURE_STATE_ACTING;
                         npcs[i].dir = DIR_UP;
@@ -370,4 +378,7 @@ static void draw_npc(int i)
     int npc_y = npcs[i].phys.y - camera.y;
 
     draw_tile(npc_x, npc_y, npcs[i].tileset_name,npcs[i].tile_index + npcs[i].dir + npcs[i].anim.frame_order[npcs[i].anim.frame],day_cycle_shade_amount);
+
+    if(npcs[i].armor_head.name != NULL)
+        draw_tile(npcs[i].phys.x - camera.x, npcs[i].phys.y - camera.y + npcs[i].armor_head.armor_props.y_offset - 0.5*npcs[i].phys.z, npcs[i].armor_head.tileset_name, npcs[i].armor_head.tile_index + npcs[i].dir + npcs[i].anim.frame_order[npcs[i].anim.frame], day_cycle_shade_amount);
 }

@@ -1,4 +1,4 @@
-#define MAX_ITEMS     1000
+#define MAX_ITEMS     10000
 #define MAX_ITEM_LIST 100
 
 #define BOW 3

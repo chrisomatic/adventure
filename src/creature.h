@@ -7,8 +7,7 @@
 typedef enum
 {
     CREATURE_STATE_NEUTRAL,
-    CREATURE_STATE_ACTING,
-    CREATURE_STATE_STUNNED
+    CREATURE_STATE_ACTING
 } CreatureState;
 
 typedef enum
@@ -60,6 +59,9 @@ typedef struct
     BOOL pregnant;
     BOOL birth_recovery;
     BOOL attacking;
+    BOOL stunned;
+    BOOL deaggress;
+    BOOL attack_recovery;
     float attack_angle;
     int gestation_period;
     int gestation_counter; 
@@ -70,6 +72,8 @@ typedef struct
     int age_counter;
     int adult_age;
     int litter_max;
+    int deaggression_counter;
+    int deaggression_duration;
     int birth_recovery_time;
     int birth_recovery_counter;
     int death_check_counter;
@@ -226,7 +230,7 @@ static BOOL spawn_creature(const char* creature_name,float x, float y)
     creatures[num_creatures].phys.max_hp = creature.phys.max_hp;
     creatures[num_creatures].xp = creature.xp;
     creatures[num_creatures].gold_drop_max = creature.gold_drop_max;
-    creatures[num_creatures].aggro_radius = 300;
+    creatures[num_creatures].aggro_radius = 200;
     creatures[num_creatures].particle_spawn_counter = 0;
     creatures[num_creatures].phys.environmental_hurt_counter = 60;
     creatures[num_creatures].phys.environmental_hurt_max = 60;
@@ -258,15 +262,24 @@ static BOOL spawn_creature(const char* creature_name,float x, float y)
 	creatures[num_creatures].species = creature.species;
 	creatures[num_creatures].pregnant = FALSE;
 	creatures[num_creatures].attacking = FALSE;
+	creatures[num_creatures].stunned = FALSE;
+	creatures[num_creatures].attack_recovery = FALSE;
+	creatures[num_creatures].deaggress = FALSE;
+	creatures[num_creatures].deaggression_duration = 10*TARGET_FPS;
+	creatures[num_creatures].deaggression_counter = 0;
     creatures[num_creatures].attack_angle = 0.0f;
     creatures[num_creatures].litter_max = creature.litter_max;
     creatures[num_creatures].birth_recovery_time = creature.birth_recovery_time;
     creatures[num_creatures].birth_recovery_counter = 0;
     creatures[num_creatures].birth_recovery = FALSE;
     creatures[num_creatures].death_check_counter = rand() % DAY_CYCLE_COUNTER_MAX;
-    get_item_by_name("Claw",&creatures[num_creatures].weapon);
 
-    if(creatures[num_creatures].gender == FEMALE && creatures[num_creatures].age >= creatures[num_creatures].adult_age)
+    if(strcmp(creature_name,"Orc") == 0)
+        get_item_by_name("Axe",&creatures[num_creatures].weapon);
+    else
+        get_item_by_name("Claw",&creatures[num_creatures].weapon);
+
+	if (creatures[num_creatures].reproductive && creatures[num_creatures].gender == FEMALE && creatures[num_creatures].age >= creatures[num_creatures].adult_age)
     {
         int chance_of_preg = rand() % 20;
 
@@ -291,7 +304,7 @@ static void init_creatures()
 {
     num_creatures = 0;
 
-    for (int i = 0; i < 150; ++i)
+    for (int i = 0; i < 1500; ++i)
     {
         int creature_x, creature_y;
         int test_collision_1, test_collision_2, test_collision_3, test_collision_4;
@@ -319,14 +332,17 @@ static void init_creatures()
 		if (num_creature_list == 0)
 			return;
 
+		int creature_type = rand() % num_creature_list;
+        spawn_creature(creature_list[creature_type].name,creature_x,creature_y);
+
+        /*
 		int creature_type = rand() % 2;//num_creature_list;
-        //spawn_creature(creature_list[creature_type].name,creature_x,creature_y);
 
         if(creature_type == 0)
             spawn_creature("Rat",creature_x,creature_y);
         else
             spawn_creature("White Rat",creature_x,creature_y);
-
+        */
     }
     
 }
@@ -436,505 +452,524 @@ static void update_creatures()
         creatures[i].grid_index_y = grid_y;
         //
 
-        if(creatures[i].state == CREATURE_STATE_STUNNED)
+        if(creatures[i].stunned)
         {
             creatures[i].stun_counter++;
             if(creatures[i].stun_counter >= creatures[i].stun_duration)
             {
                 creatures[i].stun_counter = 0;
-                creatures[i].state = CREATURE_STATE_NEUTRAL;
+                creatures[i].stunned = FALSE;
             }
         }
-        else
-        {
-            if(creatures[i].behavior == CREATURE_BEHAVIOR_AGGRESSIVE)
-            {
-                // check distance from player
-                if(get_distance(player.phys.x + TILE_WIDTH/2,player.phys.y + TILE_HEIGHT/2,creatures[i].phys.x + TILE_WIDTH/2,creatures[i].phys.y+TILE_HEIGHT/2) <= creatures[i].aggro_radius)
-                {
-                    if(creatures[i].mode == CREATURE_MODE_WANDER)
-                    {
-                        creatures[i].state = CREATURE_STATE_NEUTRAL;
-                        creatures[i].action_counter = creatures[i].action_counter_max;
-                    }
 
-                    creatures[i].mode = CREATURE_MODE_PURSUE;
-                }
-                else
+        if(creatures[i].behavior == CREATURE_BEHAVIOR_AGGRESSIVE)
+        {
+            // check distance from player
+            if(get_distance(player.phys.x + TILE_WIDTH/2,player.phys.y + TILE_HEIGHT/2,creatures[i].phys.x + TILE_WIDTH/2,creatures[i].phys.y+TILE_HEIGHT/2) <= creatures[i].aggro_radius)
+            {
+                if(creatures[i].mode == CREATURE_MODE_WANDER)
                 {
-                    creatures[i].mode = CREATURE_MODE_WANDER;
+                    creatures[i].state = CREATURE_STATE_NEUTRAL;
+                    creatures[i].action_counter = creatures[i].action_counter_max;
                 }
+
+                creatures[i].mode = CREATURE_MODE_PURSUE;
             }
             else
             {
                 creatures[i].mode = CREATURE_MODE_WANDER;
+
+                if(creatures[i].deaggress)
+                {
+                    ++creatures[i].deaggression_counter;
+                    if(creatures[i].deaggression_counter == creatures[i].deaggression_duration)
+                    {
+                        creatures[i].deaggression_counter = 0;
+                        creatures[i].deaggress = FALSE;
+                        creatures[i].behavior = CREATURE_BEHAVIOR_PASSIVE;
+                    }
+                }
+            }
+        }
+        else
+        {
+            creatures[i].mode = CREATURE_MODE_WANDER;
+        }
+        
+        // if creature is performing an action, let it play out
+        if(creatures[i].state == CREATURE_STATE_ACTING)
+        {
+            creatures[i].action_duration_counter++;
+
+            if(creatures[i].action_duration_counter >= creatures[i].action_duration_counter_max)
+            {
+                    creatures[i].action_duration_counter = 0;
+                    creatures[i].state = CREATURE_STATE_NEUTRAL; // return to neutral state
+
+                    if(creatures[i].mode != CREATURE_MODE_PURSUE)
+                    {
+                        creatures[i].phys.x_vel = +0;
+                        creatures[i].phys.y_vel = +0;
+                    }
+
+                    if(creatures[i].attacking)
+                    {
+                        creatures[i].attacking = FALSE;
+                        creatures[i].attack_recovery = FALSE;
+                    }
             }
             
-            // if creature is performing an action, let it play out
-            if(creatures[i].state == CREATURE_STATE_ACTING)
+            // update creature position
+            creatures[i].phys.x += creatures[i].phys.x_vel*creatures[i].phys.speed;
+            creatures[i].phys.y += creatures[i].phys.y_vel*creatures[i].phys.speed;
+
+            if(creatures[i].phys.x_vel != 0 || creatures[i].phys.y_vel != 0)
             {
-                creatures[i].action_duration_counter++;
+                handle_terrain_collision(creatures[i].board_index, &creatures[i].phys);
 
-                if(creatures[i].action_duration_counter >= creatures[i].action_duration_counter_max)
-                {
-                        creatures[i].action_duration_counter = 0;
-                        creatures[i].state = CREATURE_STATE_NEUTRAL; // return to neutral state
-
-                        if(creatures[i].mode != CREATURE_MODE_PURSUE)
-                        {
-                            creatures[i].phys.x_vel = +0;
-                            creatures[i].phys.y_vel = +0;
-                        }
-
-                        if(creatures[i].attacking)
-                            creatures[i].attacking = FALSE;
-                }
+                if(creatures[i].stunned)
+                    creatures[i].phys.speed /= 2.0f;
                 
-                // update creature position
-                creatures[i].phys.x += creatures[i].phys.x_vel*creatures[i].phys.speed;
-                creatures[i].phys.y += creatures[i].phys.y_vel*creatures[i].phys.speed;
+                // keep creature in board boundaries
+                if(creatures[i].phys.x < 0) creatures[i].phys.x = 0;
+                if(creatures[i].phys.y < 0) creatures[i].phys.y = 0;
+                if(creatures[i].phys.x >TILE_WIDTH*(BOARD_TILE_WIDTH-1)) creatures[i].phys.x = TILE_WIDTH*(BOARD_TILE_WIDTH-1);
+                if(creatures[i].phys.y >TILE_HEIGHT*(BOARD_TILE_HEIGHT-1)) creatures[i].phys.y = TILE_HEIGHT*(BOARD_TILE_HEIGHT-1);
 
-                if(creatures[i].phys.x_vel != 0 || creatures[i].phys.y_vel != 0)
+                if(creatures[i].mode == CREATURE_MODE_PURSUE)
                 {
-                    handle_terrain_collision(creatures[i].board_index, &creatures[i].phys);
-
-                    // keep creature in board boundaries
-                    if(creatures[i].phys.x < 0) creatures[i].phys.x = 0;
-                    if(creatures[i].phys.y < 0) creatures[i].phys.y = 0;
-                    if(creatures[i].phys.x >TILE_WIDTH*(BOARD_TILE_WIDTH-1)) creatures[i].phys.x = TILE_WIDTH*(BOARD_TILE_WIDTH-1);
-                    if(creatures[i].phys.y >TILE_HEIGHT*(BOARD_TILE_HEIGHT-1)) creatures[i].phys.y = TILE_HEIGHT*(BOARD_TILE_HEIGHT-1);
-
-                    if(creatures[i].mode == CREATURE_MODE_PURSUE)
+                    // update particles
+                    creatures[i].particle_spawn_counter++;
+                    if(creatures[i].particle_spawn_counter >= 30)
                     {
-                        // update particles
-                        creatures[i].particle_spawn_counter++;
-                        if(creatures[i].particle_spawn_counter >= 30)
+                        creatures[i].particle_spawn_counter = 0;
+
+                        int num_puncts  = rand() % 5 + 3;
+                        int punctuation;
+                        for(int j = 0; j < num_puncts; ++j)
                         {
-                            creatures[i].particle_spawn_counter = 0;
-                            spawn_particle(rand() % TILE_WIDTH + creatures[i].phys.x,creatures[i].phys.y,1,2,CHAR_HEART,12,creatures[i].board_index);
-                            spawn_particle(rand() % TILE_WIDTH + creatures[i].phys.x,creatures[i].phys.y,1,2,CHAR_HEART,12,creatures[i].board_index);
-                            spawn_particle(rand() % TILE_WIDTH + creatures[i].phys.x,creatures[i].phys.y,1,2,CHAR_HEART,12,creatures[i].board_index);
-                        }
-
-                    }
-                    
-                }
-
-                if(creatures[i].attacking)
-                {
-                    creatures[i].attack_angle += creatures[i].weapon.weapon_props.attack_speed*(PI/30.0f);
-
-                    // check for collision with player
-                    float cosa = cos(creatures[i].attack_angle);
-                    float sina = sin(creatures[i].attack_angle);
-
-                    for(int j = 0; j < creatures[i].weapon.weapon_props.attack_range; ++j)
-                    {
-                        if(player.state == PLAYER_STATE_DEAD)
-                            break;
-
-                        if((player.state & PLAYER_STATE_HURT) == PLAYER_STATE_HURT)
-                            break;
-
-                        int start_weapon_x = creatures[i].phys.x + TILE_WIDTH/2;
-                        int start_weapon_y = creatures[i].phys.y + TILE_HEIGHT/2;
-                    
-                        float delta_x = +cosa*j;
-                        float delta_y = -sina*j;
-
-                        if(start_weapon_x+delta_x >= player.phys.x && start_weapon_x+delta_x <= player.phys.x+0.75*TILE_WIDTH)
-                        {
-                            if(start_weapon_y+delta_y >= player.phys.y && start_weapon_y+delta_y <= player.phys.y+0.75*TILE_HEIGHT)
-                            {
-                                int damage = (rand() % (creatures[i].weapon.weapon_props.max_damage - creatures[i].weapon.weapon_props.min_damage + 1)) + creatures[i].weapon.weapon_props.min_damage;
-                                
-                                // add floating number
-                                spawn_floating_number(start_weapon_x+delta_x,start_weapon_y+delta_y,damage,6);
-
-                                // player hurt!
-                                player.phys.hp -= damage;
-
-                                // check if creature died
-                                if (creatures[i].phys.hp <= 0)
-                                    player_die();
-                                else
-                                    player.state |= PLAYER_STATE_HURT;
-
-                                break;
-                            }
+                            punctuation = rand() % 6 + 33;
+                            spawn_particle(rand() % TILE_WIDTH + creatures[i].phys.x,creatures[i].phys.y,1,1,punctuation,9,creatures[i].board_index);
                         }
                     }
                 }
             }
-            else
+
+            if(creatures[i].attacking)
             {
-                creatures[i].action_counter++;
+                creatures[i].attack_angle += creatures[i].weapon.weapon_props.attack_speed*(PI/30.0f);
 
-                if(creatures[i].action_counter >= creatures[i].action_counter_max)
+                // check for collision with player
+                float cosa = cos(creatures[i].attack_angle);
+                float sina = sin(creatures[i].attack_angle);
+
+                for(int j = 0; j < creatures[i].weapon.weapon_props.attack_range; ++j)
                 {
-                    // choose an action to make
-                    creatures[i].action_counter = 0;
-                    creatures[i].state = CREATURE_STATE_ACTING;
+                    if(player.state == PLAYER_STATE_DEAD)
+                        break;
 
-                    switch(creatures[i].mode)
+                    if(creatures[i].attack_recovery)
+                        break;
+
+                    int start_weapon_x = creatures[i].phys.x + TILE_WIDTH/2;
+                    int start_weapon_y = creatures[i].phys.y + TILE_HEIGHT/2;
+                
+                    float delta_x = +cosa*j;
+                    float delta_y = -sina*j;
+
+                    if(start_weapon_x+delta_x >= player.phys.x && start_weapon_x+delta_x <= player.phys.x+0.75*TILE_WIDTH)
                     {
-                        case CREATURE_MODE_WANDER:
+                        if(start_weapon_y+delta_y >= player.phys.y && start_weapon_y+delta_y <= player.phys.y+0.75*TILE_HEIGHT)
+                        {
+                            int damage = (rand() % (creatures[i].weapon.weapon_props.max_damage - creatures[i].weapon.weapon_props.min_damage + 1)) + creatures[i].weapon.weapon_props.min_damage;
+                            
+                            // add floating number
+                            spawn_floating_number(start_weapon_x+delta_x,start_weapon_y+delta_y,damage,6);
 
-                            creatures[i].action_counter_max = 60;
-                            creatures[i].action_duration_counter_max = rand() % 60 + 1;
+                            // player hurt!
+                            player.phys.hp -= damage;
 
-                            int d = rand() % 9;
+                            creatures[i].attack_recovery = TRUE;
 
-                            switch (d)
-                            {
-                                case 0:
-                                    creatures[i].phys.x_vel = +0;
-                                    creatures[i].phys.y_vel = +0;
-                                    break;
-                                case 1: 
-                                    creatures[i].dir = DIR_UP;
-                                    creatures[i].phys.x_vel = +0;
-                                    creatures[i].phys.y_vel = -1;
-                                    break;
-                                case 2: 
-                                    creatures[i].dir = DIR_DOWN;
-                                    creatures[i].phys.x_vel = +0;
-                                    creatures[i].phys.y_vel = +1;
-                                    break;
-                                case 3: 
-                                    creatures[i].dir = DIR_LEFT;
-                                    creatures[i].phys.x_vel = -1;
-                                    creatures[i].phys.y_vel = +0;
-                                    break;
-                                case 4: 
-                                    creatures[i].dir = DIR_RIGHT;
-                                    creatures[i].phys.x_vel = +1;
-                                    creatures[i].phys.y_vel = +0;
-                                    break;
-                                case 5: 
-                                    creatures[i].dir = DIR_UP;
-                                    creatures[i].phys.x_vel = -1;
-                                    creatures[i].phys.y_vel = -1;
-                                    break;
-                                case 6: 
-                                    creatures[i].dir = DIR_UP;
-                                    creatures[i].phys.x_vel = +1;
-                                    creatures[i].phys.y_vel = -1;
-                                    break;
-                                case 7: 
-                                    creatures[i].dir = DIR_DOWN;
-                                    creatures[i].phys.x_vel = -1;
-                                    creatures[i].phys.y_vel = +1;
-                                    break;
-                                case 8: 
-                                    creatures[i].dir = DIR_DOWN;
-                                    creatures[i].phys.x_vel = +1;
-                                    creatures[i].phys.y_vel = +1;
-                                    break;
-                            }
+                            // check if creature died
+                            if (creatures[i].phys.hp <= 0)
+                                player_die();
+                            else
+                                player.state |= PLAYER_STATE_HURT;
 
                             break;
+                        }
+                    }
+                }
+            }
+        }
+        else
+        {
+            creatures[i].action_counter++;
 
-                        case CREATURE_MODE_PURSUE:
-                            
-                            creatures[i].action_counter_max  = 0;
-                            creatures[i].action_duration_counter_max = 20; 
+            if(creatures[i].action_counter >= creatures[i].action_counter_max)
+            {
+                // choose an action to make
+                creatures[i].action_counter = 0;
+                creatures[i].state = CREATURE_STATE_ACTING;
 
-                            float diff_x = (creatures[i].phys.x - player.phys.x) + TILE_WIDTH/2.0f;
-                            float diff_y = (creatures[i].phys.y - player.phys.y) + TILE_HEIGHT/2.0f;
+                switch(creatures[i].mode)
+                {
+                    case CREATURE_MODE_WANDER:
 
-                            if(abs(diff_x) <= creatures[i].weapon.weapon_props.attack_range && (diff_y) <= creatures[i].weapon.weapon_props.attack_range)
+                        creatures[i].action_counter_max = 60;
+                        creatures[i].action_duration_counter_max = rand() % 60 + 1;
+
+                        int d = rand() % 9;
+
+                        switch (d)
+                        {
+                            case 0:
+                                creatures[i].phys.x_vel = +0;
+                                creatures[i].phys.y_vel = +0;
+                                break;
+                            case 1: 
+                                creatures[i].dir = DIR_UP;
+                                creatures[i].phys.x_vel = +0;
+                                creatures[i].phys.y_vel = -1;
+                                break;
+                            case 2: 
+                                creatures[i].dir = DIR_DOWN;
+                                creatures[i].phys.x_vel = +0;
+                                creatures[i].phys.y_vel = +1;
+                                break;
+                            case 3: 
+                                creatures[i].dir = DIR_LEFT;
+                                creatures[i].phys.x_vel = -1;
+                                creatures[i].phys.y_vel = +0;
+                                break;
+                            case 4: 
+                                creatures[i].dir = DIR_RIGHT;
+                                creatures[i].phys.x_vel = +1;
+                                creatures[i].phys.y_vel = +0;
+                                break;
+                            case 5: 
+                                creatures[i].dir = DIR_UP;
+                                creatures[i].phys.x_vel = -1;
+                                creatures[i].phys.y_vel = -1;
+                                break;
+                            case 6: 
+                                creatures[i].dir = DIR_UP;
+                                creatures[i].phys.x_vel = +1;
+                                creatures[i].phys.y_vel = -1;
+                                break;
+                            case 7: 
+                                creatures[i].dir = DIR_DOWN;
+                                creatures[i].phys.x_vel = -1;
+                                creatures[i].phys.y_vel = +1;
+                                break;
+                            case 8: 
+                                creatures[i].dir = DIR_DOWN;
+                                creatures[i].phys.x_vel = +1;
+                                creatures[i].phys.y_vel = +1;
+                                break;
+                        }
+
+                        break;
+
+                    case CREATURE_MODE_PURSUE:
+                        
+                        creatures[i].action_counter_max  = 0;
+                        creatures[i].action_duration_counter_max = 10; 
+
+                        float diff_x = (creatures[i].phys.x - player.phys.x);
+                        float diff_y = (creatures[i].phys.y - player.phys.y);
+
+                        float angle  = atan(diff_y/diff_x);
+                        double EIGHTH_PI = PI/8.0;
+
+                        if(angle >= -4*EIGHTH_PI && angle < -3*EIGHTH_PI)
+                        {
+                            if(diff_y > 0)
                             {
-                                creatures[i].action_counter_max = 15.0f/creatures[i].weapon.weapon_props.attack_speed;
-                                creatures[i].action_duration_counter_max = 15.0f/creatures[i].weapon.weapon_props.attack_speed;
-                                creatures[i].attacking = TRUE;
-                                switch(creatures[i].dir)
-                                {
-                                    case DIR_LEFT:
-                                        creatures[i].attack_angle = +3*PI/4;
-                                        break;
-                                    case DIR_RIGHT:
-                                        creatures[i].attack_angle = -1*PI/4;
-                                        break;
-                                    case DIR_UP:
-                                        creatures[i].attack_angle = +1*PI/4;
-                                        break;
-                                    case DIR_DOWN:
-                                        creatures[i].attack_angle = -3*PI/4;
-                                        break;
-                                }
+                                // UP 
+                                creatures[i].dir = DIR_UP;
+                                creatures[i].phys.x_vel = +0;
+                                creatures[i].phys.y_vel = -1;
                             }
                             else
                             {
-                                float angle  = atan(diff_y/diff_x);
-                                double EIGHTH_PI = PI/8.0;
-
-                                if(angle >= -4*EIGHTH_PI && angle < -3*EIGHTH_PI)
-                                {
-                                    if(diff_y > 0)
-                                    {
-                                        // UP 
-                                        creatures[i].dir = DIR_UP;
-                                        creatures[i].phys.x_vel = +0;
-                                        creatures[i].phys.y_vel = -1;
-                                    }
-                                    else
-                                    {
-                                        // DOWN
-                                        creatures[i].dir = DIR_DOWN;
-                                        creatures[i].phys.x_vel = +0;
-                                        creatures[i].phys.y_vel = +1;
-                                    }
-                                }
-                                else if(angle >= -3*EIGHTH_PI && angle < -1*EIGHTH_PI)
-                                {
-                                    if(diff_x > 0)
-                                    {
-                                        // DOWN LEFT
-                                        creatures[i].dir = DIR_DOWN;
-                                        creatures[i].phys.x_vel = -1;
-                                        creatures[i].phys.y_vel = +1;
-                                    }
-                                    else
-                                    {
-                                        // UP RIGHT
-                                        creatures[i].dir = DIR_UP;
-                                        creatures[i].phys.x_vel = +1;
-                                        creatures[i].phys.y_vel = -1;
-                                    }
-                                }
-                                else if(angle >= -1*EIGHTH_PI && angle < +1*EIGHTH_PI)
-                                {
-                                    if(diff_x > 0)
-                                    {
-                                        // LEFT
-                                        creatures[i].dir = DIR_LEFT;
-                                        creatures[i].phys.x_vel = -1;
-                                        creatures[i].phys.y_vel = +0;
-                                    }
-                                    else
-                                    {
-                                        // RIGHT
-                                        creatures[i].dir = DIR_RIGHT;
-                                        creatures[i].phys.x_vel = +1;
-                                        creatures[i].phys.y_vel = +0;
-                                    }
-                                }
-                                else if(angle >= +1*EIGHTH_PI && angle < +3*EIGHTH_PI)
-                                {
-                                    if(diff_x > 0)
-                                    {
-                                        // UP LEFT
-                                        creatures[i].dir = DIR_UP;
-                                        creatures[i].phys.x_vel = -1;
-                                        creatures[i].phys.y_vel = -1;
-                                    }
-                                    else
-                                    {
-                                        // DOWN RIGHT
-                                        creatures[i].dir = DIR_DOWN;
-                                        creatures[i].phys.x_vel = +1;
-                                        creatures[i].phys.y_vel = +1;
-                                    }
-                                }
-                                else if(angle <= +4*EIGHTH_PI && angle >= +3*EIGHTH_PI)
-                                {
-                                    if(diff_y > 0)
-                                    {
-                                        // UP 
-                                        creatures[i].dir = DIR_UP;
-                                        creatures[i].phys.x_vel = +0;
-                                        creatures[i].phys.y_vel = -1;
-                                    }
-                                    else
-                                    {
-                                        // DOWN
-                                        creatures[i].dir = DIR_DOWN;
-                                        creatures[i].phys.x_vel = +0;
-                                        creatures[i].phys.y_vel = +1;
-                                    }
-                                }
-
+                                // DOWN
+                                creatures[i].dir = DIR_DOWN;
+                                creatures[i].phys.x_vel = +0;
+                                creatures[i].phys.y_vel = +1;
                             }
-                        break;
-                    }
+                        }
+                        else if(angle >= -3*EIGHTH_PI && angle < -1*EIGHTH_PI)
+                        {
+                            if(diff_x > 0)
+                            {
+                                // DOWN LEFT
+                                creatures[i].dir = DIR_DOWN;
+                                creatures[i].phys.x_vel = -1;
+                                creatures[i].phys.y_vel = +1;
+                            }
+                            else
+                            {
+                                // UP RIGHT
+                                creatures[i].dir = DIR_UP;
+                                creatures[i].phys.x_vel = +1;
+                                creatures[i].phys.y_vel = -1;
+                            }
+                        }
+                        else if(angle >= -1*EIGHTH_PI && angle < +1*EIGHTH_PI)
+                        {
+                            if(diff_x > 0)
+                            {
+                                // LEFT
+                                creatures[i].dir = DIR_LEFT;
+                                creatures[i].phys.x_vel = -1;
+                                creatures[i].phys.y_vel = +0;
+                            }
+                            else
+                            {
+                                // RIGHT
+                                creatures[i].dir = DIR_RIGHT;
+                                creatures[i].phys.x_vel = +1;
+                                creatures[i].phys.y_vel = +0;
+                            }
+                        }
+                        else if(angle >= +1*EIGHTH_PI && angle < +3*EIGHTH_PI)
+                        {
+                            if(diff_x > 0)
+                            {
+                                // UP LEFT
+                                creatures[i].dir = DIR_UP;
+                                creatures[i].phys.x_vel = -1;
+                                creatures[i].phys.y_vel = -1;
+                            }
+                            else
+                            {
+                                // DOWN RIGHT
+                                creatures[i].dir = DIR_DOWN;
+                                creatures[i].phys.x_vel = +1;
+                                creatures[i].phys.y_vel = +1;
+                            }
+                        }
+                        else if(angle <= +4*EIGHTH_PI && angle >= +3*EIGHTH_PI)
+                        {
+                            if(diff_y > 0)
+                            {
+                                // UP 
+                                creatures[i].dir = DIR_UP;
+                                creatures[i].phys.x_vel = +0;
+                                creatures[i].phys.y_vel = -1;
+                            }
+                            else
+                            {
+                                // DOWN
+                                creatures[i].dir = DIR_DOWN;
+                                creatures[i].phys.x_vel = +0;
+                                creatures[i].phys.y_vel = +1;
+                            }
+                        }
 
+                        if(abs(diff_x) < creatures[i].weapon.weapon_props.attack_range && abs(diff_y) < creatures[i].weapon.weapon_props.attack_range)
+                        {
+                            creatures[i].action_counter_max = 15.0f / creatures[i].weapon.weapon_props.attack_speed;
+                            creatures[i].action_duration_counter_max = 15.0f/creatures[i].weapon.weapon_props.attack_speed;
+                            creatures[i].attacking = TRUE;
+                            switch(creatures[i].dir)
+                            {
+                                case DIR_LEFT:
+                                    creatures[i].attack_angle = +3*PI/4;
+                                    break;
+                                case DIR_RIGHT:
+                                    creatures[i].attack_angle = -1*PI/4;
+                                    break;
+                                case DIR_UP:
+                                    creatures[i].attack_angle = +1*PI/4;
+                                    break;
+                                case DIR_DOWN:
+                                    creatures[i].attack_angle = -3*PI/4;
+                                    break;
+                            }
+                            creatures[i].phys.x_vel = 0.0f;
+                            creatures[i].phys.y_vel = 0.0f;
+                        }
+                    break;
                 }
+
+            }
+        }
+        
+        // handle creature animation
+        if(creatures[i].phys.x_vel != 0 || creatures[i].phys.y_vel != 0)
+        {
+            creatures[i].anim.counter++;
+
+            if(creatures[i].anim.counter >= 10/creatures[i].phys.speed)
+            {
+                // cycle_animation
+                creatures[i].anim.counter = 0;
+                creatures[i].anim.frame += 1;
+                if(creatures[i].anim.frame >= creatures[i].anim.num_frames)
+                    creatures[i].anim.frame = 0;
+            }
+        }
+        else
+        {
+            // clear animation frame
+            creatures[i].anim.counter = 0;
+            creatures[i].anim.frame = 0;
+        }
+
+        // handle aging
+        ++creatures[i].age_counter;
+        if(creatures[i].age_counter >= 60)
+        {
+            // creature is one second older
+            creatures[i].age_counter = 0;
+
+            ++creatures[i].age;
+            if(creatures[i].age == creatures[i].adult_age)
+            {
+                // throw a party
+                int c[5] = { 6,9,11,13,14};
+
+                for(int j = 0; j < 50; ++j)
+                    spawn_particle(creatures[i].phys.x + (rand()%TILE_WIDTH), creatures[i].phys.y + (rand()%(TILE_HEIGHT/2)), rand()%2 + 1,3,0,c[rand()%5],creatures[i].board_index);
             }
             
-            // handle creature animation
-            if(creatures[i].phys.x_vel != 0 || creatures[i].phys.y_vel != 0)
+            // @TEMP: Indicate male reproductive creatures
+            if(creatures[i].reproductive)
             {
-                creatures[i].anim.counter++;
-
-                if(creatures[i].anim.counter >= 10/creatures[i].phys.speed)
+                if(creatures[i].gender == MALE)
                 {
-                    // cycle_animation
-                    creatures[i].anim.counter = 0;
-                    creatures[i].anim.frame += 1;
-                    if(creatures[i].anim.frame >= creatures[i].anim.num_frames)
-                        creatures[i].anim.frame = 0;
+                    spawn_particle(creatures[i].phys.x + (rand()%TILE_WIDTH), creatures[i].phys.y + (rand()%(TILE_HEIGHT/2)),1,2,CHAR_MALE_SYMBOL,8,creatures[i].board_index);
                 }
             }
-            else
+
+            // handle creature mating
+            if(creatures[i].reproductive && creatures[i].gender == MALE && creatures[i].age >= creatures[i].adult_age)
             {
-                // clear animation frame
-                creatures[i].anim.counter = 0;
-                creatures[i].anim.frame = 0;
-            }
-
-            // handle aging
-            ++creatures[i].age_counter;
-            if(creatures[i].age_counter >= 60)
-            {
-                // creature is one second older
-                creatures[i].age_counter = 0;
-
-                ++creatures[i].age;
-                if(creatures[i].age == creatures[i].adult_age)
+                for(int grid_offset_x = -1; grid_offset_x <= +1; ++grid_offset_x)
                 {
-                    // throw a party
-                    int c[5] = { 6,9,11,13,14};
+                    int x_bound = creatures[i].grid_index_x + grid_offset_x;
+                    if(x_bound < 0 || x_bound >= CREATURE_GRID_X_MAX) continue;
 
-                    for(int j = 0; j < 50; ++j)
-                        spawn_particle(creatures[i].phys.x + (rand()%TILE_WIDTH), creatures[i].phys.y + (rand()%(TILE_HEIGHT/2)), rand()%2 + 1,3,0,c[rand()%5],creatures[i].board_index);
-                }
-                
-                // @TEMP: Indicate male reproductive creatures
-                if(creatures[i].reproductive)
-                {
-                    if(creatures[i].gender == MALE)
+                    for(int grid_offset_y = -1; grid_offset_y <= +1; ++grid_offset_y)
                     {
-                        spawn_particle(creatures[i].phys.x + (rand()%TILE_WIDTH), creatures[i].phys.y + (rand()%(TILE_HEIGHT/2)),1,2,CHAR_MALE_SYMBOL,8,creatures[i].board_index);
-                    }
-                }
+                        int y_bound = creatures[i].grid_index_y + grid_offset_y;
+                        if(y_bound < 0 || y_bound >= CREATURE_GRID_X_MAX) continue;
 
-                // handle creature mating
-                if(creatures[i].reproductive && creatures[i].gender == MALE && creatures[i].age >= creatures[i].adult_age)
-                {
-                    for(int grid_offset_x = -1; grid_offset_x <= +1; ++grid_offset_x)
-                    {
-                        int x_bound = creatures[i].grid_index_x + grid_offset_x;
-                        if(x_bound < 0 || x_bound >= CREATURE_GRID_X_MAX) continue;
-
-                        for(int grid_offset_y = -1; grid_offset_y <= +1; ++grid_offset_y)
+                        for(int j = 0; j < creature_grid[x_bound][y_bound].num_creatures; ++j)
                         {
-                            int y_bound = creatures[i].grid_index_y + grid_offset_y;
-                            if(y_bound < 0 || y_bound >= CREATURE_GRID_X_MAX) continue;
-
-                            for(int j = 0; j < creature_grid[x_bound][y_bound].num_creatures; ++j)
+                            Creature* creature_j = creature_grid[x_bound][y_bound].creatures[j];
+                            
+                            // are creatures opposite gender?
+                            if(creature_j->gender == !creatures[i].gender)
                             {
-                                Creature* creature_j = creature_grid[x_bound][y_bound].creatures[j];
-                                
-                                // are creatures opposite gender?
-                                if(creature_j->gender == !creatures[i].gender)
+                                // is creature reproductive and an adult and not currently pregnant?
+                                if(creature_j->reproductive && creature_j->age >= creature_j->adult_age && !creature_j->pregnant)
                                 {
-                                    // is creature reproductive and an adult and not currently pregnant?
-                                    if(creature_j->reproductive && creature_j->age >= creature_j->adult_age && !creature_j->pregnant)
+                                    // is creature not recoverying from a pregnancy?
+                                    if(!creature_j->birth_recovery)
                                     {
-                                        // is creature not recoverying from a pregnancy?
-                                        if(!creature_j->birth_recovery)
+                                        // are creatures the same species?
+                                        if(strcmp(creature_j->species, creatures[i].species) == 0)
                                         {
-                                            // are creatures the same species?
-                                            if(strcmp(creature_j->species, creatures[i].species) == 0)
+                                            // look at x distance
+                                            if(abs(creatures[i].phys.x - creature_j->phys.x) <= creatures[i].mating_radius)
                                             {
-                                                // look at x distance
-                                                if(abs(creatures[i].phys.x - creature_j->phys.x) <= creatures[i].mating_radius)
+                                                // look at y distance
+                                                if(abs(creatures[i].phys.y - creature_j->phys.y) <= creatures[i].mating_radius)
                                                 {
-                                                    // look at y distance
-                                                    if(abs(creatures[i].phys.y - creature_j->phys.y) <= creatures[i].mating_radius)
+                                                    // get direct distance
+                                                    double distance = get_distance(creatures[i].phys.x,creatures[i].phys.y,creature_j->phys.x, creature_j->phys.y);
+
+                                                    if(distance <= creatures[i].mating_radius)
                                                     {
-                                                        // get direct distance
-                                                        double distance = get_distance(creatures[i].phys.x,creatures[i].phys.y,creature_j->phys.x, creature_j->phys.y);
+                                                        // spawn flames
+                                                        for(int k = 0; k < 10; ++k)
+                                                            spawn_particle(creature_j->phys.x + (rand()%TILE_WIDTH), creature_j->phys.y + (rand()%(TILE_HEIGHT/2)),1,3,CHAR_FLAME,9, creature_j->board_index);
 
-                                                        if(distance <= creatures[i].mating_radius)
+                                                        // calculate chance of pregnancy
+                                                        int chance_of_preg = rand()%100;
+
+                                                        if(chance_of_preg < 12)
                                                         {
-                                                            // spawn flames
-                                                            for(int k = 0; k < 10; ++k)
-                                                                spawn_particle(creature_j->phys.x + (rand()%TILE_WIDTH), creature_j->phys.y + (rand()%(TILE_HEIGHT/2)),1,3,CHAR_FLAME,9, creature_j->board_index);
-
-                                                            // calculate chance of pregnancy
-                                                            int chance_of_preg = rand()%100;
-
-                                                            if(chance_of_preg < 12)
-                                                            {
-                                                                creature_j->pregnant = TRUE;
-                                                                creature_j->phys.base_speed /= 2.0f; // reduce speed of pregnant creature
-                                                                ++num_pregs;
-                                                            }
+                                                            creature_j->pregnant = TRUE;
+                                                            creature_j->phys.base_speed /= 2.0f; // reduce speed of pregnant creature
+                                                            ++num_pregs;
                                                         }
                                                     }
                                                 }
                                             }
                                         }
-                                    } 
-                                }
+                                    }
+                                } 
                             }
                         }
                     }
                 }
+            }
 
-                // handle pregnancies
-                if(creatures[i].pregnant)
+            // handle pregnancies
+            if(creatures[i].pregnant)
+            {
+                spawn_particle(creatures[i].phys.x + (rand()%TILE_WIDTH), creatures[i].phys.y + (rand()%(TILE_HEIGHT/2)),1,3,CHAR_HEART,6, creatures[i].board_index); 
+
+                ++creatures[i].gestation_counter;
+                if(creatures[i].gestation_counter >= creatures[i].gestation_period)
                 {
-                    spawn_particle(creatures[i].phys.x + (rand()%TILE_WIDTH), creatures[i].phys.y + (rand()%(TILE_HEIGHT/2)),1,3,CHAR_HEART,6, creatures[i].board_index); 
+                    creatures[i].gestation_counter = 0;
 
-                    ++creatures[i].gestation_counter;
-                    if(creatures[i].gestation_counter >= creatures[i].gestation_period)
+                    // have a baby
+                    int num_babies = (rand() % creatures[i].litter_max) + 1;
+
+                    for(int j = 0; j < num_babies; ++j)
                     {
-                        creatures[i].gestation_counter = 0;
-
-                        // have a baby
-                        int num_babies = (rand() % creatures[i].litter_max) + 1;
-
-                        for(int j = 0; j < num_babies; ++j)
-                        {
-                            spawn_creature(creatures[i].name,creatures[i].phys.x,creatures[i].phys.y);
-                            creatures[num_creatures - 1].age = 0; // set age to zero (newborn)
-                            ++num_births;
-                        }
-
-                        // have a party
-                        int c[5] = { 6,9,11,13,14 };
-
-                        for(int j = 0; j < 50; ++j)
-                            spawn_particle(creatures[i].phys.x + (rand()%TILE_WIDTH), creatures[i].phys.y + (rand()%(TILE_HEIGHT/2)), rand()%2 + 1,3,0,c[rand()%5], creatures[i].board_index);
-
-                        creatures[i].pregnant = FALSE;
-                        creatures[i].phys.base_speed *= 2.0f; // return creature back to normal speed
-                        creatures[i].birth_recovery = TRUE;
-                        --num_pregs;
+                        spawn_creature(creatures[i].name,creatures[i].phys.x,creatures[i].phys.y);
+                        creatures[num_creatures - 1].age = 0; // set age to zero (newborn)
+                        ++num_births;
                     }
+
+                    // have a party
+                    int c[5] = { 6,9,11,13,14 };
+
+                    for(int j = 0; j < 50; ++j)
+                        spawn_particle(creatures[i].phys.x + (rand()%TILE_WIDTH), creatures[i].phys.y + (rand()%(TILE_HEIGHT/2)), rand()%2 + 1,3,0,c[rand()%5], creatures[i].board_index);
+
+                    creatures[i].pregnant = FALSE;
+                    creatures[i].phys.base_speed *= 2.0f; // return creature back to normal speed
+                    creatures[i].birth_recovery = TRUE;
+                    --num_pregs;
                 }
-                else if(creatures[i].birth_recovery)
+            }
+            else if(creatures[i].birth_recovery)
+            {
+                ++creatures[i].birth_recovery_counter;
+                if(creatures[i].birth_recovery_counter >= creatures[i].birth_recovery_time)
                 {
-                    ++creatures[i].birth_recovery_counter;
-                    if(creatures[i].birth_recovery_counter >= creatures[i].birth_recovery_time)
-                    {
-                        creatures[i].birth_recovery_counter = 0;
-                        creatures[i].birth_recovery = FALSE;
-                    }
+                    creatures[i].birth_recovery_counter = 0;
+                    creatures[i].birth_recovery = FALSE;
                 }
-                
-                // handle death
-                ++creatures[i].death_check_counter;
-                if(creatures[i].death_check_counter >= SECONDS_PER_DAY)
+            }
+            
+            // handle death
+            ++creatures[i].death_check_counter;
+            if(creatures[i].death_check_counter >= SECONDS_PER_DAY)
+            {
+                // one day since last death check.
+                creatures[i].death_check_counter = 0;
+
+                int death_num = rand() % 10000;
+                int life_in_days = min(60,floor(creatures[i].age / SECONDS_PER_DAY));
+
+                // min(max((rats/200)^2,1),maxq_mult) * base_rate
+                float num_rat_rate = num_creatures/200.0f;
+                float chance_of_death = min(max(num_rat_rate*num_rat_rate,1),25) * mortality_table[life_in_days];
+
+                if(death_num >= (10000 - (10000.0f*chance_of_death)))
                 {
-                    // one day since last death check.
-                    creatures[i].death_check_counter = 0;
-
-                    int death_num = rand() % 10000;
-                    int life_in_days = min(60,floor(creatures[i].age / SECONDS_PER_DAY));
-
-                    // min(max((rats/200)^2,1),maxq_mult) * base_rate
-                    float num_rat_rate = num_creatures/200.0f;
-                    float chance_of_death = min(max(num_rat_rate*num_rat_rate,1),25) * mortality_table[life_in_days];
-
-                    if(death_num >= (10000 - (10000.0f*chance_of_death)))
-                    {
-                        // creature dies.
-                        creature_death(i);
-                    }
+                    // creature dies.
+                    creature_death(i);
                 }
             }
         }
@@ -950,7 +985,7 @@ static void draw_creature_only(int i)
     if(creatures[i].reproductive && creatures[i].age < creatures[i].adult_age)
         age_offset = 16;
 
-    if (creatures[i].state == CREATURE_STATE_STUNNED)
+    if (creatures[i].stunned)
     {
         // draw red tint
         draw_tile_tinted(creatures[i].phys.x - camera.x, creatures[i].phys.y - camera.y,creatures[i].tileset_name, creatures[i].tile_index + age_offset + creatures[i].dir + creatures[i].anim.frame_order[creatures[i].anim.frame],6);

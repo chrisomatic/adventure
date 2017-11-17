@@ -151,11 +151,12 @@ static void update_projectiles()
                         }
                         else
                         {
-                            creatures[j].state = CREATURE_STATE_STUNNED;
+                            creatures[j].stunned = TRUE;
 
                             if(creatures[j].behavior == CREATURE_BEHAVIOR_PASSIVE)
                             {
                                 creatures[j].behavior = CREATURE_BEHAVIOR_AGGRESSIVE;
+                                creatures[i].deaggress = TRUE;
                             }
                         }
 						remove_projectile(i);
