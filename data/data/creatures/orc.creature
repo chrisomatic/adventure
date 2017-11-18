@@ -22,3 +22,6 @@ species: Orc
 
 reproductive: 0 #FALSE
 adult_age: 5040
+width: 16
+length: 8
+height: 16

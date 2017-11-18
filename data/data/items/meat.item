@@ -13,3 +13,6 @@ consummable: 1 #TRUE
 type: 1 #Health
 
 coin_value: 5
+width: 16
+length: 10
+height: 6

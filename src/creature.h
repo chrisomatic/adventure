@@ -4,7 +4,6 @@
 #define CREATURE_GRID_X_MAX 32
 #define CREATURE_GRID_Y_MAX 32
 
-
 typedef struct
 {
     char* name;
@@ -159,6 +158,9 @@ static BOOL get_creature_by_name(const char* name,Creature* creature)
 			creature->phys.max_hp = creature_list[i].phys.max_hp;
 			creature->xp = creature_list[i].xp;
             creature->phys.speed = creature_list[i].phys.speed;
+            creature->phys.width = creature_list[i].phys.width;
+            creature->phys.length = creature_list[i].phys.length;
+            creature->phys.height = creature_list[i].phys.height;
             creature->gold_drop_max = creature_list[i].gold_drop_max;
             creature->behavior = creature_list[i].behavior;
             creature->untargetable = creature_list[i].untargetable;
@@ -195,6 +197,9 @@ static BOOL spawn_creature(const char* creature_name,float x, float y)
     creatures[num_creatures].phys.height = 16.0f;
     creatures[num_creatures].phys.speed = creature.phys.speed;
     creatures[num_creatures].phys.base_speed = creature.phys.speed;
+    creatures[num_creatures].phys.width = creature.phys.width;
+    creatures[num_creatures].phys.length = creature.phys.length;
+    creatures[num_creatures].phys.height = creature.phys.height;
     creatures[num_creatures].dir = DIR_DOWN;
     creatures[num_creatures].state = CREATURE_STATE_NEUTRAL;
     creatures[num_creatures].mode  = CREATURE_MODE_WANDER;

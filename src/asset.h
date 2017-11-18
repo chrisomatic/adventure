@@ -115,6 +115,9 @@ static void load_assets(ASSET_TYPE type)
                         else if (strcmp(key, "gestation_period") == 0) C_atoi(value, &creature_list[asset_counter].gestation_period);
                         else if (strcmp(key, "litter_max") == 0) C_atoi(value, &creature_list[asset_counter].litter_max);
                         else if (strcmp(key, "max_age") == 0) C_atoi(value, &creature_list[asset_counter].max_age);
+                        else if (strcmp(key, "width") == 0) C_atoi(value, &creature_list[asset_counter].phys.width);
+                        else if (strcmp(key, "length") == 0) C_atoi(value, &creature_list[asset_counter].phys.length);
+                        else if (strcmp(key, "height") == 0) C_atoi(value, &creature_list[asset_counter].phys.height);
 
                         break;
 
@@ -135,6 +138,9 @@ static void load_assets(ASSET_TYPE type)
                         else if (strcmp(key, "armor_type") == 0) C_atoi(value, &item_list[asset_counter].armor_props.armor_type);
                         else if (strcmp(key, "y_offset") == 0) C_atoi(value, &item_list[asset_counter].armor_props.y_offset);
                         else if (strcmp(key, "coin_value") == 0) C_atoi(value, &item_list[asset_counter].coin_value);
+                        else if (strcmp(key, "width") == 0) C_atoi(value, &item_list[asset_counter].phys.width);
+                        else if (strcmp(key, "length") == 0) C_atoi(value, &item_list[asset_counter].phys.length);
+                        else if (strcmp(key, "height") == 0) C_atoi(value, &item_list[asset_counter].phys.height);
 
                         break;
 
@@ -159,6 +165,9 @@ static void load_assets(ASSET_TYPE type)
 						else if (strcmp(key, "dialogue9") == 0) npc_list[asset_counter].dialogue[9] = _strdup(value);
 						else if (strcmp(key, "tileset_name") == 0) npc_list[asset_counter].tileset_name = _strdup(value);
                         else if (strcmp(key, "tile_index") == 0) C_atoi(value, &npc_list[asset_counter].tile_index);
+                        else if (strcmp(key, "width") == 0) C_atoi(value, &npc_list[asset_counter].phys.width);
+                        else if (strcmp(key, "length") == 0) C_atoi(value, &npc_list[asset_counter].phys.length);
+                        else if (strcmp(key, "height") == 0) C_atoi(value, &npc_list[asset_counter].phys.height);
 
                         break;
                 }

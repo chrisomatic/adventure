@@ -219,20 +219,20 @@ static BOOL are_entities_colliding(PhysicalProperties* phys_a, PhysicalPropertie
 {
     BoundingBox a,b;
 
-    a.x = phys_a->x + TILE_WIDTH/4.0f;
-    a.y = phys_a->y + TILE_HEIGHT/4.0f;
+    a.x = phys_a->x + ((TILE_WIDTH - phys_a->width)/2.0f);
+    a.y = phys_a->y + ((TILE_WIDTH - phys_a->height)/2.0f);
     a.z = phys_a->z;
 
-    a.width  = TILE_WIDTH/2.0f;
-    a.length = TILE_HEIGHT/2.0f;
+    a.width  = phys_a->width;
+    a.length = phys_a->length;
     a.height = phys_a->height;
 
-    b.x = phys_b->x;
-    b.y = phys_b->y;
+    b.x = phys_b->x + ((TILE_WIDTH - phys_b->width)/2.0f);
+    b.y = phys_b->y + ((TILE_WIDTH - phys_b->height)/2.0f);
     b.z = phys_b->z;
 
-    b.width  = TILE_WIDTH;
-    b.length = TILE_HEIGHT/2.0f;
+    b.width  = phys_b->width;
+    b.length = phys_b->length;
     b.height = phys_b->height;
 
     if(a.x <= (b.x + b.width) && (a.x + a.width) >= b.x)

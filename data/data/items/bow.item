@@ -20,3 +20,6 @@ tile_index: 3
 
 consummable: 0 #FALSE
 coin_value: 10
+width: 7
+length: 16
+height: 6

@@ -22,3 +22,6 @@ consummable: 0 #FALSE
 
 
 coin_value: 10
+width: 16
+length: 10
+height: 6

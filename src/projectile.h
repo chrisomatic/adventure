@@ -31,6 +31,8 @@ static int spawn_projectile(float x, float y, float z, float x_vel, float y_vel,
     projectiles[num_projectiles].phys.y = y;
     projectiles[num_projectiles].phys.z = z;
     projectiles[num_projectiles].phys.height = 2;
+    projectiles[num_projectiles].phys.width = 2;
+    projectiles[num_projectiles].phys.length = 13;
     projectiles[num_projectiles].phys.x_vel = x_vel;
     projectiles[num_projectiles].phys.y_vel = y_vel;
     projectiles[num_projectiles].phys.z_vel = z_vel;

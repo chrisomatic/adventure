@@ -25,3 +25,7 @@ dialogue4: "You little b*tch!"
 tileset_name: characters
 
 tile_index: 16
+
+width: 16
+length: 8
+height: 16

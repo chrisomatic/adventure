@@ -12,6 +12,9 @@ static BOOL get_npc_by_name(const char* name,NPC* npc)
             npc->phys.y = npc_list[i].phys.y;
             npc->phys.hp = npc_list[i].phys.hp;
             npc->phys.max_hp = npc_list[i].phys.max_hp;
+            npc->phys.width = npc_list[i].phys.width;
+            npc->phys.length = npc_list[i].phys.length;
+            npc->phys.height = npc_list[i].phys.height;
             npc->xp = npc_list[i].xp;
             npc->is_vendor = npc_list[i].is_vendor;
 			npc->num_dialogue = npc_list[i].num_dialogue;
@@ -35,6 +38,23 @@ static BOOL get_npc_by_name(const char* name,NPC* npc)
 	return FALSE;
 }
 
+static int get_npc_index_by_name(const char* name)
+{
+    for(int i = 0; i < MAX_NPC_LIST; ++i)
+    {
+		if (npc_list[i].name == NULL)
+			continue;
+
+        if(strcmp(npc_list[i].name, name) == 0)
+        {
+            return i;
+        }
+    }
+
+    return -1;
+
+}
+
 static BOOL spawn_npc(const char* npc_name)
 {
     NPC npc = {0};
@@ -52,6 +72,9 @@ static BOOL spawn_npc(const char* npc_name)
     npcs[num_npcs].state = CREATURE_STATE_NEUTRAL;
     npcs[num_npcs].talking = FALSE;
     npcs[num_npcs].name = npc.name;
+    npcs[num_npcs].phys.width = npc.phys.width;
+    npcs[num_npcs].phys.length  = npc.phys.length;
+    npcs[num_npcs].phys.height = npc.phys.height;
     npcs[num_npcs].board_name = "Astoria";
     npcs[num_npcs].board_index = get_board_index_by_name(npcs[num_npcs].board_name);
 	npcs[num_npcs].num_dialogue = npc.num_dialogue;

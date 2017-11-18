@@ -84,7 +84,9 @@ typedef struct
     float z_vel;
     float base_speed;
     float speed;
-    float height;
+    int height;
+    int width;
+    int length;
     int environmental_hurt_counter;
     int environmental_hurt_max;
     int hp;
@@ -106,6 +108,7 @@ typedef struct
     BOOL highlighted;
     BOOL consummable;
     BOOL mounted;
+    int  vendor_index;
     ItemType type;
     WeaponProperties weapon_props;
     ArmorProperties  armor_props;

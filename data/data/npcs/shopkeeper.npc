@@ -16,5 +16,9 @@ dialogue0: "Welcome to my shop!"
 
 tileset_name: characters
 
-is_vendor = 1 #TRUE
+is_vendor: 1 #TRUE
 tile_index: 0
+
+width: 16
+length: 8
+height: 16

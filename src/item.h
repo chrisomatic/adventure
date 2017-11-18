@@ -25,7 +25,9 @@ static BOOL get_item_by_name(const char* name,Item* item)
         {
             item->name = item_list[i].name;
 			item->description = item_list[i].description;
-			item->value = item_list[i].value;
+			item->phys.width = item_list[i].phys.width;
+			item->phys.length = item_list[i].phys.length;
+			item->phys.height = item_list[i].phys.height;
             item->coin_value = item_list[i].coin_value;
 			item->tileset_name = item_list[i].tileset_name;
 			item->tile_index = item_list[i].tile_index;
@@ -48,6 +50,9 @@ static BOOL get_item_by_name(const char* name,Item* item)
     item->name = "";
     item->description = "";
     item->value = 0;
+    item->phys.width = 0;
+    item->phys.length = 0;
+    item->phys.height = 0;
     item->coin_value = 0;
     item->tileset_name = "";
     item->tile_index = 0;
@@ -82,6 +87,9 @@ static BOOL spawn_item(const char* item_name,float x, float y, int board_index)
     items[num_items].phys.z_vel = 2.0f;
     items[num_items].phys.speed = 1.0f;
     items[num_items].phys.base_speed = 1.0f;
+    items[num_items].phys.width = item.phys.width;
+    items[num_items].phys.length = item.phys.length;
+    items[num_items].phys.height = item.phys.height;
     items[num_items].mount_float_angle = 0.0f;
     items[num_items].mounted = FALSE;
     items[num_items].friction = AIR_RESISTANCE;
@@ -173,6 +181,38 @@ static void update_items()
             items[i].phys.z += items[i].phys.z_vel;
 
             handle_terrain_collision(items[i].board_index,&items[i].phys);
+
+            // check if it collides with a vendor
+            for(int j = 0; j < num_npcs; ++j)
+            {
+                if(npcs[j].is_vendor)
+                {
+                    double distance = get_distance(items[i].phys.x + TILE_WIDTH / 2, items[i].phys.y + TILE_HEIGHT / 2, npcs[j].phys.x + TILE_WIDTH / 2, npcs[j].phys.y + TILE_HEIGHT / 2);
+
+                    if(distance <= 20)
+                    {
+                        if(are_entities_colliding(&items[i].phys, &npcs[j].phys))
+                        {
+
+                            spawn_floating_string(items[i].phys.x, items[i].phys.y, "*sold*", 14);
+
+                            int coins_to_spawn = items[i].coin_value;
+
+                            int gold_coins = coins_to_spawn / 100; coins_to_spawn -= (gold_coins*100);
+                            int silver_coins = coins_to_spawn / 10; coins_to_spawn -= (silver_coins*10);
+                            int bronze_coins = coins_to_spawn / 1; coins_to_spawn -= bronze_coins;
+
+                            for(int c = 0; c < bronze_coins; ++c)
+                                spawn_coin(npcs[j].phys.x + (rand() % TILE_WIDTH), npcs[j].phys.y + TILE_HEIGHT, 2.0f, 0.0f, +2.0f, 3.0f, COIN_BRONZE, npcs[j].board_index);
+                            for(int c = 0; c < silver_coins; ++c)
+								spawn_coin(npcs[j].phys.x + (rand() % TILE_WIDTH), npcs[j].phys.y + TILE_HEIGHT, 2.0f, 0.0f, +1.0f, 3.0f, COIN_SILVER, npcs[j].board_index);
+                            for(int c = 0; c < gold_coins; ++c)
+								spawn_coin(npcs[j].phys.x + (rand() % TILE_WIDTH), npcs[j].phys.y + TILE_HEIGHT, 2.0f, 0.0f, +2.0f, 3.0f, COIN_GOLD, npcs[j].board_index);
+                            remove_item(i);
+                        }
+                    }
+                }
+            }
 
 			if (items[i].phys.z < 0)
             {

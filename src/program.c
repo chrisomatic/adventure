@@ -177,6 +177,9 @@ static void update_scene()
     // update player
     update_player();
    
+    // update item stands
+    update_item_stands();
+    
     // update items
     update_items();
     
@@ -207,6 +210,12 @@ static void update_scene()
     camera.y = max(camera.y, 0);
     camera.y = min(camera.y,TILE_HEIGHT*BOARD_TILE_HEIGHT-buffer_height);
 
+}
+
+// @TEMP
+static void draw_bounding_box(PhysicalProperties* p)
+{
+    draw_rect8(p->x - camera.x,p->y - camera.y,p->width,p->height,6,FALSE);
 }
 
 static void draw_scene()
@@ -297,6 +306,12 @@ static void draw_scene()
     // @TEMP: fps
     draw_number_string_with_shadow(current_fps,buffer_width - 12,7,1.0f,14);
 
+    // @TEMP: debugging
+    //for(int i = 0; i < num_npcs; ++i)
+    //{
+    //    draw_bounding_box(&npcs[i].phys);
+    //}
+    
     // Blit buffer to screen
     StretchDIBits(dc, 0, 0, window_width, window_height, 0, 0, buffer_width, buffer_height, back_buffer, (BITMAPINFO*)&bmi, DIB_RGB_COLORS, SRCCOPY);
 }

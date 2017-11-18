@@ -51,6 +51,14 @@ typedef enum
     ENTITY_TYPE_FLOATING_NUMBER
 } EntityType;
 
+typedef enum
+{
+    COIN_BRONZE = 0,
+    COIN_SILVER = 4,
+    COIN_GOLD   = 8
+} CoinType;
+
+static BOOL spawn_coin(float x, float y, float z, float x_vel, float y_vel, float z_vel, CoinType type, int board_index);
 static void spawn_floating_number(float x, float y, int number,int color);
 static void spawn_floating_string(float x, float y, char* string,int color);
 static void spawn_particle(int x, int y, int size,int intensity,unsigned char character,unsigned char color,int board_index);

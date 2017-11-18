@@ -20,6 +20,9 @@ static void init_player()
     player.phys.x_vel = 0;
     player.phys.y_vel = 0;
     player.phys.z_vel = 0;
+    player.phys.length = 8;
+    player.phys.width  = 16;
+    player.phys.height = 16;
     player.phys.speed = 1.0f;
     player.phys.base_speed = 1.0f;
     player.dir = DIR_DOWN;
@@ -592,7 +595,16 @@ static void update_player()
                 {
                     if(items[i].mounted)
                     {
-                        //@TODO
+                        if(items[i].vendor_index < 0)
+                            continue;
+
+                        if(npcs[items[i].vendor_index].vendor_credit >= items[i].coin_value)
+                        {
+                            npcs[items[i].vendor_index].vendor_credit -= items[i].coin_value;
+                            items[i].mounted = FALSE;
+                            items[i].vendor_index = -1;
+                            spawn_floating_string(items[i].phys.x, items[i].phys.y, "*purchased*", 14);
+                        }
                     }
                     else
                     {
