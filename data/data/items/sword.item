@@ -20,3 +20,5 @@ tile_index: 1
 
 consummable: 0 #FALSE
 
+
+coin_value: 10

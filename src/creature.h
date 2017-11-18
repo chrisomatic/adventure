@@ -4,29 +4,6 @@
 #define CREATURE_GRID_X_MAX 32
 #define CREATURE_GRID_Y_MAX 32
 
-typedef enum
-{
-    CREATURE_STATE_NEUTRAL,
-    CREATURE_STATE_ACTING
-} CreatureState;
-
-typedef enum
-{
-    CREATURE_MODE_WANDER,
-    CREATURE_MODE_PURSUE
-} CreatureMode;
-
-typedef enum
-{
-    CREATURE_BEHAVIOR_PASSIVE,
-    CREATURE_BEHAVIOR_AGGRESSIVE
-} CreatureBehavior;
-
-typedef enum
-{
-    MALE,
-    FEMALE
-} Gender;
 
 typedef struct
 {
@@ -286,6 +263,7 @@ static BOOL spawn_creature(const char* creature_name,float x, float y)
         if(chance_of_preg == 0)
         {
             creatures[num_creatures].pregnant = TRUE;
+            ++num_pregs;
         }
     }
 
@@ -304,7 +282,7 @@ static void init_creatures()
 {
     num_creatures = 0;
 
-    for (int i = 0; i < 1500; ++i)
+    for (int i = 0; i < 150; ++i)
     {
         int creature_x, creature_y;
         int test_collision_1, test_collision_2, test_collision_3, test_collision_4;
@@ -332,17 +310,17 @@ static void init_creatures()
 		if (num_creature_list == 0)
 			return;
 
+        /*
 		int creature_type = rand() % num_creature_list;
         spawn_creature(creature_list[creature_type].name,creature_x,creature_y);
+        */
 
-        /*
-		int creature_type = rand() % 2;//num_creature_list;
+		int creature_type = rand() % 2;
 
         if(creature_type == 0)
             spawn_creature("Rat",creature_x,creature_y);
         else
             spawn_creature("White Rat",creature_x,creature_y);
-        */
     }
     
 }
@@ -892,7 +870,7 @@ static void update_creatures()
                                                         // calculate chance of pregnancy
                                                         int chance_of_preg = rand()%100;
 
-                                                        if(chance_of_preg < 12)
+                                                        if(chance_of_preg < 50) // 50% chance of pregnancy
                                                         {
                                                             creature_j->pregnant = TRUE;
                                                             creature_j->phys.base_speed /= 2.0f; // reduce speed of pregnant creature

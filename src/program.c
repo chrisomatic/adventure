@@ -16,6 +16,7 @@
 #include "tile.h"
 #include "board.h"
 #include "item.h"
+#include "item_stand.h"
 #include "coin.h"
 #include "particle.h"
 #include "floatingnumber.h"
@@ -74,6 +75,7 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
     init_player();
     init_npcs();
     init_board();
+    init_item_stands();
 
     // test
     //playMIDIFile(main_window,"data\\music\\village.mid");

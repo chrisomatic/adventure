@@ -1,41 +1,3 @@
-#define MAX_NPCS     1000
-#define MAX_NPC_LIST 1000
-
-typedef struct
-{
-    char* name;
-    char* board_name;
-    int board_index;
-    char* tileset_name;
-    int tile_index;
-    int xp;
-    PhysicalProperties phys;
-    float distance_from_player;
-    int action_counter;
-    int action_counter_max;
-    int action_duration_counter;
-    int action_duration_counter_max;
-    int talk_radius;
-    int num_dialogue;
-    int selected_dialogue_num;
-    char* dialogue[10];
-    BOOL talking;
-    Item weapon;
-    Item armor_head;
-    Item armor_body;
-    Item armor_hands;
-    Item armor_feet;
-    CreatureState state;
-    Direction dir;
-    Animation anim;
-} NPC;
-
-NPC npcs[MAX_NPCS];
-NPC npc_list[MAX_NPC_LIST];
-
-int num_npcs = 0;
-int num_npc_list = 0;
-
 static BOOL get_npc_by_name(const char* name,NPC* npc)
 {
     for(int i = 0; i < MAX_NPC_LIST; ++i)
@@ -51,6 +13,7 @@ static BOOL get_npc_by_name(const char* name,NPC* npc)
             npc->phys.hp = npc_list[i].phys.hp;
             npc->phys.max_hp = npc_list[i].phys.max_hp;
             npc->xp = npc_list[i].xp;
+            npc->is_vendor = npc_list[i].is_vendor;
 			npc->num_dialogue = npc_list[i].num_dialogue;
 			npc->dialogue[0] = npc_list[i].dialogue[0];
 			npc->dialogue[1] = npc_list[i].dialogue[1];
@@ -108,6 +71,8 @@ static BOOL spawn_npc(const char* npc_name)
     npcs[num_npcs].phys.hp = npc.phys.hp; 
     npcs[num_npcs].phys.max_hp = npc.phys.max_hp; 
     npcs[num_npcs].xp = npc.xp;
+    npcs[num_npcs].is_vendor = npc.is_vendor;
+    npcs[num_npcs].vendor_credit = 0;
     npcs[num_npcs].talk_radius = 20;
     npcs[num_npcs].distance_from_player = -1.0f;
     npcs[num_npcs].action_counter_max = 180;
@@ -364,6 +329,12 @@ static void update_npcs()
     {
         message.name = npcs[min_index].name;
         message.message = npcs[min_index].dialogue[npcs[min_index].selected_dialogue_num];
+
+        if(npcs[min_index].is_vendor)
+            message.value = npcs[min_index].vendor_credit;
+        else
+            message.value = -1;
+
         message.color = 10;
         message.active = TRUE;
     }

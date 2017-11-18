@@ -32,6 +32,7 @@ typedef struct
 {
     char* name;
     char* message;
+    int value;
     char color;
     BOOL active;
 } Message;

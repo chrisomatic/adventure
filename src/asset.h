@@ -134,6 +134,7 @@ static void load_assets(ASSET_TYPE type)
                         else if (strcmp(key, "defence") == 0) C_atoi(value, &item_list[asset_counter].armor_props.defence);
                         else if (strcmp(key, "armor_type") == 0) C_atoi(value, &item_list[asset_counter].armor_props.armor_type);
                         else if (strcmp(key, "y_offset") == 0) C_atoi(value, &item_list[asset_counter].armor_props.y_offset);
+                        else if (strcmp(key, "coin_value") == 0) C_atoi(value, &item_list[asset_counter].coin_value);
 
                         break;
 
@@ -143,6 +144,7 @@ static void load_assets(ASSET_TYPE type)
 						else if (strcmp(key, "y") == 0) npc_list[asset_counter].phys.y = atof(value);
                         else if (strcmp(key, "hp") == 0) C_atoi(value, &npc_list[asset_counter].phys.hp);
 						else if (strcmp(key, "max_hp") == 0) C_atoi(value, &npc_list[asset_counter].phys.max_hp);
+                        else if (strcmp(key, "is_vendor") == 0) C_atoi(value, &npc_list[asset_counter].is_vendor);
                         else if (strcmp(key, "xp") == 0) C_atoi(value, &npc_list[asset_counter].xp);
                         else if (strcmp(key, "num_dialogue") == 0) C_atoi(value, &npc_list[asset_counter].num_dialogue);
 						else if (strcmp(key, "dialogue0") == 0) npc_list[asset_counter].dialogue[0] = _strdup(value);

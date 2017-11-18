@@ -103,28 +103,16 @@ static void update_projectiles()
 		{
 			for(int j = 0; j < num_creatures; ++j)
 			{
+                if(creatures[j].untargetable)
+                    continue;
+
+                if(creatures[j].board_index != current_board_index)
+                    continue;
+
 				double distance = get_distance(projectiles[i].phys.x + TILE_WIDTH / 2, projectiles[i].phys.y + TILE_HEIGHT / 2, creatures[j].phys.x + TILE_WIDTH / 2, creatures[j].phys.y + TILE_HEIGHT / 2);
 				if(distance <= 20)
 				{
-					BoundingBox a,b;
-
-					a.x = projectiles[i].phys.x + TILE_WIDTH/4.0f;
-					a.y = projectiles[i].phys.y + TILE_HEIGHT/4.0f;
-					a.z = projectiles[i].phys.z;
-
-					a.width = TILE_WIDTH/2.0f;
-					a.length = TILE_HEIGHT/2.0f;
-					a.height = projectiles[i].phys.height;
-
-					b.x = creatures[j].phys.x;
-					b.y = creatures[j].phys.y;
-					b.z = creatures[j].phys.z;
-
-					b.width = TILE_WIDTH;
-					b.length = TILE_HEIGHT/2.0f;
-					b.height = creatures[j].phys.height;
-
-					if(are_entities_colliding(&a, &b))
+					if(are_entities_colliding(&projectiles[i].phys, &creatures[j].phys))
 					{
                         int damage = (rand() % (player.weapon.weapon_props.max_damage - player.weapon.weapon_props.min_damage + 1)) + player.weapon.weapon_props.min_damage;
                         

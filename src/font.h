@@ -14,6 +14,7 @@
 #define CHAR_DIAMOND      135 
 #define CHAR_DIAMOND_HALF 136 
 #define CHAR_MALE_SYMBOL  137 
+#define CHAR_COIN         138 
 
 //    int x,y,n;
 //    unsigned char *data = stbi_load(filename, &x, &y, &n, 0);

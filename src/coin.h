@@ -69,6 +69,45 @@ static void update_coins()
         coins[i].phys.z += coins[i].phys.z_vel*coins[i].phys.speed;
 
         handle_terrain_collision(coins[i].board_index, &coins[i].phys);
+
+        // check if it collides with a vendor
+        for(int j = 0; j < num_npcs; ++j)
+        {
+            if(npcs[j].is_vendor)
+            {
+				double distance = get_distance(coins[i].phys.x + TILE_WIDTH / 2, coins[i].phys.y + TILE_HEIGHT / 2, npcs[j].phys.x + TILE_WIDTH / 2, npcs[j].phys.y + TILE_HEIGHT / 2);
+
+                if(distance <= 20)
+                {
+                    if(are_entities_colliding(&coins[i].phys, &npcs[j].phys))
+                    {
+                        char color = 0;
+                        int  amount = 0;
+
+                        switch(coins[i].type)
+                        {
+                            case COIN_BRONZE:
+                                amount = 1;
+                                color = 9;
+                                break;
+                            case COIN_SILVER:
+                                amount = 10;
+                                color = 10;
+                                break;
+                            case COIN_GOLD:
+                                amount = 100;
+                                color = 14;
+                                break;
+                        }
+                        npcs[j].vendor_credit += amount;
+						spawn_floating_string(coins[i].phys.x, coins[i].phys.y, "$", color);
+						spawn_floating_string(coins[i].phys.x, coins[i].phys.y, "*thanks*", 14);
+						remove_coin(i);
+                    }
+                }
+            }
+        }
+
         if(coins[i].phys.z < 0)
         {
             // hit the ground

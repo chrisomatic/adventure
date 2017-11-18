@@ -17,3 +17,4 @@ tile_index: 0
 consummable: 0 #FALSE
 
 y_offset: -5
+coin_value: 10

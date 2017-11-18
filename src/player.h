@@ -574,6 +574,7 @@ static void update_player()
 
         message.name = items[closest_item_index].name;
         message.message = items[closest_item_index].description;
+        message.value = items[closest_item_index].coin_value;
         message.color = 6;
         message.active = TRUE;
     }
@@ -589,7 +590,14 @@ static void update_player()
             {
                 if(items[i].highlighted == TRUE)
                 {
-                    player.item_held_index = i;
+                    if(items[i].mounted)
+                    {
+                        //@TODO
+                    }
+                    else
+                    {
+                        player.item_held_index = i;
+                    }
                     break;
                 }
             }
@@ -666,78 +674,86 @@ static void update_player()
 
         if(item_index_taken > -1)
         {
-            if(items[item_index_taken].consummable)
+            if(items[item_index_taken].mounted)
             {
-                switch(items[item_index_taken].type)
+                // @TODO
+            }
+            else
+            {
+                if(items[item_index_taken].consummable)
                 {
-                    case ITEM_TYPE_HEALTH:
-                        player.phys.hp += items[item_index_taken].value;
-                        player.phys.hp = min(player.phys.max_hp,player.phys.hp);
+                    switch(items[item_index_taken].type)
+                    {
+                        case ITEM_TYPE_HEALTH:
+                            player.phys.hp += items[item_index_taken].value;
+                            player.phys.hp = min(player.phys.max_hp,player.phys.hp);
 
-                        spawn_floating_number(player.phys.x+TILE_WIDTH/2,player.phys.y,items[item_index_taken].value,11);
+                            spawn_floating_number(player.phys.x+TILE_WIDTH/2,player.phys.y,items[item_index_taken].value,11);
 
-                        for(int i = 0; i < 20; ++i)
-                        {
-                            spawn_particle(rand() % TILE_WIDTH + player.phys.x,player.phys.y,rand() % 4 + 1,3,0,6,current_board_index);
-                        }
-                        break;
-                    case ITEM_TYPE_MANA:
-                        player.mp += items[item_index_taken].value;
-                        player.mp = min(player.max_mp,player.mp);
+                            for(int i = 0; i < 20; ++i)
+                            {
+                                spawn_particle(rand() % TILE_WIDTH + player.phys.x,player.phys.y,rand() % 4 + 1,3,0,6,current_board_index);
+                            }
+                            break;
+                        case ITEM_TYPE_MANA:
+                            player.mp += items[item_index_taken].value;
+                            player.mp = min(player.max_mp,player.mp);
 
-                        spawn_floating_number(player.phys.x+TILE_WIDTH/2,player.phys.y,items[item_index_taken].value,8);
+                            spawn_floating_number(player.phys.x+TILE_WIDTH/2,player.phys.y,items[item_index_taken].value,8);
 
-                        for(int i = 0; i < 20; ++i)
-                        {
-                            spawn_particle(rand() % TILE_WIDTH + player.phys.x,player.phys.y,rand() % 2 + 1,3,'*',8,current_board_index);
-                        }
-                        break;
+                            for(int i = 0; i < 20; ++i)
+                            {
+                                spawn_particle(rand() % TILE_WIDTH + player.phys.x,player.phys.y,rand() % 2 + 1,3,'*',8,current_board_index);
+                            }
+                            break;
+                    }
                 }
-            }
-
-            if(items[item_index_taken].type == ITEM_TYPE_WEAPON)
-            {
-                if(player.weapon.name != "")
-                    spawn_item(player.weapon.name,player.phys.x,player.phys.y, current_board_index);
-
-                get_item_by_name(items[item_index_taken].name,&player.weapon);
-            }
-            else if(items[item_index_taken].type == ITEM_TYPE_ARMOR)
-            {
-                switch(items[item_index_taken].armor_props.armor_type)
+                if(items[item_index_taken].type == ITEM_TYPE_WEAPON)
                 {
-                    case ARMOR_TYPE_HEAD: 
-                        if(player.armor_head.name != "")
-                            spawn_item(player.armor_head.name,player.phys.x,player.phys.y, current_board_index);
+                    if(player.weapon.name != "")
+                        spawn_item(player.weapon.name,player.phys.x,player.phys.y, current_board_index);
 
-                        get_item_by_name(items[item_index_taken].name,&player.armor_head);
-
-                        break;
-                    case ARMOR_TYPE_BODY:
-                        if(player.armor_body.name != "")
-                            spawn_item(player.armor_body.name,player.phys.x,player.phys.y, current_board_index);
-
-                        get_item_by_name(items[item_index_taken].name,&player.armor_body);
-
-                        break;
-                    case ARMOR_TYPE_HANDS:
-                        if(player.armor_hands.name != "")
-                            spawn_item(player.armor_hands.name,player.phys.x,player.phys.y, current_board_index);
-
-                        get_item_by_name(items[item_index_taken].name,&player.armor_hands);
-                        
-                        break;
-                    case ARMOR_TYPE_FEET:
-                        if(player.armor_feet.name != "")
-                            spawn_item(player.armor_feet.name,player.phys.x,player.phys.y, current_board_index);
-
-                        get_item_by_name(items[item_index_taken].name,&player.armor_feet);
-                        
-                        break;
+                    get_item_by_name(items[item_index_taken].name,&player.weapon);
                 }
-            }
+                else if(items[item_index_taken].type == ITEM_TYPE_ARMOR)
+                {
+                    switch(items[item_index_taken].armor_props.armor_type)
+                    {
+                        case ARMOR_TYPE_HEAD: 
+                            if(player.armor_head.name != "")
+                                spawn_item(player.armor_head.name,player.phys.x,player.phys.y, current_board_index);
+
+                            get_item_by_name(items[item_index_taken].name,&player.armor_head);
+
+                            break;
+                        case ARMOR_TYPE_BODY:
+                            if(player.armor_body.name != "")
+                                spawn_item(player.armor_body.name,player.phys.x,player.phys.y, current_board_index);
+
+                            get_item_by_name(items[item_index_taken].name,&player.armor_body);
+
+                            break;
+                        case ARMOR_TYPE_HANDS:
+                            if(player.armor_hands.name != "")
+                                spawn_item(player.armor_hands.name,player.phys.x,player.phys.y, current_board_index);
+
+                            get_item_by_name(items[item_index_taken].name,&player.armor_hands);
+                            
+                            break;
+                        case ARMOR_TYPE_FEET:
+                            if(player.armor_feet.name != "")
+                                spawn_item(player.armor_feet.name,player.phys.x,player.phys.y, current_board_index);
+
+                            get_item_by_name(items[item_index_taken].name,&player.armor_feet);
+                            
+                            break;
+                    }
+                }
 
             remove_item(item_index_taken);
+
+            }
+
         }
     }
 

@@ -26,6 +26,7 @@ static BOOL get_item_by_name(const char* name,Item* item)
             item->name = item_list[i].name;
 			item->description = item_list[i].description;
 			item->value = item_list[i].value;
+            item->coin_value = item_list[i].coin_value;
 			item->tileset_name = item_list[i].tileset_name;
 			item->tile_index = item_list[i].tile_index;
 			item->consummable = item_list[i].consummable;
@@ -47,6 +48,7 @@ static BOOL get_item_by_name(const char* name,Item* item)
     item->name = "";
     item->description = "";
     item->value = 0;
+    item->coin_value = 0;
     item->tileset_name = "";
     item->tile_index = 0;
     item->type = 0;
@@ -80,6 +82,8 @@ static BOOL spawn_item(const char* item_name,float x, float y, int board_index)
     items[num_items].phys.z_vel = 2.0f;
     items[num_items].phys.speed = 1.0f;
     items[num_items].phys.base_speed = 1.0f;
+    items[num_items].mount_float_angle = 0.0f;
+    items[num_items].mounted = FALSE;
     items[num_items].friction = AIR_RESISTANCE;
     items[num_items].tileset_name = item.tileset_name;
     items[num_items].tile_index = item.tile_index;
@@ -87,6 +91,7 @@ static BOOL spawn_item(const char* item_name,float x, float y, int board_index)
     items[num_items].consummable = item.consummable;
     items[num_items].type = item.type;
     items[num_items].value = item.value;
+    items[num_items].coin_value = item.coin_value;
     items[num_items].weapon_props.attack_speed = item.weapon_props.attack_speed;
     items[num_items].weapon_props.attack_range = item.weapon_props.attack_range;
     items[num_items].weapon_props.min_damage = item.weapon_props.min_damage;
@@ -122,7 +127,16 @@ static void update_items()
 {
     for(int i = 0; i < num_items; ++i)
     {
-        if(i == player.item_held_index)
+        if(items[i].mounted)
+        {
+            items[i].phys.z = 5 + 2.1*sin(items[i].mount_float_angle);
+            items[i].mount_float_angle += PI/60.0f;
+			if (items[i].mount_float_angle >= 2*PI)
+            {
+				items[i].mount_float_angle = 0.0f;
+            }
+        }
+        else if(i == player.item_held_index)
         {
             int item_offset_x;
             int item_offset_y;

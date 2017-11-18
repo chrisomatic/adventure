@@ -7,6 +7,8 @@
 #define SECONDS_PER_DAY (DAY_CYCLE_COUNTER_MAX / TARGET_FPS)
 #define DAY_CYCLE_DAYTIME 3600 
 #define DAY_CYCLE_NIGHTTIME 10800
+#define MAX_NPCS     1000
+#define MAX_NPC_LIST 1000
 
 #define GRASS    0
 #define MARSH    1
@@ -99,8 +101,11 @@ typedef struct
     char* tileset_name;
     int  tile_index;
     int  value;
+    int  coin_value;
+    float mount_float_angle;
     BOOL highlighted;
     BOOL consummable;
+    BOOL mounted;
     ItemType type;
     WeaponProperties weapon_props;
     ArmorProperties  armor_props;
@@ -186,6 +191,67 @@ Player player;
 
 int foes_killed = 0; // @TEMP
 long next_level = 100;
+
+typedef enum
+{
+    CREATURE_STATE_NEUTRAL,
+    CREATURE_STATE_ACTING
+} CreatureState;
+
+typedef enum
+{
+    CREATURE_MODE_WANDER,
+    CREATURE_MODE_PURSUE
+} CreatureMode;
+
+typedef enum
+{
+    CREATURE_BEHAVIOR_PASSIVE,
+    CREATURE_BEHAVIOR_AGGRESSIVE
+} CreatureBehavior;
+
+typedef enum
+{
+    MALE,
+    FEMALE
+} Gender;
+
+typedef struct
+{
+    char* name;
+    char* board_name;
+    int board_index;
+    char* tileset_name;
+    int tile_index;
+    int xp;
+    PhysicalProperties phys;
+    float distance_from_player;
+    int action_counter;
+    int action_counter_max;
+    int action_duration_counter;
+    int action_duration_counter_max;
+    int talk_radius;
+    int num_dialogue;
+    int selected_dialogue_num;
+    int vendor_credit;
+    char* dialogue[10];
+    BOOL talking;
+    BOOL is_vendor;
+    Item weapon;
+    Item armor_head;
+    Item armor_body;
+    Item armor_hands;
+    Item armor_feet;
+    CreatureState state;
+    Direction dir;
+    Animation anim;
+} NPC;
+
+NPC npcs[MAX_NPCS];
+NPC npc_list[MAX_NPC_LIST];
+
+int num_npcs = 0;
+int num_npc_list = 0;
 
 static int current_board_index = 0;
 
@@ -670,4 +736,10 @@ static void draw_message()
 
     draw_string(message.name,42, 149,1.0f,8);
     draw_string(message.message,50,156,1.0f,message.color);
+
+    if(message.value > 0)
+    {
+        draw_char(CHAR_COIN,buffer_width - 40 - 18,149,14);
+        draw_number_string(message.value,buffer_width - 40 - 12,149,1.0f,14);
+    }
 }

@@ -11,3 +11,5 @@ tile_index: 17
 consummable: 1 #TRUE
 
 type: 2 #Mana
+
+coin_value: 5

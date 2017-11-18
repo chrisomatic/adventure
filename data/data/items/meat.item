@@ -11,3 +11,5 @@ tile_index: 16
 consummable: 1 #TRUE
 
 type: 1 #Health
+
+coin_value: 5

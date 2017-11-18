@@ -215,11 +215,29 @@ static void draw_entities()
     }
 }
 
-static BOOL are_entities_colliding(BoundingBox* a, BoundingBox* b)
+static BOOL are_entities_colliding(PhysicalProperties* phys_a, PhysicalProperties* phys_b)
 {
-    if(a->x <= (b->x + b->width) && (a->x + a->width) >= b->x)
-        if(a->y <= (b->y + b->length) && (a->y + a->length) >= b->y)
-            if(a->z <= (b->z + b->height) && (a->z + a->height) >= b->z)
+    BoundingBox a,b;
+
+    a.x = phys_a->x + TILE_WIDTH/4.0f;
+    a.y = phys_a->y + TILE_HEIGHT/4.0f;
+    a.z = phys_a->z;
+
+    a.width  = TILE_WIDTH/2.0f;
+    a.length = TILE_HEIGHT/2.0f;
+    a.height = phys_a->height;
+
+    b.x = phys_b->x;
+    b.y = phys_b->y;
+    b.z = phys_b->z;
+
+    b.width  = TILE_WIDTH;
+    b.length = TILE_HEIGHT/2.0f;
+    b.height = phys_b->height;
+
+    if(a.x <= (b.x + b.width) && (a.x + a.width) >= b.x)
+        if(a.y <= (b.y + b.length) && (a.y + a.length) >= b.y)
+            if(a.z <= (b.z + b.height) && (a.z + a.height) >= b.z)
                 return TRUE;
 
     return FALSE;

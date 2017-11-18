@@ -19,3 +19,4 @@ tileset_name: weapons
 tile_index: 2
 
 consummable: 0 #FALSE
+coin_value: 10

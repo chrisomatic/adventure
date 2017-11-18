@@ -214,6 +214,7 @@ static void draw_tile_shadow(int x, int y,const char* tileset_name, int tile_ind
     dst = dst + (buffer_width*y) + x;
 
     int tileset_index = get_tileset_index_by_name(tileset_name);
+
     if(tileset_index < 0)
         return;
 
