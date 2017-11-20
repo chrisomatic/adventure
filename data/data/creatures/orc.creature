@@ -25,3 +25,5 @@ adult_age: 5040
 width: 16
 length: 8
 height: 16
+x_offset: 2
+y_offset: 8

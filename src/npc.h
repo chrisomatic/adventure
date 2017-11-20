@@ -10,6 +10,8 @@ static BOOL get_npc_by_name(const char* name,NPC* npc)
             npc->name = npc_list[i].name;
             npc->phys.x = npc_list[i].phys.x;
             npc->phys.y = npc_list[i].phys.y;
+            npc->phys.x_offset = npc_list[i].phys.x_offset;
+            npc->phys.y_offset = npc_list[i].phys.y_offset;
             npc->phys.hp = npc_list[i].phys.hp;
             npc->phys.max_hp = npc_list[i].phys.max_hp;
             npc->phys.width = npc_list[i].phys.width;
@@ -74,6 +76,8 @@ static BOOL spawn_npc(const char* npc_name)
     npcs[num_npcs].name = npc.name;
     npcs[num_npcs].phys.width = npc.phys.width;
     npcs[num_npcs].phys.length  = npc.phys.length;
+    npcs[num_npcs].phys.x_offset = npc.phys.x_offset;
+    npcs[num_npcs].phys.y_offset = npc.phys.y_offset;
     npcs[num_npcs].phys.height = npc.phys.height;
     npcs[num_npcs].board_name = "Astoria";
     npcs[num_npcs].board_index = get_board_index_by_name(npcs[num_npcs].board_name);
@@ -374,5 +378,5 @@ static void draw_npc(int i)
     draw_tile(npc_x, npc_y, npcs[i].tileset_name,npcs[i].tile_index + npcs[i].dir + npcs[i].anim.frame_order[npcs[i].anim.frame],day_cycle_shade_amount);
 
     if(npcs[i].armor_head.name != NULL)
-        draw_tile(npcs[i].phys.x - camera.x, npcs[i].phys.y - camera.y + npcs[i].armor_head.armor_props.y_offset - 0.5*npcs[i].phys.z, npcs[i].armor_head.tileset_name, npcs[i].armor_head.tile_index + npcs[i].dir + npcs[i].anim.frame_order[npcs[i].anim.frame], day_cycle_shade_amount);
+        draw_tile(npcs[i].phys.x - camera.x, npcs[i].phys.y - camera.y + npcs[i].armor_head.armor_props.armor_y_offset - 0.5*npcs[i].phys.z, npcs[i].armor_head.tileset_name, npcs[i].armor_head.tile_index + npcs[i].dir + npcs[i].anim.frame_order[npcs[i].anim.frame], day_cycle_shade_amount);
 }

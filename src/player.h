@@ -14,14 +14,16 @@ static void init_player()
     player.mp  = 6;
     player.max_mp = 6;
     player.gold = 10;
-    player.phys.x   = 1271.0f; //(BOARD_TILE_WIDTH*(TILE_WIDTH-1))/2;
-    player.phys.y   = 863.0f; //(BOARD_TILE_HEIGHT*(TILE_HEIGHT-1))/2;
+    player.phys.x   = 1271.0f;
+    player.phys.y   = 863.0f;
     player.phys.z   = 0;
+    player.phys.x_offset = 2;
+    player.phys.y_offset = 8;
     player.phys.x_vel = 0;
     player.phys.y_vel = 0;
     player.phys.z_vel = 0;
     player.phys.length = 8;
-    player.phys.width  = 16;
+    player.phys.width  = 12;
     player.phys.height = 16;
     player.phys.speed = 1.0f;
     player.phys.base_speed = 1.0f;
@@ -70,22 +72,25 @@ static void player_die()
     for(int c = 0; c < gold_coins; ++c)
         spawn_coin(player.phys.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),player.phys.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)),2,0,0,2.0f, COIN_GOLD, current_board_index);
 
-    player.state = PLAYER_STATE_DEAD;
+    player.state |= PLAYER_STATE_DEAD;
 
+    generate_palette_file("data\\palettes\\palette_dead.png");
+    update_game_colors();
+
+    display_board_title = TRUE;
+    board_title_display_counter = 0;
 }
 
 static void update_player()
 {
-    // check if died
-    if(player.phys.hp <= 0)
-    {
-        player_die();
-    }
-
-    if(player.state == PLAYER_STATE_DEAD)
+    if((player.state & PLAYER_STATE_DEAD) == PLAYER_STATE_DEAD)
     {
         // TODO
-        return;
+        //return;
+    }
+    else if(player.phys.hp <= 0)
+    {
+        player_die();
     }
     
     if((player.state & PLAYER_STATE_HURT) == PLAYER_STATE_HURT)
@@ -162,6 +167,8 @@ static void update_player()
             // go to board
             player.phys.x = (BOARD_TILE_HEIGHT - 1)*TILE_HEIGHT;
             current_board_index = board_index;
+            display_board_title = TRUE;
+            board_title_display_counter = 0;
         }
     }
     else if(player.phys.y < 0)
@@ -175,6 +182,8 @@ static void update_player()
             // go to board
             player.phys.y = (BOARD_TILE_HEIGHT-1)*TILE_HEIGHT;
             current_board_index = board_index;
+            display_board_title = TRUE;
+            board_title_display_counter = 0;
         }
     }
     else if(player.phys.x > TILE_WIDTH*(BOARD_TILE_WIDTH - 1))
@@ -188,6 +197,8 @@ static void update_player()
             // go to board
             player.phys.x = 0;
             current_board_index = board_index;
+            display_board_title = TRUE;
+            board_title_display_counter = 0;
         }
     }
     else if(player.phys.y > TILE_HEIGHT*(BOARD_TILE_HEIGHT - 1))
@@ -201,9 +212,53 @@ static void update_player()
             // go to board
             player.phys.y = 0;
             current_board_index = board_index;
+            display_board_title = TRUE;
+            board_title_display_counter = 0;
         }
     }
 
+    // check portals
+    for(int i = 0; i < num_portal_links; ++i)
+    {
+        if(portal_links[i].a.board_index == current_board_index)
+        {
+            // check if player is colliding with portal
+            if(player.phys.x + player.phys.x_offset >= portal_links[i].a.x && player.phys.x + player.phys.x_offset + player.phys.width <= portal_links[i].a.x + TILE_WIDTH)
+            {
+				if (player.phys.y + player.phys.y_offset >= portal_links[i].a.y && player.phys.y + player.phys.y_offset + player.phys.length <= portal_links[i].a.y + TILE_HEIGHT)
+                {
+                    current_board_index = portal_links[i].b.board_index;
+                    player.phys.x = portal_links[i].b.x;
+                    player.phys.y = portal_links[i].b.y;
+                    display_board_title = TRUE;
+                    board_title_display_counter = 0;
+
+                    player.phys.x += player.phys.x_vel*player.phys.speed*16;
+                    player.phys.y += player.phys.y_vel*player.phys.speed*16;
+                }
+
+            }
+        }
+        else if(portal_links[i].b.board_index == current_board_index)
+        {
+            // check if player is colliding with portal
+            if(player.phys.x + player.phys.x_offset >= portal_links[i].b.x && player.phys.x + player.phys.x_offset + player.phys.width <= portal_links[i].b.x + TILE_WIDTH)
+            {
+                if(player.phys.y + player.phys.y_offset >= portal_links[i].b.y && player.phys.y + player.phys.y_offset + player.phys.length <= portal_links[i].b.y + TILE_HEIGHT)
+                {
+                    current_board_index = portal_links[i].a.board_index;
+                    player.phys.x = portal_links[i].a.x;
+                    player.phys.y = portal_links[i].a.y;
+                    display_board_title = TRUE;
+                    board_title_display_counter = 0;
+
+                    player.phys.x += player.phys.x_vel*player.phys.speed*16;
+                    player.phys.y += player.phys.y_vel*player.phys.speed*16;
+                }
+            }
+        }
+    }
+    
     // update player movement animation
     if(player.phys.x_vel != 0 || player.phys.y_vel != 0)
     {
@@ -800,7 +855,7 @@ static void draw_player_and_armor()
     
     // helm
     if(player.armor_head.name != NULL)
-        draw_tile(player.phys.x - camera.x, player.phys.y - camera.y + player.armor_head.armor_props.y_offset - 0.5*player.phys.z, player.armor_head.tileset_name, player.armor_head.tile_index + player.dir + player.anim.frame_order[player.anim.frame], day_cycle_shade_amount);
+        draw_tile(player.phys.x - camera.x, player.phys.y - camera.y + player.armor_head.armor_props.armor_y_offset - 0.5*player.phys.z, player.armor_head.tileset_name, player.armor_head.tile_index + player.dir + player.anim.frame_order[player.anim.frame], day_cycle_shade_amount);
     
     // body
     
@@ -818,7 +873,7 @@ static void draw_weapon()
 
 static void draw_player()
 {
-    if(player.state == PLAYER_STATE_DEAD)
+    if((player.state & PLAYER_STATE_DEAD) == PLAYER_STATE_DEAD)
     {
         // draw tombstone
 		draw_tile(player.phys.x - camera.x, player.phys.y - camera.y,"objects",2,day_cycle_shade_amount);

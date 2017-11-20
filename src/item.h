@@ -40,7 +40,9 @@ static BOOL get_item_by_name(const char* name,Item* item)
             item->weapon_props.weapon_type = item_list[i].weapon_props.weapon_type;
             item->armor_props.defence = item_list[i].armor_props.defence;
             item->armor_props.armor_type = item_list[i].armor_props.armor_type;
-            item->armor_props.y_offset = item_list[i].armor_props.y_offset;
+            item->armor_props.armor_y_offset = item_list[i].armor_props.armor_y_offset;
+            item->phys.x_offset = item_list[i].phys.x_offset;
+            item->phys.y_offset = item_list[i].phys.y_offset;
 
             return TRUE;
         }
@@ -64,7 +66,9 @@ static BOOL get_item_by_name(const char* name,Item* item)
     item->weapon_props.weapon_type = 0;
     item->armor_props.defence = 0.0f;
     item->armor_props.armor_type = ARMOR_TYPE_NONE; 
-    item->armor_props.y_offset = 0; 
+    item->armor_props.armor_y_offset = 0; 
+    item->phys.x_offset = 0;
+    item->phys.y_offset = 0;
 
 	return FALSE;
 }
@@ -107,7 +111,9 @@ static BOOL spawn_item(const char* item_name,float x, float y, int board_index)
     items[num_items].weapon_props.weapon_type = item.weapon_props.weapon_type;
     items[num_items].armor_props.defence = item.armor_props.defence;
     items[num_items].armor_props.armor_type = item.armor_props.armor_type;
-    items[num_items].armor_props.y_offset = item.armor_props.y_offset;
+    items[num_items].armor_props.armor_y_offset = item.armor_props.armor_y_offset;
+    items[num_items].phys.x_offset = item.phys.x_offset;
+    items[num_items].phys.y_offset = item.phys.y_offset;
 
     ++num_items;
     if(num_items > MAX_ITEMS -1)

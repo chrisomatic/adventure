@@ -23,8 +23,10 @@ static BOOL spawn_coin(float x, float y, float z, float x_vel, float y_vel, floa
     coins[num_coins].phys.x_vel = x_vel;
     coins[num_coins].phys.y_vel = y_vel;
     coins[num_coins].phys.z_vel = z_vel;
+    coins[num_coins].phys.x_offset = 6;
+    coins[num_coins].phys.y_offset = 6;
     coins[num_coins].phys.width = 4;
-    coins[num_coins].phys.length = 2;
+    coins[num_coins].phys.length = 4;
     coins[num_coins].phys.height = 4;
     coins[num_coins].phys.speed = 1.0f;
     coins[num_coins].phys.base_speed = 1.0f;

@@ -22,3 +22,5 @@ tile_index: 0
 width: 16
 length: 8
 height: 16
+x_offset: 2
+y_offset: 8

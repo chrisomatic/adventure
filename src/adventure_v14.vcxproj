@@ -114,6 +114,7 @@
     <ClInclude Include="npc.h" />
     <ClInclude Include="particle.h" />
     <ClInclude Include="player.h" />
+    <ClInclude Include="portal.h" />
     <ClInclude Include="projectile.h" />
     <ClInclude Include="resource1.h" />
     <ClInclude Include="tile.h" />

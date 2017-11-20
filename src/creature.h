@@ -174,6 +174,8 @@ static BOOL get_creature_by_name(const char* name,Creature* creature)
             creature->gestation_period = creature_list[i].gestation_period;
             creature->litter_max = creature_list[i].litter_max;
             creature->max_age = creature_list[i].max_age;
+            creature->phys.x_offset = creature_list[i].phys.x_offset;
+            creature->phys.y_offset = creature_list[i].phys.y_offset;
 
             return TRUE;
         }
@@ -255,6 +257,8 @@ static BOOL spawn_creature(const char* creature_name,float x, float y)
     creatures[num_creatures].birth_recovery_counter = 0;
     creatures[num_creatures].birth_recovery = FALSE;
     creatures[num_creatures].death_check_counter = rand() % DAY_CYCLE_COUNTER_MAX;
+    creatures[num_creatures].phys.x_offset = creature.phys.x_offset;
+    creatures[num_creatures].phys.y_offset = creature.phys.y_offset;
 
     if(strcmp(creature_name,"Orc") == 0)
         get_item_by_name("Axe",&creatures[num_creatures].weapon);
@@ -315,17 +319,17 @@ static void init_creatures()
 		if (num_creature_list == 0)
 			return;
 
-        /*
 		int creature_type = rand() % num_creature_list;
         spawn_creature(creature_list[creature_type].name,creature_x,creature_y);
-        */
 
+        /*
 		int creature_type = rand() % 2;
 
         if(creature_type == 0)
             spawn_creature("Rat",creature_x,creature_y);
         else
             spawn_creature("White Rat",creature_x,creature_y);
+        */
     }
     
 }
@@ -447,8 +451,9 @@ static void update_creatures()
 
         if(creatures[i].behavior == CREATURE_BEHAVIOR_AGGRESSIVE)
         {
+            
             // check distance from player
-            if(get_distance(player.phys.x + TILE_WIDTH/2,player.phys.y + TILE_HEIGHT/2,creatures[i].phys.x + TILE_WIDTH/2,creatures[i].phys.y+TILE_HEIGHT/2) <= creatures[i].aggro_radius)
+            if((player.state & PLAYER_STATE_DEAD) != PLAYER_STATE_DEAD && get_distance(player.phys.x + TILE_WIDTH/2,player.phys.y + TILE_HEIGHT/2,creatures[i].phys.x + TILE_WIDTH/2,creatures[i].phys.y+TILE_HEIGHT/2) <= creatures[i].aggro_radius)
             {
                 if(creatures[i].mode == CREATURE_MODE_WANDER)
                 {
@@ -548,7 +553,7 @@ static void update_creatures()
 
                 for(int j = 0; j < creatures[i].weapon.weapon_props.attack_range; ++j)
                 {
-                    if(player.state == PLAYER_STATE_DEAD)
+                    if((player.state & PLAYER_STATE_DEAD) == PLAYER_STATE_DEAD)
                         break;
 
                     if(creatures[i].attack_recovery)

@@ -43,6 +43,7 @@
     <ClInclude Include="resource1.h" />
     <ClInclude Include="board.h" />
     <ClInclude Include="item_stand.h" />
+    <ClInclude Include="portal.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="adventure_V14.rc" />

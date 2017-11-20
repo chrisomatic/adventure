@@ -15,7 +15,7 @@ tile_index: 16
 
 consummable: 0 #FALSE
 
-y_offset: 0
+armor_y_offset: 0
 coin_value: 10
 width: 16
 length: 10

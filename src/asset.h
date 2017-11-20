@@ -98,6 +98,8 @@ static void load_assets(ASSET_TYPE type)
                 {
                     case ASSET_TYPE_CREATURE:
 						if (strcmp(key, "name") == 0) creature_list[asset_counter].name = _strdup(value);
+                        else if (strcmp(key, "x_offset") == 0) C_atoi(value, &creature_list[asset_counter].phys.x_offset);
+                        else if (strcmp(key, "y_offset") == 0) C_atoi(value, &creature_list[asset_counter].phys.y_offset);
 						else if (strcmp(key, "species") == 0) creature_list[asset_counter].species = _strdup(value);
                         else if (strcmp(key, "hp") == 0) C_atoi(value, &creature_list[asset_counter].phys.hp);
                         else if (strcmp(key, "max_hp") == 0) C_atoi(value, &creature_list[asset_counter].phys.max_hp);
@@ -136,7 +138,9 @@ static void load_assets(ASSET_TYPE type)
                         else if (strcmp(key, "attack_range") == 0) C_atoi(value, &item_list[asset_counter].weapon_props.attack_range);
                         else if (strcmp(key, "defence") == 0) C_atoi(value, &item_list[asset_counter].armor_props.defence);
                         else if (strcmp(key, "armor_type") == 0) C_atoi(value, &item_list[asset_counter].armor_props.armor_type);
-                        else if (strcmp(key, "y_offset") == 0) C_atoi(value, &item_list[asset_counter].armor_props.y_offset);
+                        else if (strcmp(key, "armor_y_offset") == 0) C_atoi(value, &item_list[asset_counter].armor_props.armor_y_offset);
+                        else if (strcmp(key, "x_offset") == 0) C_atoi(value, &item_list[asset_counter].phys.x_offset);
+                        else if (strcmp(key, "y_offset") == 0) C_atoi(value, &item_list[asset_counter].phys.y_offset);
                         else if (strcmp(key, "coin_value") == 0) C_atoi(value, &item_list[asset_counter].coin_value);
                         else if (strcmp(key, "width") == 0) C_atoi(value, &item_list[asset_counter].phys.width);
                         else if (strcmp(key, "length") == 0) C_atoi(value, &item_list[asset_counter].phys.length);
@@ -148,6 +152,8 @@ static void load_assets(ASSET_TYPE type)
 						if (strcmp(key, "name") == 0) npc_list[asset_counter].name = _strdup(value);
 						else if (strcmp(key, "x") == 0) npc_list[asset_counter].phys.x = atof(value);
 						else if (strcmp(key, "y") == 0) npc_list[asset_counter].phys.y = atof(value);
+                        else if (strcmp(key, "x_offset") == 0) C_atoi(value, &npc_list[asset_counter].phys.x_offset);
+                        else if (strcmp(key, "y_offset") == 0) C_atoi(value, &npc_list[asset_counter].phys.y_offset);
                         else if (strcmp(key, "hp") == 0) C_atoi(value, &npc_list[asset_counter].phys.hp);
 						else if (strcmp(key, "max_hp") == 0) C_atoi(value, &npc_list[asset_counter].phys.max_hp);
                         else if (strcmp(key, "is_vendor") == 0) C_atoi(value, &npc_list[asset_counter].is_vendor);

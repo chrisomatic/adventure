@@ -1,0 +1,20 @@
+name: Bat
+hp: 15
+max_hp: 15
+xp: 3
+speed: 0.6
+gold_drop_max: 15
+behavior: 0 # Passive
+untargetable: 0 # FALSE
+
+tileset_name: creatures
+
+tile_index: 80
+species: Bat
+reproductive: 0 #FALSE
+adult_age: 5040
+width: 16
+length: 8
+height: 8
+x_offset: 2
+y_offset: 4

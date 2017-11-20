@@ -10,18 +10,21 @@
 #define MAX_NPCS     1000
 #define MAX_NPC_LIST 1000
 
-#define GRASS    0
-#define MARSH    1
-#define WATER    2
-#define WATER2   3
-#define SAND     4
-#define MUD      5
-#define MOUNTAIN 6
-#define SNOW     7
-#define LAVA     8
-#define LAVA2    9
-#define STONE    10 
-#define WOOD     11
+#define GRASS        0
+#define MARSH        1
+#define WATER        2
+#define WATER2       3
+#define SAND         4
+#define MUD          5
+#define MOUNTAIN     6
+#define SNOW         7
+#define LAVA         8
+#define LAVA2        9
+#define STONE       10 
+#define WOOD        11
+#define WATER_DEEP  12
+#define WATER_DEEP2 13
+#define CAVE        14
 
 typedef struct
 {
@@ -71,7 +74,7 @@ typedef struct
 {
     float defence;
     ArmorType armor_type;
-    int y_offset;
+    int armor_y_offset;
 } ArmorProperties;
 
 typedef struct
@@ -79,6 +82,8 @@ typedef struct
     float x;
     float y;
     float z;
+    int   x_offset;
+    int   y_offset;
     float x_vel;
     float y_vel;
     float z_vel;
@@ -194,6 +199,10 @@ Player player;
 
 int foes_killed = 0; // @TEMP
 long next_level = 100;
+BOOL display_stats = FALSE;
+
+BOOL display_board_title = FALSE;
+int board_title_display_counter = 0;
 
 typedef enum
 {
@@ -343,10 +352,10 @@ static void handle_terrain_collision(int board_index, PhysicalProperties* phys)
     int collision_value_1,collision_value_2, collision_value_3, collision_value_4;
 
     // check collision
-    check_x1 = (phys->x + 1*TILE_WIDTH/4) / TILE_WIDTH; check_y1 = (phys->y + TILE_HEIGHT/2) / TILE_HEIGHT;
-    check_x2 = (phys->x + 3*TILE_WIDTH/4) / TILE_WIDTH; check_y2 = (phys->y + TILE_HEIGHT/2) / TILE_HEIGHT;
-    check_x3 = (phys->x + 1*TILE_WIDTH/4) / TILE_WIDTH; check_y3 = (phys->y + TILE_HEIGHT/1) / TILE_HEIGHT;
-    check_x4 = (phys->x + 3*TILE_WIDTH/4) / TILE_WIDTH; check_y4 = (phys->y + TILE_HEIGHT/1) / TILE_HEIGHT;
+    check_x1 = (phys->x + phys->x_offset) / TILE_WIDTH; check_y1 = (phys->y + phys->y_offset) / TILE_HEIGHT;
+    check_x2 = (phys->x + phys->x_offset + phys->width) / TILE_WIDTH; check_y2 = (phys->y + phys->y_offset) / TILE_HEIGHT;
+    check_x3 = (phys->x + phys->x_offset) / TILE_WIDTH; check_y3 = (phys->y + phys->y_offset + phys->length) / TILE_HEIGHT;
+    check_x4 = (phys->x + phys->x_offset + phys->width) / TILE_WIDTH; check_y4 = (phys->y + phys->y_offset + phys->length) / TILE_HEIGHT;
 
     collision_value_1 = board_list[board_index].collision[min(check_x1, BOARD_TILE_WIDTH - 1)][min(check_y1, BOARD_TILE_HEIGHT - 1)];
     collision_value_2 = board_list[board_index].collision[min(check_x2, BOARD_TILE_WIDTH - 1)][min(check_y2, BOARD_TILE_HEIGHT - 1)];
@@ -445,9 +454,10 @@ static void handle_terrain_collision(int board_index, PhysicalProperties* phys)
     
 }
 
-static void init_board()
+static void init_boards()
 {
     current_board_index = get_board_index_by_name(player.board_name);
+    display_board_title = TRUE;
 }
 
 static void load_board_map()
@@ -547,6 +557,8 @@ static void generate_indexed_board(const char* rgb_image_path,const char* indexe
 				val = MARSH;
 			else if (r == 0 && g == 150 && b == 175) // water 
 				val = WATER;
+			else if (r == 0 && g == 50 && b == 150) // deep water 
+				val = WATER_DEEP;
 			else if (r == 255 && g == 200 && b == 0) // sand
 				val = SAND;
 			else if (r == 100 && g == 75 && b == 50) // mud
@@ -561,6 +573,8 @@ static void generate_indexed_board(const char* rgb_image_path,const char* indexe
 				val = STONE;
             else if (r == 200 && g == 150 && b == 64)   // wood 
 				val = WOOD;
+            else if (r == 0 && g == 0 && b == 0)   // cave
+				val = CAVE;
                 
 			if (fputc(val, fp_board) == EOF)
 				return;
@@ -619,9 +633,14 @@ static void load_board(const char* path_to_board_file, int board_index)
                 case LAVA:  board_list[board_index].collision[i][j] = 6; break;
                 case MOUNTAIN: board_list[board_index].collision[i][j] = 5; break;
                 case STONE: board_list[board_index].collision[i][j] = 5; break;
+                case WATER_DEEP: board_list[board_index].collision[i][j] = 5; break;
+                case CAVE: board_list[board_index].collision[i][j] = 1; break;
             }
         }
     }
+
+    board_list[board_index].map_x_index = -1;
+    board_list[board_index].map_y_index = -1;
 
     fclose(fp_board);
 }
@@ -666,7 +685,7 @@ static void update_board(int index)
                     else
                         board_list[index].data[i][j] = WATER;
                 }
-				if(board_list[index].data[i][j] == LAVA || board_list[index].data[i][j] == LAVA2)
+				else if(board_list[index].data[i][j] == LAVA || board_list[index].data[i][j] == LAVA2)
                 {
 					// animate lava
                     if(board_list[index].data[i][j] == LAVA) 
@@ -674,6 +693,14 @@ static void update_board(int index)
                     else
                         board_list[index].data[i][j] = LAVA;
                 }    
+				else if(board_list[index].data[i][j] == WATER_DEEP || board_list[index].data[i][j] == WATER_DEEP2)
+				{
+					// animate water
+                    if(board_list[index].data[i][j] == WATER_DEEP) 
+                        board_list[index].data[i][j] = WATER_DEEP2;
+                    else
+                        board_list[index].data[i][j] = WATER_DEEP;
+                }
             }
         }
     }

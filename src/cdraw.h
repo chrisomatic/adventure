@@ -75,6 +75,72 @@ static void generate_palette_file(const char* image_path)
     stbi_image_free(imgdata);
 }
 
+static void update_game_colors()
+{
+
+	FILE *fp;
+    fp = fopen("data\\palette","rb");
+
+    if(fp != NULL)
+    {
+        int color_index = 0;
+        while(1) {
+
+          bmi.acolors[color_index].rgbRed   = fgetc(fp);
+          bmi.acolors[color_index].rgbGreen = fgetc(fp);
+          bmi.acolors[color_index].rgbBlue  = fgetc(fp);
+
+		  if (palette_num_channels == 4) 
+			  fgetc(fp);
+
+          if(feof(fp))
+             break;
+
+		  color_index++;
+
+        }
+
+        int percentage_decrease = 5;
+
+		while (color_index < 256)
+		{
+			if (color_index == 255)
+			{
+				// set transparent color...
+				bmi.acolors[color_index].rgbRed = 255;
+				bmi.acolors[color_index].rgbGreen = 0;
+				bmi.acolors[color_index].rgbBlue = 255;
+				break;
+			}
+
+			bmi.acolors[color_index].rgbRed = bmi.acolors[color_index % 16].rgbRed * (1.0f - (percentage_decrease/100.0f));
+			bmi.acolors[color_index].rgbGreen = bmi.acolors[color_index % 16].rgbGreen * (1.0f - (percentage_decrease/100.0f));
+			bmi.acolors[color_index].rgbBlue = bmi.acolors[color_index % 16].rgbBlue * (1.0f - (percentage_decrease/100.0f));
+
+			color_index++;
+
+			if (color_index % 16 == 0)
+			{
+				percentage_decrease += 7;
+				percentage_decrease = min(100, percentage_decrease);
+			}
+		}
+    }
+    else
+    {
+        // randomly generate palette colors
+        for (int i = 0; i < 256; ++i)
+        {
+            bmi.acolors[i].rgbRed   = rand() % 256;
+            bmi.acolors[i].rgbGreen = rand() % 256; 
+            bmi.acolors[i].rgbBlue  = rand() % 256;
+        }
+    }
+
+    fclose(fp);
+    
+	dc = GetDC(main_window);
+}
 
 
 static void draw_rect8(int x, int y, int w, int h, char color, BOOL filled)

@@ -14,7 +14,7 @@ tileset_name: armor
 tile_index: 48
 consummable: 0 #FALSE
 
-y_offset: -5
+armor_y_offset: -5
 coin_value: 10
 width: 16
 length: 10

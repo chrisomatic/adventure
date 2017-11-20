@@ -7,7 +7,7 @@ typedef struct
     int board_index;
     int item_lifetime_counter;
     int vendor_index;
-    Item* item;
+    int item_index;
 } ItemStand;
 
 ItemStand item_stands[MAX_ITEM_STANDS];
@@ -17,9 +17,9 @@ static void spawn_random_item(int i)
 {
     int rand_item = rand() % num_item_list;
     spawn_item(item_list[rand_item].name,item_stands[i].x, item_stands[i].y, item_stands[i].board_index);
-    item_stands[i].item = &items[num_items - 1];
-    (*item_stands[i].item).mounted = TRUE;
-    (*item_stands[i].item).vendor_index = item_stands[i].vendor_index;
+	item_stands[i].item_index = num_items - 1;
+    items[item_stands[i].item_index].mounted = TRUE;
+    items[item_stands[i].item_index].vendor_index = item_stands[i].vendor_index;
 }
 
 static void spawn_item_stand(float x, float y,int board_index, int vendor_index)
@@ -53,6 +53,7 @@ static void update_item_stands()
         {
             // spawn a new item
             item_stands[i].item_lifetime_counter = 0;
+            remove_item(item_stands[i].item_index);
             spawn_random_item(i);
         }
     }

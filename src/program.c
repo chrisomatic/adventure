@@ -22,6 +22,7 @@
 #include "floatingnumber.h"
 #include "creature.h"
 #include "projectile.h"
+#include "portal.h"
 #include "player.h"
 #include "npc.h"
 #include "entity.h"
@@ -54,7 +55,7 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
 {
 	set_working_directory();
 
-	generate_palette_file("data\\16_color_palette.png");
+	generate_palette_file("data\\palettes\\palette_main.png");
 	setup_window(hinstance);
 
     generate_all_tilesets();
@@ -74,14 +75,16 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
     init_items();
     init_player();
     init_npcs();
-    init_board();
+    init_boards();
     init_item_stands();
+    init_portals();
 
     // test
     //playMIDIFile(main_window,"data\\music\\village.mid");
     // 
 
     // @TEMP
+    /*
     time_t timer;
     char buffer[26];
     struct tm* tm_info;
@@ -110,6 +113,7 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
     fprintf(fp_rat_plot,"rat_index,x,y\n");
     fclose(fp_rats);
     //
+    */
 
     timer_init(TARGET_FPS); 
     is_running = TRUE;
@@ -129,7 +133,7 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
 		if (timer_ready(&current_fps))
 		{
             // @TEMP
-            
+            /*
             ++counter_for_seconds;
             if(counter_for_seconds == TARGET_FPS)
             {
@@ -153,6 +157,7 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
                 fprintf(fp_rats,"%i,%i,%i,%i\n",num_creatures,num_births,num_deaths,num_pregs);
                 fclose(fp_rats);
             }
+            */
             //
             
             update_scene();
@@ -160,7 +165,7 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
         }
 	}
 
-    fclose(fp_rats);
+    //fclose(fp_rats);
 
 	return EXIT_SUCCESS;
 }
@@ -228,6 +233,22 @@ static void draw_scene()
 
     sort_entities();
     draw_entities();
+
+    if(display_board_title)
+    {
+        int l = length_of(board_list[current_board_index].name) * 6;
+        if((player.state & PLAYER_STATE_DEAD) == PLAYER_STATE_DEAD)
+            draw_string_with_shadow("The Abyss",(buffer_width - 54)/2,(buffer_height - 50)/2,1.0f,14);
+        else
+            draw_string_with_shadow(board_list[current_board_index].name,(buffer_width - l)/2,(buffer_height - 50)/2,1.0f,14);
+
+        ++board_title_display_counter;
+        if(board_title_display_counter >= 180)
+        {
+            board_title_display_counter = 0;
+            display_board_title = FALSE;
+        }
+    }
 
     if(message.active)
         draw_message();
@@ -311,6 +332,7 @@ static void draw_scene()
     //{
     //    draw_bounding_box(&npcs[i].phys);
     //}
+    
     
     // Blit buffer to screen
     StretchDIBits(dc, 0, 0, window_width, window_height, 0, 0, buffer_width, buffer_height, back_buffer, (BITMAPINFO*)&bmi, DIB_RGB_COLORS, SRCCOPY);
@@ -401,70 +423,9 @@ static void setup_window(HINSTANCE hInstance)
 	back_buffer = malloc(buffer_width*buffer_height * BYTES_PER_PIXEL);
 
     // open palette file
-	FILE *fp;
-    fp = fopen("data\\palette","rb");
+    update_game_colors();
 
-    if(fp != NULL)
-    {
-        int color_index = 0;
-        while(1) {
-
-          bmi.acolors[color_index].rgbRed   = fgetc(fp);
-          bmi.acolors[color_index].rgbGreen = fgetc(fp);
-          bmi.acolors[color_index].rgbBlue  = fgetc(fp);
-
-		  if (palette_num_channels == 4) 
-			  fgetc(fp);
-
-          if(feof(fp))
-             break;
-
-		  color_index++;
-
-        }
-
-        int percentage_decrease = 5;
-
-		while (color_index < 256)
-		{
-			if (color_index == 255)
-			{
-				// set transparent color...
-				bmi.acolors[color_index].rgbRed = 255;
-				bmi.acolors[color_index].rgbGreen = 0;
-				bmi.acolors[color_index].rgbBlue = 255;
-				break;
-			}
-
-			bmi.acolors[color_index].rgbRed = bmi.acolors[color_index % 16].rgbRed * (1.0f - (percentage_decrease/100.0f));
-			bmi.acolors[color_index].rgbGreen = bmi.acolors[color_index % 16].rgbGreen * (1.0f - (percentage_decrease/100.0f));
-			bmi.acolors[color_index].rgbBlue = bmi.acolors[color_index % 16].rgbBlue * (1.0f - (percentage_decrease/100.0f));
-
-			color_index++;
-
-			if (color_index % 16 == 0)
-			{
-				percentage_decrease += 7;
-				percentage_decrease = min(100, percentage_decrease);
-			}
-		}
-    }
-    else
-    {
-        // randomly generate palette colors
-        for (int i = 0; i < 256; ++i)
-        {
-            bmi.acolors[i].rgbRed   = rand() % 256;
-            bmi.acolors[i].rgbGreen = rand() % 256; 
-            bmi.acolors[i].rgbBlue  = rand() % 256;
-        }
-    }
-
-    fclose(fp);
-    
-	dc = GetDC(main_window);
 }
-
 static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam)
 {
 	switch (umsg)
