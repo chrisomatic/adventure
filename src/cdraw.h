@@ -148,10 +148,8 @@ static void draw_rect8(int x, int y, int w, int h, char color, BOOL filled)
     unsigned char* dst = (unsigned char*)back_buffer;
     dst = dst + (buffer_width*y) + x;
 
-    if (dst < (unsigned char*)back_buffer)
-        return;
-    if (dst + (buffer_width*h)+w > (unsigned char*)back_buffer + (buffer_width*(buffer_height + 1)))
-        return;
+    if (dst < (unsigned char*)back_buffer) return;
+    if (dst + (buffer_width*h)+w >= (unsigned char*)back_buffer + buffer_width*buffer_height) return;
 
     if(filled)
     {
@@ -167,12 +165,12 @@ static void draw_rect8(int x, int y, int w, int h, char color, BOOL filled)
         memset(dst,color,w);
         dst += buffer_width;
 
-        for(int i = 0; i < h; ++i)
+        for(int i = 0; i < h-2; ++i)
         {
             *dst = color;
-            dst+= w;
+            dst+= (w-1);
             *dst = color;
-            dst += (buffer_width - w);
+            dst += (buffer_width - w + 1);
         }
         
         //bottom line

@@ -14,6 +14,7 @@
 #include "timer.h"
 #include "animation.h"
 #include "tile.h"
+#include "zone.h"
 #include "board.h"
 #include "item.h"
 #include "item_stand.h"
@@ -24,9 +25,9 @@
 #include "projectile.h"
 #include "portal.h"
 #include "player.h"
-#include "npc.h"
 #include "entity.h"
 #include "asset.h"
+#include "hud.h"
 
 const char* CLASS_NAME = "Adventure";
 
@@ -41,7 +42,7 @@ int window_height;
 int counter_for_seconds = 0;
 int counter_for_minutes = 0;
 
-int current_fps = 0;
+BOOL shift_down = FALSE;
 
 const int BYTES_PER_PIXEL = 1;
 
@@ -74,7 +75,6 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
     init_creatures();
     init_items();
     init_player();
-    init_npcs();
     init_boards();
     init_item_stands();
     init_portals();
@@ -84,7 +84,7 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
     // 
 
     // @TEMP
-    /*
+   /* 
     time_t timer;
     char buffer[26];
     struct tm* tm_info;
@@ -112,8 +112,8 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
     FILE* fp_rat_plot = fopen(outputnameplot,"w");
     fprintf(fp_rat_plot,"rat_index,x,y\n");
     fclose(fp_rats);
-    //
     */
+    //
 
     timer_init(TARGET_FPS); 
     is_running = TRUE;
@@ -159,7 +159,6 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
             }
             */
             //
-            
             update_scene();
             draw_scene();
         }
@@ -176,35 +175,16 @@ static void update_scene()
     message.active = FALSE;
     player.notch = FALSE;
 
-    // update board 
     update_board(current_board_index);
-
-    // update player
     update_player();
-   
-    // update item stands
     update_item_stands();
-    
-    // update items
     update_items();
-    
-    // update coins
     update_coins();
-
-    // update floating numbers
     update_floating_numbers();
-
-    // update creatures
     update_creatures();
-    
-    // update npcs
-    update_npcs();
-
-    // update particles
     update_particles();
-    
-    // update particles
     update_projectiles();
+	update_hud();
 
     // update camera
     camera.x = (player.phys.x - (buffer_width / 2));
@@ -250,90 +230,8 @@ static void draw_scene()
         }
     }
 
-    if(message.active)
-        draw_message();
-    
-    // draw HUD 
-    // health
-    int ui_x = 0;
+    draw_hud();
 
-    for(int i = 0; i < player.phys.max_hp / 2.0f;++i)
-    {
-        draw_char_with_shadow(CHAR_HEART,ui_x,buffer_height -7,3);
-        ui_x += 6;
-    }
-
-    float num_hearts = player.phys.hp / 2.0f;
-    int heart_counter = 0;
-
-    while(num_hearts >= 1)
-    {
-        draw_char_with_shadow(CHAR_HEART,6*heart_counter, buffer_height -7, 6);
-        num_hearts--;
-        heart_counter++;
-    }
-
-    if(num_hearts > 0)
-        draw_char(CHAR_HEART_HALF,6*heart_counter, buffer_height -7, 6);
-
-    ui_x += 10; 
-    int diamond_x = ui_x;
-
-    for(int i = 0; i < player.max_mp / 2.0f;++i)
-    {
-        draw_char_with_shadow(CHAR_DIAMOND,ui_x,buffer_height -7,3);
-        ui_x += 6;
-    }
-
-    float num_diamonds = player.mp / 2.0f;
-    int diamond_counter = 0;
-
-    while(num_diamonds >= 1)
-    {
-        draw_char_with_shadow(CHAR_DIAMOND,diamond_x + 6*diamond_counter, buffer_height -7, 8);
-        num_diamonds--;
-        diamond_counter++;
-    }
-    if(num_diamonds > 0)
-        draw_char(CHAR_DIAMOND_HALF,diamond_x  + 6*diamond_counter, buffer_height -7, 8);
-
-    ui_x += 20;
-    
-    // gold
-    draw_string_with_shadow("Gold:",ui_x, buffer_height -7,1.0f,7); ui_x += 30;
-    draw_number_string_with_shadow(player.gold,ui_x,buffer_height -7,1.0f,14); ui_x += 30;
-
-    // lvl
-    draw_string_with_shadow("Lvl:",ui_x, buffer_height -7,1.0f,7); ui_x += 24;
-    draw_number_string_with_shadow(player.lvl,ui_x,buffer_height -7,1.0f,14); ui_x += 18;
-    
-    // xp
-    float xp_percentage = player.xp / next_level;
-
-    draw_string_with_shadow("XP:",ui_x, buffer_height -7,1.0f,7); ui_x += 18;
-    draw_rect8(ui_x,buffer_height-6,50,4,1,TRUE);
-    draw_rect8(ui_x,buffer_height-6,50*xp_percentage,4,8,TRUE);
-   
-    // weapon
-    draw_string_with_shadow(player.weapon.name,buffer_width - 50,0,1.0f,7);
-
-    draw_string_with_shadow("Dead Foes:",0,0,1.0f,7);
-    draw_number_string_with_shadow(foes_killed,60,0,1.0f,8);
-
-    // @TEMP: num rats 
-    draw_string_with_shadow("Num Rats:",0,7,1.0f,7);
-    draw_number_string_with_shadow(num_creatures,55,7,1.0f,9);
-    
-    // @TEMP: fps
-    draw_number_string_with_shadow(current_fps,buffer_width - 12,7,1.0f,14);
-
-    // @TEMP: debugging
-    //for(int i = 0; i < num_npcs; ++i)
-    //{
-    //    draw_bounding_box(&npcs[i].phys);
-    //}
-    
-    
     // Blit buffer to screen
     StretchDIBits(dc, 0, 0, window_width, window_height, 0, 0, buffer_width, buffer_height, back_buffer, (BITMAPINFO*)&bmi, DIB_RGB_COLORS, SRCCOPY);
 }
@@ -561,27 +459,48 @@ static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM 
                 player.throw_coins = TRUE;
                 player.coin_throw_counter = player.coin_throw_max; // start instant initial throw
             }
-
-            if(wparam == 'E')
+            else if(wparam == 'E')
             {
                 player.pickup = TRUE;
             }
-
-            if(wparam == 'R')
+            else if(wparam == 'R')
             {
                 player.take = TRUE;
             }
-
-            if(wparam == VK_SPACE)
+            else if(wparam == VK_SPACE)
             {
                 player.jump = TRUE;
             }
-
-            if(wparam == VK_SHIFT)
+            else if(wparam == VK_SHIFT)
             {
+                shift_down = TRUE;
                 player.phys.base_speed = 2.0f;
             }
-
+            else if(wparam == 'U')
+            {
+                display_stats = !display_stats;
+            }
+            else if(wparam == 'I')
+            {
+                display_inventory = !display_inventory;
+                inventory_selection_index = 0;
+            }
+            else if(wparam == VK_TAB)
+            {
+                if(shift_down)
+                {
+                    --inventory_selection_index;
+                    if(inventory_selection_index < 0)
+                        inventory_selection_index = INVENTORY_SELECTION_MAX -1;
+                }
+                else
+                {
+                    ++inventory_selection_index;
+                    if(inventory_selection_index == INVENTORY_SELECTION_MAX)
+                        inventory_selection_index = 0;
+                }
+            }
+            
             // @DEV
             if(wparam == '1')
             {
@@ -619,7 +538,6 @@ static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM 
 
                 init_creatures();
                 init_items();
-                init_npcs();
             }
 
 			break;
@@ -662,6 +580,7 @@ static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM 
             // @DEV
             if(wparam == VK_SHIFT)
             {
+                shift_down = FALSE;
                 player.phys.base_speed = 1.0f;
             }
 

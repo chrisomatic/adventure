@@ -119,7 +119,7 @@ static void update_projectiles()
                         int damage = (rand() % (player.weapon.weapon_props.max_damage - player.weapon.weapon_props.min_damage + 1)) + player.weapon.weapon_props.min_damage;
                         
                         // add floating number
-                        spawn_floating_number(projectiles[i].phys.x,projectiles[i].phys.y,damage,6);
+                        spawn_floating_number(projectiles[i].phys.x,projectiles[i].phys.y,damage,6,projectiles[i].board_index);
                         
                         // creature hurt!
                         creatures[j].phys.hp -= damage;

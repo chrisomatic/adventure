@@ -3,6 +3,7 @@
 typedef struct
 {
     int number;
+	int board_index;
     float x;
     float y;
     int float_duration_counter;
@@ -15,7 +16,7 @@ typedef struct
 FloatingNumber floating_numbers[MAX_FLOATING_NUMBERS];
 int num_floating_numbers = 0;
 
-static void spawn_floating_number(float x, float y, int number,int color)
+static void spawn_floating_number(float x, float y, int number,int color,int board_index)
 {
     floating_numbers[num_floating_numbers].number = number;
     floating_numbers[num_floating_numbers].x = x;
@@ -24,6 +25,7 @@ static void spawn_floating_number(float x, float y, int number,int color)
     floating_numbers[num_floating_numbers].float_duration_counter = 0;
     floating_numbers[num_floating_numbers].float_duration_counter_max = 60;
     floating_numbers[num_floating_numbers].is_string = FALSE;
+	floating_numbers[num_floating_numbers].board_index = board_index;
 
     num_floating_numbers++;
     if(num_floating_numbers > MAX_FLOATING_NUMBERS-1)
@@ -68,6 +70,9 @@ static void update_floating_numbers()
 
 static void draw_floating_number(int i)
 {
+	if (floating_numbers[i].board_index != current_board_index)
+		return;
+
     int number_x = floating_numbers[i].x - camera.x;
     int number_y = floating_numbers[i].y - camera.y;
 

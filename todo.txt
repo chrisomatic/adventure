@@ -1,15 +1,25 @@
 #TODO
-- Add attacking code for enemies
+- Add stat selection for level gain
+- Integrate stats into damage calculations
+- Make dexterity factor into projectile initial angle (less random with +dex)
+- Add zones for creatures and npcs
+- Add drop tables
+- Separate shops into items/weapons/armor
+- Add Inns for sleeping.
+- Add sleeping for creatures
+- implement chests
+- add tons of new items. See #ITEMS
 - Add grouping logic for creatures
-- Add vendors to buy/sell to
-- Add height to entities and integrate it into collision code
 - Add support for "Objects" and object collision
-- Add support for multiple boards
-- Add deep water
-- Add UI for equipment/inventory
 - Experiment with an "Energy" system for swinging, running, etc
 
 #DONE
++ Add height to entities and integrate it into collision code
++ Add UI for equipment/inventory
++ Add deep water
++ Add support for multiple boards
++ Add vendors to buy/sell to
++ Add attacking code for enemies
 + Improve creature behavior
 + Add creature reproduction cycle
 + Add mana for spells
@@ -21,3 +31,7 @@
 + Added support for window resizing
 + Add support for multiple tilesets
 + Expand "Item" so it will include weapons and armor
+
+
+#ITEMS
+

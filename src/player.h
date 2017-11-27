@@ -7,6 +7,7 @@ static void init_player()
     player.board_name = "Astoria";
     player.tileset_name = "characters";
     player.tile_index = 0;
+    player.available_stat_points = 0;
     player.lvl = 1;
     player.xp  = 0;
     player.phys.hp  = 6;
@@ -55,7 +56,24 @@ static void init_player()
     player.anim.frame_order[3] = 2;
     player.attack_angle = 0.0f;
     player.attack_frame_counter = 0;
+    player.stats.strength = 1;
+    player.stats.dexterity = 1;
+    player.stats.vitality = 1;
+    player.stats.energy = 1;
+
     get_item_by_name("Sword",&player.weapon);
+}
+
+static void gain_level()
+{
+    player.lvl++;
+    player.xp -= next_level;
+    next_level *= 2.00f;
+
+    spawn_floating_string(player.phys.x + TILE_WIDTH/2, player.phys.y,"+Lvl",8);
+    for(int i = 0; i < 10; ++i)
+        spawn_particle(rand() % TILE_WIDTH + player.phys.x,player.phys.y,2,5,'*',8,current_board_index);
+    player.available_stat_points += 5;
 }
 
 static void player_die()
@@ -239,7 +257,8 @@ static void update_player()
 
             }
         }
-        else if(portal_links[i].b.board_index == current_board_index)
+
+        if(portal_links[i].b.board_index == current_board_index)
         {
             // check if player is colliding with portal
             if(player.phys.x + player.phys.x_offset >= portal_links[i].b.x && player.phys.x + player.phys.x_offset + player.phys.width <= portal_links[i].b.x + TILE_WIDTH)
@@ -347,7 +366,7 @@ static void update_player()
                                         int damage = (rand() % (player.weapon.weapon_props.max_damage - player.weapon.weapon_props.min_damage + 1)) + player.weapon.weapon_props.min_damage;
                                         
                                         // add floating number
-                                        spawn_floating_number(start_weapon_x+delta_x+camera.x,start_weapon_y+delta_y+camera.y,damage,6);
+                                        spawn_floating_number(start_weapon_x+delta_x+camera.x,start_weapon_y+delta_y+camera.y,damage,6,current_board_index);
 
                                         // creature hurt!
                                         creatures[i].phys.hp -= damage;
@@ -547,8 +566,9 @@ static void update_player()
                                 break;
                         }
                         player.gold += amount;
-						spawn_floating_string(coins[i].phys.x, coins[i].phys.y, "$", color);
+						spawn_floating_string(player.phys.x, player.phys.y, "$", color);
 						remove_coin(i);
+                        //PlaySound("data\\sfx\\pickup_coin.wav", NULL, SND_FILENAME | SND_ASYNC);
                     }
                 }
             }
@@ -653,9 +673,9 @@ static void update_player()
                         if(items[i].vendor_index < 0)
                             continue;
 
-                        if(npcs[items[i].vendor_index].vendor_credit >= items[i].coin_value)
+                        if(creatures[items[i].vendor_index].npc_props.vendor_credit >= items[i].coin_value)
                         {
-                            npcs[items[i].vendor_index].vendor_credit -= items[i].coin_value;
+                            creatures[items[i].vendor_index].npc_props.vendor_credit -= items[i].coin_value;
                             items[i].mounted = FALSE;
                             items[i].vendor_index = -1;
                             spawn_floating_string(items[i].phys.x, items[i].phys.y, "*purchased*", 14);
@@ -755,7 +775,7 @@ static void update_player()
                             player.phys.hp += items[item_index_taken].value;
                             player.phys.hp = min(player.phys.max_hp,player.phys.hp);
 
-                            spawn_floating_number(player.phys.x+TILE_WIDTH/2,player.phys.y,items[item_index_taken].value,11);
+                            spawn_floating_number(player.phys.x+TILE_WIDTH/2,player.phys.y,items[item_index_taken].value,11,current_board_index);
 
                             for(int i = 0; i < 20; ++i)
                             {
@@ -766,7 +786,7 @@ static void update_player()
                             player.mp += items[item_index_taken].value;
                             player.mp = min(player.max_mp,player.mp);
 
-                            spawn_floating_number(player.phys.x+TILE_WIDTH/2,player.phys.y,items[item_index_taken].value,8);
+                            spawn_floating_number(player.phys.x+TILE_WIDTH/2,player.phys.y,items[item_index_taken].value,8,current_board_index);
 
                             for(int i = 0; i < 20; ++i)
                             {

@@ -21,7 +21,6 @@ extern int buffer_height;
 extern int window_width;
 extern int window_height;
 
-
 typedef struct
 {
     BITMAPINFOHEADER bmiHeader;
@@ -64,3 +63,6 @@ static void spawn_floating_number(float x, float y, int number,int color);
 static void spawn_floating_string(float x, float y, char* string,int color);
 static void spawn_particle(int x, int y, int size,int intensity,unsigned char character,unsigned char color,int board_index);
 static void player_die();
+static void draw_message();
+static void gain_level();
+

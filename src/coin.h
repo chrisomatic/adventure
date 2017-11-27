@@ -17,7 +17,7 @@ int num_coins = 0;
 
 static BOOL spawn_coin(float x, float y, float z, float x_vel, float y_vel, float z_vel,CoinType type, int board_index)
 {
-    coins[num_coins].phys.x = x;
+	coins[num_coins].phys.x = x;
     coins[num_coins].phys.y = y;
     coins[num_coins].phys.z = z;
     coins[num_coins].phys.x_vel = x_vel;
@@ -41,6 +41,17 @@ static BOOL spawn_coin(float x, float y, float z, float x_vel, float y_vel, floa
     coins[num_coins].anim.frame_order[1] = 1;
     coins[num_coins].anim.frame_order[2] = 2;
     coins[num_coins].anim.frame_order[3] = 3;
+
+    if(is_colliding_with_solid_terrain(board_index, &coins[num_coins].phys))
+    {
+        switch (player.dir)
+        {
+			case DIR_UP: coins[num_coins].phys.y += 6; break;
+			case DIR_DOWN: coins[num_coins].phys.y -= 6; break;
+			case DIR_LEFT: coins[num_coins].phys.x += 6; break;
+			case DIR_RIGHT: coins[num_coins].phys.x -= 6; break;
+        }
+    }
 
     num_coins++;
     if(num_coins > MAX_COINS -1)
@@ -71,13 +82,14 @@ static void update_coins()
         // check if it collides with a vendor
         for(int j = 0; j < num_npcs; ++j)
         {
-            if(npcs[j].is_vendor)
+            int index = npc_creature_indices[j];
+            if(creatures[index].npc_props.is_vendor)
             {
-				double distance = get_distance(coins[i].phys.x + TILE_WIDTH / 2, coins[i].phys.y + TILE_HEIGHT / 2, npcs[j].phys.x + TILE_WIDTH / 2, npcs[j].phys.y + TILE_HEIGHT / 2);
+                double distance = get_distance(coins[i].phys.x + TILE_WIDTH / 2, coins[i].phys.y + TILE_HEIGHT / 2, creatures[index].phys.x + TILE_WIDTH / 2, creatures[index].phys.y + TILE_HEIGHT / 2);
 
                 if(distance <= 20)
                 {
-                    if(are_entities_colliding(&coins[i].phys, &npcs[j].phys))
+                    if(are_entities_colliding(&coins[i].phys, &creatures[index].phys))
                     {
                         char color = 0;
                         int  amount = 0;
@@ -97,10 +109,10 @@ static void update_coins()
                                 color = 14;
                                 break;
                         }
-                        npcs[j].vendor_credit += amount;
-						spawn_floating_string(coins[i].phys.x, coins[i].phys.y, "$", color);
-						spawn_floating_string(coins[i].phys.x, coins[i].phys.y, "*thanks*", 14);
-						remove_coin(i);
+                        creatures[index].npc_props.vendor_credit += amount;
+                        spawn_floating_string(coins[i].phys.x, coins[i].phys.y, "$", color);
+                        spawn_floating_string(coins[i].phys.x, coins[i].phys.y, "*thanks*", 14);
+                        remove_coin(i);
                     }
                 }
             }

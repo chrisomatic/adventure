@@ -72,7 +72,7 @@ typedef struct
 
 typedef struct
 {
-    float defence;
+    int defence;
     ArmorType armor_type;
     int armor_y_offset;
 } ArmorProperties;
@@ -158,6 +158,14 @@ typedef enum
 
 typedef struct
 {
+    int strength;
+    int dexterity;
+    int vitality;
+    int energy;
+} Stats;
+
+typedef struct
+{
     char* name;
     char* board_name;
     char* tileset_name;
@@ -166,6 +174,7 @@ typedef struct
     float xp;
     int mp;
     int max_mp;
+    int available_stat_points;
     PhysicalProperties phys;
     int gold;
     int coin_throw_counter;
@@ -189,6 +198,7 @@ typedef struct
     Item armor_body;
     Item armor_hands;
     Item armor_feet;
+    Stats stats;
     Direction dir;
     AttackDirection attack_dir;
     Animation anim;
@@ -199,7 +209,6 @@ Player player;
 
 int foes_killed = 0; // @TEMP
 long next_level = 100;
-BOOL display_stats = FALSE;
 
 BOOL display_board_title = FALSE;
 int board_title_display_counter = 0;
@@ -228,20 +237,15 @@ typedef enum
     FEMALE
 } Gender;
 
+#define MAX_CREATURES       100000
+#define MAX_CREATURE_GRID   1000
+#define MAX_CREATURE_LIST   100
+#define CREATURE_GRID_X_MAX 16 
+#define CREATURE_GRID_Y_MAX 16
+
 typedef struct
 {
-    char* name;
-    char* board_name;
-    int board_index;
-    char* tileset_name;
-    int tile_index;
-    int xp;
-    PhysicalProperties phys;
     float distance_from_player;
-    int action_counter;
-    int action_counter_max;
-    int action_duration_counter;
-    int action_duration_counter_max;
     int talk_radius;
     int num_dialogue;
     int selected_dialogue_num;
@@ -249,34 +253,86 @@ typedef struct
     char* dialogue[10];
     BOOL talking;
     BOOL is_vendor;
+    BOOL is_npc;
+} NPCProperties;
+
+typedef struct
+{
+    char* name;
+    char* board_name;
+    int   board_index;
+    char* species;
+    char* tileset_name;
+    int tile_index;
+    int xp;
     Item weapon;
     Item armor_head;
     Item armor_body;
     Item armor_hands;
     Item armor_feet;
+    PhysicalProperties phys;
+    NPCProperties npc_props;
+    int stun_counter;
+    int stun_duration;
+    int gold_drop_max;
+    int aggro_radius;
+    int action_counter;
+    int action_counter_max;
+    int action_duration_counter;
+    int action_duration_counter_max;
+    int particle_spawn_counter;
+    BOOL untargetable;
     CreatureState state;
+    CreatureMode  mode;
+    CreatureBehavior behavior;
     Direction dir;
     Animation anim;
-} NPC;
+    Gender gender;
+    BOOL is_npc;
+    BOOL reproductive;
+    BOOL pregnant;
+    BOOL birth_recovery;
+    BOOL attacking;
+    BOOL stunned;
+    BOOL deaggress;
+    BOOL attack_recovery;
+    float attack_angle;
+    int gestation_period;
+    int gestation_counter; 
+    int mating_radius;
+    int grouping_radius;
+    int age;
+    int max_age;
+    int age_counter;
+    int adult_age;
+    int litter_max;
+    int deaggression_counter;
+    int deaggression_duration;
+    int birth_recovery_time;
+    int birth_recovery_counter;
+    int death_check_counter;
+    int grid_index_x;
+    int grid_index_y;
+    Zone zone;
+} Creature;
 
-NPC npcs[MAX_NPCS];
-NPC npc_list[MAX_NPC_LIST];
+typedef struct
+{
+    Creature* creatures[MAX_CREATURE_GRID];
+    int num_creatures;
+} CreatureSection;
 
+Creature creatures[MAX_CREATURES];
+Creature creature_list[MAX_CREATURE_LIST];
+
+CreatureSection creature_grid[CREATURE_GRID_X_MAX][CREATURE_GRID_Y_MAX];
+
+int num_creatures = 0;
+int num_creature_list = 0;
+int npc_creature_indices[MAX_NPCS];
 int num_npcs = 0;
-int num_npc_list = 0;
 
 static int current_board_index = 0;
-
-static void gain_level()
-{
-    player.lvl++;
-    player.xp -= next_level;
-    next_level *= 2.00f;
-
-    spawn_floating_string(player.phys.x + TILE_WIDTH/2, player.phys.y,"+Lvl",8);
-    for(int i = 0; i < 10; ++i)
-        spawn_particle(rand() % TILE_WIDTH + player.phys.x,player.phys.y,2,5,'*',8,current_board_index);
-}
 
 typedef struct
 {
@@ -332,6 +388,25 @@ static int get_name_of_board_location(int x, int y,char* ret_name)
 
 }
 
+static BOOL is_colliding_with_solid_terrain(int board_index, PhysicalProperties* phys)
+{
+    int check_x1,check_y1, check_x2, check_y2, check_x3, check_y3, check_x4, check_y4;
+    int collision_value_1,collision_value_2, collision_value_3, collision_value_4;
+
+    // check collision
+    check_x1 = (phys->x + phys->x_offset) / TILE_WIDTH; check_y1 = (phys->y + phys->y_offset) / TILE_HEIGHT;
+    check_x2 = (phys->x + phys->x_offset + phys->width) / TILE_WIDTH; check_y2 = (phys->y + phys->y_offset) / TILE_HEIGHT;
+    check_x3 = (phys->x + phys->x_offset) / TILE_WIDTH; check_y3 = (phys->y + phys->y_offset + phys->length) / TILE_HEIGHT;
+    check_x4 = (phys->x + phys->x_offset + phys->width) / TILE_WIDTH; check_y4 = (phys->y + phys->y_offset + phys->length) / TILE_HEIGHT;
+
+    collision_value_1 = board_list[board_index].collision[min(check_x1, BOARD_TILE_WIDTH - 1)][min(check_y1, BOARD_TILE_HEIGHT - 1)];
+    collision_value_2 = board_list[board_index].collision[min(check_x2, BOARD_TILE_WIDTH - 1)][min(check_y2, BOARD_TILE_HEIGHT - 1)];
+    collision_value_3 = board_list[board_index].collision[min(check_x3, BOARD_TILE_WIDTH - 1)][min(check_y3, BOARD_TILE_HEIGHT - 1)];
+    collision_value_4 = board_list[board_index].collision[min(check_x4, BOARD_TILE_WIDTH - 1)][min(check_y4, BOARD_TILE_HEIGHT - 1)];
+
+    return (collision_value_1 == 5 || collision_value_2 == 5 || collision_value_3 == 5 || collision_value_4 == 5);
+}
+
 static void handle_terrain_collision(int board_index, PhysicalProperties* phys)
 {
     // terrain collision
@@ -351,63 +426,49 @@ static void handle_terrain_collision(int board_index, PhysicalProperties* phys)
     int check_x1,check_y1, check_x2, check_y2, check_x3, check_y3, check_x4, check_y4;
     int collision_value_1,collision_value_2, collision_value_3, collision_value_4;
 
-    // check collision
-    check_x1 = (phys->x + phys->x_offset) / TILE_WIDTH; check_y1 = (phys->y + phys->y_offset) / TILE_HEIGHT;
-    check_x2 = (phys->x + phys->x_offset + phys->width) / TILE_WIDTH; check_y2 = (phys->y + phys->y_offset) / TILE_HEIGHT;
-    check_x3 = (phys->x + phys->x_offset) / TILE_WIDTH; check_y3 = (phys->y + phys->y_offset + phys->length) / TILE_HEIGHT;
-    check_x4 = (phys->x + phys->x_offset + phys->width) / TILE_WIDTH; check_y4 = (phys->y + phys->y_offset + phys->length) / TILE_HEIGHT;
-
-    collision_value_1 = board_list[board_index].collision[min(check_x1, BOARD_TILE_WIDTH - 1)][min(check_y1, BOARD_TILE_HEIGHT - 1)];
-    collision_value_2 = board_list[board_index].collision[min(check_x2, BOARD_TILE_WIDTH - 1)][min(check_y2, BOARD_TILE_HEIGHT - 1)];
-    collision_value_3 = board_list[board_index].collision[min(check_x3, BOARD_TILE_WIDTH - 1)][min(check_y3, BOARD_TILE_HEIGHT - 1)];
-    collision_value_4 = board_list[board_index].collision[min(check_x4, BOARD_TILE_WIDTH - 1)][min(check_y4, BOARD_TILE_HEIGHT - 1)];
-
-    if(collision_value_1 == 5 || collision_value_2 == 5 || collision_value_3 == 5 || collision_value_4 == 5)
+    for(int i = 0; i < 2; ++i)
     {
-        // correct collision along one axis
-        if((collision_value_1 == 5 && collision_value_3 == 5) || (collision_value_2 == 5 && collision_value_4 == 5))
-            phys->x -= phys->x_vel*phys->speed; // correct along x-axis
-        else if((collision_value_1 == 5 && collision_value_2 == 5) || (collision_value_3 == 5 && collision_value_4 == 5))
-            phys->y -= phys->y_vel*phys->speed; // correct along y-axis
-        else if(collision_value_1 == 5)
-        {
-            if(phys->y_vel != 0.0f) phys->x += 1.0f*phys->speed;
-            if(phys->x_vel != 0.0f) phys->y += 1.0f*phys->speed;
-        }
-        else if(collision_value_2 == 5)
-        {
-            if(phys->y_vel != 0.0f) phys->x -= 1.0f*phys->speed;
-            if(phys->x_vel != 0.0f) phys->y += 1.0f*phys->speed;
-        }
-        else if(collision_value_3 == 5)
-        {
-            if(phys->y_vel != 0.0f) phys->x += 1.0f*phys->speed;
-            if(phys->x_vel != 0.0f) phys->y -= 1.0f*phys->speed;
-        }
-        else if(collision_value_4 == 5)
-        {
-            if(phys->y_vel != 0.0f) phys->x -= 1.0f*phys->speed;
-            if(phys->x_vel != 0.0f) phys->y -= 1.0f*phys->speed;
-        }
-        
-        // check collision again
-        check_x1 = (phys->x + 1*TILE_WIDTH/4) / TILE_WIDTH; check_y1 = (phys->y + TILE_HEIGHT/2) / TILE_HEIGHT;
-        check_x2 = (phys->x + 3*TILE_WIDTH/4) / TILE_WIDTH; check_y2 = (phys->y + TILE_HEIGHT/2) / TILE_HEIGHT;
-        check_x3 = (phys->x + 1*TILE_WIDTH/4) / TILE_WIDTH; check_y3 = (phys->y + TILE_HEIGHT/1) / TILE_HEIGHT;
-        check_x4 = (phys->x + 3*TILE_WIDTH/4) / TILE_WIDTH; check_y4 = (phys->y + TILE_HEIGHT/1) / TILE_HEIGHT;
+        // check collision
+        check_x1 = (phys->x + phys->x_offset) / TILE_WIDTH; check_y1 = (phys->y + phys->y_offset) / TILE_HEIGHT;
+        check_x2 = (phys->x + phys->x_offset + phys->width) / TILE_WIDTH; check_y2 = (phys->y + phys->y_offset) / TILE_HEIGHT;
+        check_x3 = (phys->x + phys->x_offset) / TILE_WIDTH; check_y3 = (phys->y + phys->y_offset + phys->length) / TILE_HEIGHT;
+        check_x4 = (phys->x + phys->x_offset + phys->width) / TILE_WIDTH; check_y4 = (phys->y + phys->y_offset + phys->length) / TILE_HEIGHT;
 
         collision_value_1 = board_list[board_index].collision[min(check_x1, BOARD_TILE_WIDTH - 1)][min(check_y1, BOARD_TILE_HEIGHT - 1)];
         collision_value_2 = board_list[board_index].collision[min(check_x2, BOARD_TILE_WIDTH - 1)][min(check_y2, BOARD_TILE_HEIGHT - 1)];
         collision_value_3 = board_list[board_index].collision[min(check_x3, BOARD_TILE_WIDTH - 1)][min(check_y3, BOARD_TILE_HEIGHT - 1)];
         collision_value_4 = board_list[board_index].collision[min(check_x4, BOARD_TILE_WIDTH - 1)][min(check_y4, BOARD_TILE_HEIGHT - 1)];
 
-        // correct collision along other axis (if needed)
-        if((collision_value_1 == 5 && collision_value_3 == 5) || (collision_value_2 == 5 && collision_value_4 == 5))
-            phys->x -= phys->x_vel*phys->speed; // correct along x-axis
-        else if((collision_value_1 == 5 && collision_value_2 == 5) || (collision_value_3 == 5 && collision_value_4 == 5))
-            phys->y -= phys->y_vel*phys->speed; // correct along y-axis
+        if (collision_value_1 == 5 || collision_value_2 == 5 || collision_value_3 == 5 || collision_value_4 == 5)
+        {
+            if((collision_value_1 == 5 && collision_value_3 == 5) || (collision_value_2 == 5 && collision_value_4 == 5))
+                phys->x -= phys->x_vel*phys->speed; // correct along x-axis
+            else if((collision_value_1 == 5 && collision_value_2 == 5) || (collision_value_3 == 5 && collision_value_4 == 5))
+                phys->y -= phys->y_vel*phys->speed; // correct along y-axis
+            else if(collision_value_1 == 5)
+            {
+                if (phys->y_vel != 0.0f) phys->x += 1.0f*phys->speed;
+                if (phys->x_vel != 0.0f) phys->y += 1.0f*phys->speed;
+            }
+            else if(collision_value_2 == 5)
+            {
+                if (phys->y_vel != 0.0f) phys->x -= 1.0f*phys->speed;
+                if (phys->x_vel != 0.0f) phys->y += 1.0f*phys->speed;
+            }
+            else if(collision_value_3 == 5)
+            {
+                if (phys->y_vel != 0.0f) phys->x += 1.0f*phys->speed;
+                if (phys->x_vel != 0.0f) phys->y -= 1.0f*phys->speed;
+            }
+            else if(collision_value_4 == 5)
+            {
+                if (phys->y_vel != 0.0f) phys->x -= 1.0f*phys->speed;
+                if (phys->x_vel != 0.0f) phys->y -= 1.0f*phys->speed;
+            }
+        }
     }
-    else if(collision_value_1 == 3 || collision_value_2 == 3 || collision_value_3 == 3 || collision_value_4 == 3)
+
+    if(collision_value_1 == 3 || collision_value_2 == 3 || collision_value_3 == 3 || collision_value_4 == 3)
     {
         if(phys->z == 0.0f)
         {
@@ -444,7 +505,7 @@ static void handle_terrain_collision(int board_index, PhysicalProperties* phys)
             {
                 phys->environmental_hurt_counter = 0;
                 phys->hp--;
-                spawn_floating_number(phys->x+TILE_WIDTH/2,phys->y,1,6);
+                spawn_floating_number(phys->x+TILE_WIDTH/2,phys->y,1,6,board_index);
             }
             phys->speed = phys->base_speed/3.0f;
         }
@@ -753,23 +814,3 @@ static void draw_board(int index)
     }
 }
 
-static void draw_message()
-{
-    // 240, 176
-    for(int j = buffer_height - 28; j < buffer_height -7; ++j)
-    {
-        for(int i = 40; i < buffer_width - 40; ++i)
-        {
-            shade_pixel8(i,j,10);
-        }
-    } 
-
-    draw_string(message.name,42, 149,1.0f,8);
-    draw_string(message.message,50,156,1.0f,message.color);
-
-    if(message.value > 0)
-    {
-        draw_char(CHAR_COIN,buffer_width - 40 - 18,149,14);
-        draw_number_string(message.value,buffer_width - 40 - 12,149,1.0f,14);
-    }
-}

@@ -1,0 +1,23 @@
+name: "Mace"
+
+description: "AKA, Face Basher"
+
+type: 3 #Weapon
+
+weapon_type: 0 #Melee
+
+min_damage: 5
+max_damage: 5
+attack_speed: 0.8
+attack_range: 20
+
+tileset_name: weapons
+
+tile_index: 11
+consummable: 0 #FALSE
+
+
+coin_value: 15
+width: 16
+length: 10
+height: 6
