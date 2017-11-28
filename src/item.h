@@ -193,14 +193,13 @@ static void update_items()
             // check if it collides with a vendor
             for(int j = 0; j < num_npcs; ++j)
             {
-                int index = npc_creature_indices[j];
-                if(creatures[index].npc_props.is_vendor)
+                if(npcs[j].is_vendor)
                 {
-                    double distance = get_distance(items[i].phys.x + TILE_WIDTH / 2, items[i].phys.y + TILE_HEIGHT / 2, creatures[index].phys.x + TILE_WIDTH / 2, creatures[index].phys.y + TILE_HEIGHT / 2);
+                    double distance = get_distance(items[i].phys.x + TILE_WIDTH / 2, items[i].phys.y + TILE_HEIGHT / 2, npcs[j].phys.x + TILE_WIDTH / 2, npcs[j].phys.y + TILE_HEIGHT / 2);
 
                     if(distance <= 20)
                     {
-                        if(are_entities_colliding(&items[i].phys, &creatures[index].phys))
+                        if(are_entities_colliding(&items[i].phys, &npcs[j].phys))
                         {
 
                             spawn_floating_string(items[i].phys.x, items[i].phys.y, "*sold*", 14);
@@ -212,11 +211,11 @@ static void update_items()
                             int bronze_coins = coins_to_spawn / 1; coins_to_spawn -= bronze_coins;
 
                             for(int c = 0; c < bronze_coins; ++c)
-                                spawn_coin(creatures[index].phys.x + (rand() % TILE_WIDTH), creatures[index].phys.y + TILE_HEIGHT, 2.0f, 0.0f, +2.0f, 3.0f, COIN_BRONZE, creatures[index].board_index);
+                                spawn_coin(npcs[j].phys.x + (rand() % TILE_WIDTH), npcs[j].phys.y + TILE_HEIGHT, 2.0f, 0.0f, +2.0f, 3.0f, COIN_BRONZE, npcs[j].board_index);
                             for(int c = 0; c < silver_coins; ++c)
-                                spawn_coin(creatures[index].phys.x + (rand() % TILE_WIDTH), creatures[index].phys.y + TILE_HEIGHT, 2.0f, 0.0f, +1.0f, 3.0f, COIN_SILVER, creatures[index].board_index);
+								spawn_coin(npcs[j].phys.x + (rand() % TILE_WIDTH), npcs[j].phys.y + TILE_HEIGHT, 2.0f, 0.0f, +1.0f, 3.0f, COIN_SILVER, npcs[j].board_index);
                             for(int c = 0; c < gold_coins; ++c)
-                                spawn_coin(creatures[index].phys.x + (rand() % TILE_WIDTH), creatures[index].phys.y + TILE_HEIGHT, 2.0f, 0.0f, +2.0f, 3.0f, COIN_GOLD, creatures[index].board_index);
+								spawn_coin(npcs[j].phys.x + (rand() % TILE_WIDTH), npcs[j].phys.y + TILE_HEIGHT, 2.0f, 0.0f, +2.0f, 3.0f, COIN_GOLD, npcs[j].board_index);
                             remove_item(i);
                         }
                     }

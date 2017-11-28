@@ -109,9 +109,9 @@
     <ClInclude Include="entity.h" />
     <ClInclude Include="floatingnumber.h" />
     <ClInclude Include="font.h" />
-    <ClInclude Include="hud.h" />
     <ClInclude Include="item.h" />
     <ClInclude Include="item_stand.h" />
+    <ClInclude Include="npc.h" />
     <ClInclude Include="particle.h" />
     <ClInclude Include="player.h" />
     <ClInclude Include="portal.h" />

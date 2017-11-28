@@ -72,7 +72,7 @@ typedef struct
 
 typedef struct
 {
-    int defence;
+    float defence;
     ArmorType armor_type;
     int armor_y_offset;
 } ArmorProperties;
@@ -174,7 +174,6 @@ typedef struct
     float xp;
     int mp;
     int max_mp;
-    int available_stat_points;
     PhysicalProperties phys;
     int gold;
     int coin_throw_counter;
@@ -237,15 +236,20 @@ typedef enum
     FEMALE
 } Gender;
 
-#define MAX_CREATURES       100000
-#define MAX_CREATURE_GRID   1000
-#define MAX_CREATURE_LIST   100
-#define CREATURE_GRID_X_MAX 16 
-#define CREATURE_GRID_Y_MAX 16
-
 typedef struct
 {
+    char* name;
+    char* board_name;
+    int board_index;
+    char* tileset_name;
+    int tile_index;
+    int xp;
+    PhysicalProperties phys;
     float distance_from_player;
+    int action_counter;
+    int action_counter_max;
+    int action_duration_counter;
+    int action_duration_counter_max;
     int talk_radius;
     int num_dialogue;
     int selected_dialogue_num;
@@ -253,86 +257,34 @@ typedef struct
     char* dialogue[10];
     BOOL talking;
     BOOL is_vendor;
-    BOOL is_npc;
-} NPCProperties;
-
-typedef struct
-{
-    char* name;
-    char* board_name;
-    int   board_index;
-    char* species;
-    char* tileset_name;
-    int tile_index;
-    int xp;
     Item weapon;
     Item armor_head;
     Item armor_body;
     Item armor_hands;
     Item armor_feet;
-    PhysicalProperties phys;
-    NPCProperties npc_props;
-    int stun_counter;
-    int stun_duration;
-    int gold_drop_max;
-    int aggro_radius;
-    int action_counter;
-    int action_counter_max;
-    int action_duration_counter;
-    int action_duration_counter_max;
-    int particle_spawn_counter;
-    BOOL untargetable;
     CreatureState state;
-    CreatureMode  mode;
-    CreatureBehavior behavior;
     Direction dir;
     Animation anim;
-    Gender gender;
-    BOOL is_npc;
-    BOOL reproductive;
-    BOOL pregnant;
-    BOOL birth_recovery;
-    BOOL attacking;
-    BOOL stunned;
-    BOOL deaggress;
-    BOOL attack_recovery;
-    float attack_angle;
-    int gestation_period;
-    int gestation_counter; 
-    int mating_radius;
-    int grouping_radius;
-    int age;
-    int max_age;
-    int age_counter;
-    int adult_age;
-    int litter_max;
-    int deaggression_counter;
-    int deaggression_duration;
-    int birth_recovery_time;
-    int birth_recovery_counter;
-    int death_check_counter;
-    int grid_index_x;
-    int grid_index_y;
-    Zone zone;
-} Creature;
+} NPC;
 
-typedef struct
-{
-    Creature* creatures[MAX_CREATURE_GRID];
-    int num_creatures;
-} CreatureSection;
+NPC npcs[MAX_NPCS];
+NPC npc_list[MAX_NPC_LIST];
 
-Creature creatures[MAX_CREATURES];
-Creature creature_list[MAX_CREATURE_LIST];
-
-CreatureSection creature_grid[CREATURE_GRID_X_MAX][CREATURE_GRID_Y_MAX];
-
-int num_creatures = 0;
-int num_creature_list = 0;
-int npc_creature_indices[MAX_NPCS];
 int num_npcs = 0;
+int num_npc_list = 0;
 
 static int current_board_index = 0;
+
+static void gain_level()
+{
+    player.lvl++;
+    player.xp -= next_level;
+    next_level *= 2.00f;
+
+    spawn_floating_string(player.phys.x + TILE_WIDTH/2, player.phys.y,"+Lvl",8);
+    for(int i = 0; i < 10; ++i)
+        spawn_particle(rand() % TILE_WIDTH + player.phys.x,player.phys.y,2,5,'*',8,current_board_index);
+}
 
 typedef struct
 {
@@ -447,23 +399,23 @@ static void handle_terrain_collision(int board_index, PhysicalProperties* phys)
                 phys->y -= phys->y_vel*phys->speed; // correct along y-axis
             else if(collision_value_1 == 5)
             {
-                if (phys->y_vel != 0.0f) phys->x += 1.0f*phys->speed;
-                if (phys->x_vel != 0.0f) phys->y += 1.0f*phys->speed;
+                if (phys->y_vel != 0.0f) phys->x += 1.0f;
+                if (phys->x_vel != 0.0f) phys->y += 1.0f;
             }
             else if(collision_value_2 == 5)
             {
-                if (phys->y_vel != 0.0f) phys->x -= 1.0f*phys->speed;
-                if (phys->x_vel != 0.0f) phys->y += 1.0f*phys->speed;
+                if (phys->y_vel != 0.0f) phys->x -= 1.0f;
+                if (phys->x_vel != 0.0f) phys->y += 1.0f;
             }
             else if(collision_value_3 == 5)
             {
-                if (phys->y_vel != 0.0f) phys->x += 1.0f*phys->speed;
-                if (phys->x_vel != 0.0f) phys->y -= 1.0f*phys->speed;
+                if (phys->y_vel != 0.0f) phys->x += 1.0f;
+                if (phys->x_vel != 0.0f) phys->y -= 1.0f;
             }
             else if(collision_value_4 == 5)
             {
-                if (phys->y_vel != 0.0f) phys->x -= 1.0f*phys->speed;
-                if (phys->x_vel != 0.0f) phys->y -= 1.0f*phys->speed;
+                if (phys->y_vel != 0.0f) phys->x -= 1.0f;
+                if (phys->x_vel != 0.0f) phys->y -= 1.0f;
             }
         }
     }

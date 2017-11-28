@@ -2,7 +2,6 @@
 - Add stat selection for level gain
 - Integrate stats into damage calculations
 - Make dexterity factor into projectile initial angle (less random with +dex)
-- Add zones for creatures and npcs
 - Add drop tables
 - Separate shops into items/weapons/armor
 - Add Inns for sleeping.
@@ -14,6 +13,8 @@
 - Experiment with an "Energy" system for swinging, running, etc
 
 #DONE
++ Made npcs into creatures
++ Add zones for creatures and npcs
 + Add height to entities and integrate it into collision code
 + Add UI for equipment/inventory
 + Add deep water
@@ -34,4 +35,3 @@
 
 
 #ITEMS
-
