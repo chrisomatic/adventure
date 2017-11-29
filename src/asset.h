@@ -2,7 +2,7 @@ typedef enum
 {
 	ASSET_TYPE_CREATURE,
 	ASSET_TYPE_ITEM,
-    ASSET_TYPE_ZONE
+	ASSET_TYPE_NPC
 } ASSET_TYPE;
 
 static void load_assets(ASSET_TYPE type);
@@ -12,7 +12,7 @@ static void load_all_assets()
 {
     load_assets(ASSET_TYPE_CREATURE);
     load_assets(ASSET_TYPE_ITEM);
-    load_assets(ASSET_TYPE_ZONE);
+    load_assets(ASSET_TYPE_NPC);
 }
 
 static void load_assets(ASSET_TYPE type)
@@ -30,9 +30,9 @@ static void load_assets(ASSET_TYPE type)
             directory = "data\\items";
             file_extension = ".item";
             break;
-        case ASSET_TYPE_ZONE:
-            directory = "data\\zones";
-            file_extension = ".zone";
+        case ASSET_TYPE_NPC:
+            directory = "data\\npcs";
+            file_extension = ".npc";
             break;
         default:
             return;
@@ -120,19 +120,6 @@ static void load_assets(ASSET_TYPE type)
                         else if (strcmp(key, "width") == 0) C_atoi(value, &creature_list[asset_counter].phys.width);
                         else if (strcmp(key, "length") == 0) C_atoi(value, &creature_list[asset_counter].phys.length);
                         else if (strcmp(key, "height") == 0) C_atoi(value, &creature_list[asset_counter].phys.height);
-                        else if (strcmp(key, "is_npc") == 0) C_atoi(value, &creature_list[asset_counter].npc_props.is_npc);
-                        else if (strcmp(key, "is_vendor") == 0) C_atoi(value, &creature_list[asset_counter].npc_props.is_vendor);
-                        else if (strcmp(key, "num_dialogue") == 0) C_atoi(value, &creature_list[asset_counter].npc_props.num_dialogue);
-						else if (strcmp(key, "dialogue0") == 0) creature_list[asset_counter].npc_props.dialogue[0] = _strdup(value);
-						else if (strcmp(key, "dialogue1") == 0) creature_list[asset_counter].npc_props.dialogue[1] = _strdup(value);
-						else if (strcmp(key, "dialogue2") == 0) creature_list[asset_counter].npc_props.dialogue[2] = _strdup(value);
-						else if (strcmp(key, "dialogue3") == 0) creature_list[asset_counter].npc_props.dialogue[3] = _strdup(value);
-						else if (strcmp(key, "dialogue4") == 0) creature_list[asset_counter].npc_props.dialogue[4] = _strdup(value);
-						else if (strcmp(key, "dialogue5") == 0) creature_list[asset_counter].npc_props.dialogue[5] = _strdup(value);
-						else if (strcmp(key, "dialogue6") == 0) creature_list[asset_counter].npc_props.dialogue[6] = _strdup(value);
-						else if (strcmp(key, "dialogue7") == 0) creature_list[asset_counter].npc_props.dialogue[7] = _strdup(value);
-						else if (strcmp(key, "dialogue8") == 0) creature_list[asset_counter].npc_props.dialogue[8] = _strdup(value);
-						else if (strcmp(key, "dialogue9") == 0) creature_list[asset_counter].npc_props.dialogue[9] = _strdup(value);
 
                         break;
 
@@ -160,31 +147,33 @@ static void load_assets(ASSET_TYPE type)
                         else if (strcmp(key, "height") == 0) C_atoi(value, &item_list[asset_counter].phys.height);
 
                         break;
-                    case ASSET_TYPE_ZONE:
-						if (strcmp(key, "name") == 0) zone_list[asset_counter].name = _strdup(value);
-						if (strcmp(key, "board_name") == 0) zone_list[asset_counter].board_name = _strdup(value);
-						else if (strcmp(key, "x") == 0) zone_list[asset_counter].x = atof(value);
-						else if (strcmp(key, "y") == 0) zone_list[asset_counter].y = atof(value);
-						else if (strcmp(key, "w") == 0) zone_list[asset_counter].w = atof(value);
-						else if (strcmp(key, "h") == 0) zone_list[asset_counter].h = atof(value);
-                        else if (strcmp(key, "num_creatures") == 0) C_atoi(value, &zone_list[asset_counter].num_creatures);
-                        else if (strcmp(key, "num_creature_types") == 0) C_atoi(value, &zone_list[asset_counter].num_creature_types);
-						else if (strcmp(key, "creature_type_name0") == 0) zone_list[asset_counter].creature_type_names[0] = _strdup(value);
-						else if (strcmp(key, "creature_type_name1") == 0) zone_list[asset_counter].creature_type_names[1] = _strdup(value);
-						else if (strcmp(key, "creature_type_name2") == 0) zone_list[asset_counter].creature_type_names[2] = _strdup(value);
-						else if (strcmp(key, "creature_type_name3") == 0) zone_list[asset_counter].creature_type_names[3] = _strdup(value);
-						else if (strcmp(key, "creature_type_name4") == 0) zone_list[asset_counter].creature_type_names[4] = _strdup(value);
-						else if (strcmp(key, "creature_type_name5") == 0) zone_list[asset_counter].creature_type_names[5] = _strdup(value);
-						else if (strcmp(key, "creature_type_name6") == 0) zone_list[asset_counter].creature_type_names[6] = _strdup(value);
-						else if (strcmp(key, "creature_type_name7") == 0) zone_list[asset_counter].creature_type_names[7] = _strdup(value);
-						else if (strcmp(key, "creature_type_name8") == 0) zone_list[asset_counter].creature_type_names[8] = _strdup(value);
-						else if (strcmp(key, "creature_type_name9") == 0) zone_list[asset_counter].creature_type_names[9] = _strdup(value);
-						else if (strcmp(key, "creature_type_name10") == 0) zone_list[asset_counter].creature_type_names[10] = _strdup(value);
-						else if (strcmp(key, "creature_type_name11") == 0) zone_list[asset_counter].creature_type_names[11] = _strdup(value);
-						else if (strcmp(key, "creature_type_name12") == 0) zone_list[asset_counter].creature_type_names[12] = _strdup(value);
-						else if (strcmp(key, "creature_type_name13") == 0) zone_list[asset_counter].creature_type_names[13] = _strdup(value);
-						else if (strcmp(key, "creature_type_name14") == 0) zone_list[asset_counter].creature_type_names[14] = _strdup(value);
-						else if (strcmp(key, "creature_type_name15") == 0) zone_list[asset_counter].creature_type_names[15] = _strdup(value); 
+
+                    case ASSET_TYPE_NPC:
+						if (strcmp(key, "name") == 0) npc_list[asset_counter].name = _strdup(value);
+						else if (strcmp(key, "x") == 0) npc_list[asset_counter].phys.x = atof(value);
+						else if (strcmp(key, "y") == 0) npc_list[asset_counter].phys.y = atof(value);
+                        else if (strcmp(key, "x_offset") == 0) C_atoi(value, &npc_list[asset_counter].phys.x_offset);
+                        else if (strcmp(key, "y_offset") == 0) C_atoi(value, &npc_list[asset_counter].phys.y_offset);
+                        else if (strcmp(key, "hp") == 0) C_atoi(value, &npc_list[asset_counter].phys.hp);
+						else if (strcmp(key, "max_hp") == 0) C_atoi(value, &npc_list[asset_counter].phys.max_hp);
+                        else if (strcmp(key, "is_vendor") == 0) C_atoi(value, &npc_list[asset_counter].is_vendor);
+                        else if (strcmp(key, "xp") == 0) C_atoi(value, &npc_list[asset_counter].xp);
+                        else if (strcmp(key, "num_dialogue") == 0) C_atoi(value, &npc_list[asset_counter].num_dialogue);
+						else if (strcmp(key, "dialogue0") == 0) npc_list[asset_counter].dialogue[0] = _strdup(value);
+						else if (strcmp(key, "dialogue1") == 0) npc_list[asset_counter].dialogue[1] = _strdup(value);
+						else if (strcmp(key, "dialogue2") == 0) npc_list[asset_counter].dialogue[2] = _strdup(value);
+						else if (strcmp(key, "dialogue3") == 0) npc_list[asset_counter].dialogue[3] = _strdup(value);
+						else if (strcmp(key, "dialogue4") == 0) npc_list[asset_counter].dialogue[4] = _strdup(value);
+						else if (strcmp(key, "dialogue5") == 0) npc_list[asset_counter].dialogue[5] = _strdup(value);
+						else if (strcmp(key, "dialogue6") == 0) npc_list[asset_counter].dialogue[6] = _strdup(value);
+						else if (strcmp(key, "dialogue7") == 0) npc_list[asset_counter].dialogue[7] = _strdup(value);
+						else if (strcmp(key, "dialogue8") == 0) npc_list[asset_counter].dialogue[8] = _strdup(value);
+						else if (strcmp(key, "dialogue9") == 0) npc_list[asset_counter].dialogue[9] = _strdup(value);
+						else if (strcmp(key, "tileset_name") == 0) npc_list[asset_counter].tileset_name = _strdup(value);
+                        else if (strcmp(key, "tile_index") == 0) C_atoi(value, &npc_list[asset_counter].tile_index);
+                        else if (strcmp(key, "width") == 0) C_atoi(value, &npc_list[asset_counter].phys.width);
+                        else if (strcmp(key, "length") == 0) C_atoi(value, &npc_list[asset_counter].phys.length);
+                        else if (strcmp(key, "height") == 0) C_atoi(value, &npc_list[asset_counter].phys.height);
 
                         break;
                 }
@@ -219,6 +208,6 @@ static void load_assets(ASSET_TYPE type)
     {
         case ASSET_TYPE_CREATURE: num_creature_list = asset_counter; break;
         case ASSET_TYPE_ITEM: num_item_list = asset_counter; break;
-        case ASSET_TYPE_ZONE: num_zones = asset_counter; break;
+        case ASSET_TYPE_NPC: num_npc_list = asset_counter; break;
     }
 }

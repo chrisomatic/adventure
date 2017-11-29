@@ -6,6 +6,7 @@ speed: 0.6
 gold_drop_max: 15
 behavior: 0 # Passive
 untargetable: 0 # FALSE
+<<<<<<< HEAD
 tileset_name: creatures
 tile_index: 80
 species: Bat
@@ -16,3 +17,15 @@ length: 8
 height: 8
 x_offset: 2
 y_offset: 4
+=======
+tileset_name: creatures
+tile_index: 80
+species: Bat
+reproductive: 0 #FALSE
+adult_age: 5040
+width: 16
+length: 8
+height: 8
+x_offset: 2
+y_offset: 4
+>>>>>>> b710567aa5daa8b71f4877af32d4c97294cc392e

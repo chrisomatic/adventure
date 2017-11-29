@@ -103,6 +103,23 @@ static void sort_entities()
         num_entities++;
     }
     
+    // npcs
+    for(int i = 0; i < num_npcs;++i)
+    {
+		screen_x = npcs[i].phys.x - camera.x;
+		screen_y = npcs[i].phys.y - camera.y;
+        
+        if (screen_x+TILE_WIDTH < 0 || screen_x >= buffer_width)
+            continue;
+        if (screen_y+TILE_HEIGHT < 0 || screen_y >= buffer_height)
+            continue;
+
+        entities[num_entities].type = ENTITY_TYPE_NPC;
+        entities[num_entities].index = i;
+        entities[num_entities].y_value = screen_y;
+        num_entities++;
+    }
+    
     // particles 
     for(int i = 0; i < num_particles;++i)
     {
@@ -181,6 +198,9 @@ static void draw_entities()
                 break;
             case ENTITY_TYPE_CREATURE:
                 draw_creature(entities[i].index);
+                break;
+            case ENTITY_TYPE_NPC:
+                draw_npc(entities[i].index);
                 break;
             case ENTITY_TYPE_PARTICLE:
                 draw_particle(entities[i].index);

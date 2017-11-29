@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 name: Helm
 description: "This should protect my head"
 type: 4 #Armor
@@ -11,3 +12,18 @@ coin_value: 10
 width: 16
 length: 10
 height: 6
+=======
+name: Helm
+description: "This should protect my head"
+type: 4 #Armor
+armor_type: 1 #head
+defence: 2
+tileset_name: armor
+tile_index: 0
+consummable: 0 #FALSE
+armor_y_offset: -5
+coin_value: 10
+width: 16
+length: 10
+height: 6
+>>>>>>> b710567aa5daa8b71f4877af32d4c97294cc392e

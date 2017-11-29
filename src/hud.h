@@ -1,12 +1,10 @@
 #define DISPLAY_SCREEN_WIDTH buffer_width/3
-#define INVENTORY_SELECTION_MAX 5 
 
 BOOL display_stats = FALSE;
 BOOL display_inventory = FALSE;
 
 int stat_anim_counter = 0;
 int inventory_anim_counter = 0;
-int inventory_selection_index = 0;
 
 int current_fps = 0;
 
@@ -17,7 +15,7 @@ static void draw_message()
     {
         for(int i = 40; i < buffer_width - 40; ++i)
         {
-            shade_pixel8(i,j,12 - day_cycle_shade_amount);
+            shade_pixel8(i,j,10 - day_cycle_shade_amount);
         }
     } 
 
@@ -37,60 +35,25 @@ static void draw_stats()
     {
         for(int i = 0; i < stat_anim_counter; ++i)
         {
-            shade_pixel8(i,j,12 - day_cycle_shade_amount);
+            shade_pixel8(i,j,10 - day_cycle_shade_amount);
         }
     } 
 
     int string_x = stat_anim_counter - DISPLAY_SCREEN_WIDTH;
 
-    draw_string("Stats",string_x+25,5,1.0f,10);
+    draw_string("Stats",string_x+18,5,1.0f,10);
 
-    int string_y = 20;
+    draw_string("Strength",string_x+2,20,1.0f,10);
+    draw_number_string(player.stats.strength,string_x+60,20,1.0f,12);
 
-    draw_string("Name:",string_x+2,string_y,1.0f,10);
-    draw_string(player.name,string_x+30,string_y,1.0f,12);
+    draw_string("Dexterity",string_x+2,35,1.0f,10);
+    draw_number_string(player.stats.dexterity,string_x+60,35,1.0f,12);
 
-    string_y += 10;
-    draw_string("Level:",string_x+2,string_y,1.0f,10);
-    draw_number_string(player.lvl,string_x+36,string_y,1.0f,12);
+    draw_string("Vitality",string_x+2,50,1.0f,10);
+    draw_number_string(player.stats.vitality,string_x+60,50,1.0f,12);
 
-    float xp_percentage = player.xp / next_level;
-
-    string_y += 10;
-    draw_string_with_shadow("XP:",string_x+2, string_y,1.0f,7); 
-    if(stat_anim_counter >= DISPLAY_SCREEN_WIDTH)
-    {
-        draw_rect8(string_x+20,string_y,50,4,1,TRUE);
-        draw_rect8(string_x+20,string_y,50*xp_percentage,4,8,TRUE);
-    }
-
-    string_y += 10;
-    draw_string("Damage:",string_x+2,string_y,1.0f,10);
-    draw_number_string(player.weapon.weapon_props.min_damage,string_x+60,string_y,1.0f,12);
-
-    string_y += 10;
-    draw_string("Defence",string_x+2,string_y,1.0f,10);
-    draw_number_string(player.armor_head.armor_props.defence,string_x+60,string_y,1.0f,12);
-
-    string_y += 10;
-    draw_string("Stat Points:",string_x+2,string_y,1.0f,10);
-    draw_number_string(player.available_stat_points,string_x+60,string_y,1.0f,12);
-
-    string_y += 20;
-    draw_string("Strength",string_x+2,string_y,1.0f,10);
-    draw_number_string(player.stats.strength,string_x+60,string_y,1.0f,12);
-
-    string_y += 10;
-    draw_string("Dexterity",string_x+2,string_y,1.0f,10);
-    draw_number_string(player.stats.dexterity,string_x+60,string_y,1.0f,12);
-
-    string_y += 10;
-    draw_string("Vitality",string_x+2,string_y,1.0f,10);
-    draw_number_string(player.stats.vitality,string_x+60,string_y,1.0f,12);
-
-    string_y += 10;
-    draw_string("Energy",string_x+2,string_y,1.0f,10);
-    draw_number_string(player.stats.energy,string_x+60,string_y,1.0f,12);
+    draw_string("Energy",string_x+2,65,1.0f,10);
+    draw_number_string(player.stats.energy,string_x+60,65,1.0f,12);
 }
 
 static void draw_inventory()
@@ -99,43 +62,12 @@ static void draw_inventory()
     {
         for(int i = 0; i < inventory_anim_counter; ++i)
         {
-            shade_pixel8(buffer_width - i,j,12 - day_cycle_shade_amount);
+            shade_pixel8(buffer_width - i,j,10 - day_cycle_shade_amount);
         }
     } 
 
-    int string_x = buffer_width - inventory_anim_counter;
+    draw_string("Gear",buffer_width - (inventory_anim_counter - DISPLAY_SCREEN_WIDTH + 50),5,1.0f,10);
 
-    draw_string("Gear",string_x +30,5,1.0f,10);
-
-    int string_y = 20;
-
-	if (inventory_anim_counter >= DISPLAY_SCREEN_WIDTH)
-		draw_rect8(string_x + 59, 20 + inventory_selection_index * 16 - 5, TILE_WIDTH+2, TILE_HEIGHT+2, 11, TRUE);
-
-    draw_string("Weapon",string_x + 5,string_y,1.0f,10);
-    draw_tile(string_x + 60,string_y -4,player.weapon.tileset_name,player.weapon.tile_index,0);
-
-    string_y += 16;
-    draw_string("Head",string_x + 5,string_y,1.0f,10);
-    if(player.armor_head.name != NULL)
-        draw_tile(string_x + 60,string_y -4,player.armor_head.tileset_name,player.armor_head.tile_index,0);
-    string_y += 16;
-    draw_string("Body",string_x + 5,string_y,1.0f,10);
-    if(player.armor_body.name != NULL)
-        draw_tile(string_x + 60,string_y -4,player.armor_body.tileset_name,player.armor_body.tile_index,0);
-    string_y += 16;
-    draw_string("Feet",string_x + 5,string_y,1.0f,10);
-    if(player.armor_feet.name != NULL)
-        draw_tile(string_x + 60,string_y -4,player.armor_feet.tileset_name,player.armor_feet.tile_index,0);
-    string_y += 16;
-    draw_string("Hands",string_x + 5,string_y,1.0f,10);
-    if(player.armor_hands.name != NULL)
-        draw_tile(string_x + 60,string_y -4,player.armor_hands.tileset_name,player.armor_hands.tile_index,0);
-
-    string_y += 16;
-    draw_char(CHAR_COIN,string_x + 5,string_y,14);
-    draw_number_string(player.gold,string_x + 11,string_y,1.0f,14);
-	
 }
 
 static void update_hud()
@@ -222,7 +154,7 @@ static void draw_hud()
 
     for(int i = 0; i < player.phys.max_hp / 2.0f;++i)
     {
-        draw_char_with_shadow(CHAR_HEART,ui_x,1,3);
+        draw_char_with_shadow(CHAR_HEART,ui_x,buffer_height -7,3);
         ui_x += 6;
     }
 
@@ -231,20 +163,20 @@ static void draw_hud()
 
     while(num_hearts >= 1)
     {
-        draw_char_with_shadow(CHAR_HEART,6*heart_counter, 1, 6);
+        draw_char_with_shadow(CHAR_HEART,6*heart_counter, buffer_height -7, 6);
         num_hearts--;
         heart_counter++;
     }
 
     if(num_hearts > 0)
-        draw_char(CHAR_HEART_HALF,6*heart_counter,1, 6);
+        draw_char(CHAR_HEART_HALF,6*heart_counter, buffer_height -7, 6);
 
     ui_x += 10; 
     int diamond_x = ui_x;
 
     for(int i = 0; i < player.max_mp / 2.0f;++i)
     {
-        draw_char_with_shadow(CHAR_DIAMOND,ui_x,1,3);
+        draw_char_with_shadow(CHAR_DIAMOND,ui_x,buffer_height -7,3);
         ui_x += 6;
     }
 
@@ -253,17 +185,42 @@ static void draw_hud()
 
     while(num_diamonds >= 1)
     {
-        draw_char_with_shadow(CHAR_DIAMOND,diamond_x + 6*diamond_counter,1, 8);
+        draw_char_with_shadow(CHAR_DIAMOND,diamond_x + 6*diamond_counter, buffer_height -7, 8);
         num_diamonds--;
         diamond_counter++;
     }
     if(num_diamonds > 0)
-        draw_char(CHAR_DIAMOND_HALF,diamond_x  + 6*diamond_counter,1, 8);
+        draw_char(CHAR_DIAMOND_HALF,diamond_x  + 6*diamond_counter, buffer_height -7, 8);
 
     ui_x += 20;
     
+    // gold
+    draw_string_with_shadow("Gold:",ui_x, buffer_height -7,1.0f,7); ui_x += 30;
+    draw_number_string_with_shadow(player.gold,ui_x,buffer_height -7,1.0f,14); ui_x += 30;
+
+    // lvl
+    draw_string_with_shadow("Lvl:",ui_x, buffer_height -7,1.0f,7); ui_x += 24;
+    draw_number_string_with_shadow(player.lvl,ui_x,buffer_height -7,1.0f,14); ui_x += 18;
+    
+    // xp
+    float xp_percentage = player.xp / next_level;
+
+    draw_string_with_shadow("XP:",ui_x, buffer_height -7,1.0f,7); ui_x += 18;
+    draw_rect8(ui_x,buffer_height-6,50,4,1,TRUE);
+    draw_rect8(ui_x,buffer_height-6,50*xp_percentage,4,8,TRUE);
+   
+    // weapon
+    draw_string_with_shadow(player.weapon.name,buffer_width - 50,0,1.0f,7);
+
+    draw_string_with_shadow("Dead Foes:",0,0,1.0f,7);
+    draw_number_string_with_shadow(foes_killed,60,0,1.0f,8);
+
+    // @TEMP: num rats 
+    draw_string_with_shadow("Num Rats:",0,7,1.0f,7);
+    draw_number_string_with_shadow(num_creatures,55,7,1.0f,9);
+    
     // @TEMP: fps
-    draw_number_string_with_shadow(current_fps,buffer_width - 12,buffer_height -7,1.0f,14);
+    draw_number_string_with_shadow(current_fps,buffer_width - 12,7,1.0f,14);
 
     // @TEMP: debugging
     //for(int i = 0; i < num_npcs; ++i)

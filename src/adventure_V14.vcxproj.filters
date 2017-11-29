@@ -32,6 +32,7 @@
     <ClInclude Include="floatingnumber.h" />
     <ClInclude Include="font.h" />
     <ClInclude Include="item.h" />
+    <ClInclude Include="npc.h" />
     <ClInclude Include="particle.h" />
     <ClInclude Include="player.h" />
     <ClInclude Include="projectile.h" />
@@ -43,7 +44,6 @@
     <ClInclude Include="board.h" />
     <ClInclude Include="item_stand.h" />
     <ClInclude Include="portal.h" />
-    <ClInclude Include="hud.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="adventure_V14.rc" />
