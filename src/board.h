@@ -189,6 +189,7 @@ typedef struct
     BOOL jump;
     BOOL notch;
     BOOL shoot;
+    BOOL unequip;
     int item_held_index;
     int notch_index;
     int hurt_counter;

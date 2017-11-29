@@ -4,6 +4,7 @@
 #define BOW 3
 #define STAFF 5
 #define CROSSBOW 7
+#define POISON_SPIT 13
 
 Item items[MAX_ITEMS] = {0};
 Item item_list[MAX_ITEM_LIST] = {0};

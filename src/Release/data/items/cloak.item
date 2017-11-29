@@ -1,0 +1,22 @@
+name: Cloak
+
+description: "A nice heavy wool garment"
+
+
+type: 4 #Armor
+
+armor_type: 1 #head
+
+defence: 1
+
+tileset_name: armor
+
+tile_index: 16
+
+consummable: 0 #FALSE
+
+armor_y_offset: 0
+coin_value: 10
+width: 16
+length: 10
+height: 6

@@ -20,6 +20,7 @@
 #include "item_stand.h"
 #include "coin.h"
 #include "particle.h"
+#include "weather.h"
 #include "floatingnumber.h"
 #include "creature.h"
 #include "projectile.h"
@@ -182,6 +183,7 @@ static void update_scene()
     update_coins();
     update_floating_numbers();
     update_creatures();
+    update_weather();
     update_particles();
     update_projectiles();
 	update_hud();
@@ -467,6 +469,11 @@ static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM 
             {
                 player.take = TRUE;
             }
+            else if(wparam == 'Q')
+            {
+                if(display_inventory)
+                    player.unequip = TRUE;
+            }
             else if(wparam == VK_SPACE)
             {
                 player.jump = TRUE;
@@ -530,14 +537,17 @@ static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM 
             {
                 get_item_by_name("Crossbow",&player.weapon);
             }
-
-            if(wparam == 'H')
+            else if(wparam == 'H')
             {
                 // re-load assets
                 load_all_assets();
 
                 init_creatures();
                 init_items();
+            }
+            else if(wparam == 'K')
+            {
+                is_raining = !is_raining;
             }
 
 			break;

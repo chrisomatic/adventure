@@ -157,6 +157,7 @@ static void update_hud()
     {
         if(inventory_anim_counter < DISPLAY_SCREEN_WIDTH)
             inventory_anim_counter += anim_speed;
+
     }
     else
     {
@@ -164,6 +165,51 @@ static void update_hud()
             inventory_anim_counter -= anim_speed;
     }
 
+    // unequip stuff
+    if(player.unequip)
+    {
+        player.unequip = FALSE;
+
+        switch(inventory_selection_index)
+        {
+            case 0: 
+                // weapon
+                if(player.weapon.name != "")
+                    spawn_item(player.weapon.name,player.phys.x,player.phys.y, current_board_index);
+                get_item_by_name("null",&player.weapon);
+
+                break;
+            case 1: 
+                // armor head
+                if(player.armor_head.name != "")
+                    spawn_item(player.armor_head.name,player.phys.x,player.phys.y, current_board_index);
+                get_item_by_name("null",&player.armor_head);
+
+                break;
+            case 2: 
+                // armor body
+                if(player.armor_body.name != "")
+                    spawn_item(player.armor_body.name,player.phys.x,player.phys.y, current_board_index);
+                get_item_by_name("null",&player.armor_body);
+
+                break;
+            case 3: 
+                // armor hands
+                if(player.armor_hands.name != "")
+                    spawn_item(player.armor_hands.name,player.phys.x,player.phys.y, current_board_index);
+                get_item_by_name("null",&player.armor_hands);
+
+                break;
+
+            case 4: 
+                // armor feet
+                if(player.armor_feet.name != "")
+                    spawn_item(player.armor_feet.name,player.phys.x,player.phys.y, current_board_index);
+                get_item_by_name("null",&player.armor_feet);
+
+                break;
+        }
+    }
 }
 
 static void draw_hud()

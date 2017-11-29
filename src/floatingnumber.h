@@ -32,7 +32,7 @@ static void spawn_floating_number(float x, float y, int number,int color,int boa
         num_floating_numbers = MAX_FLOATING_NUMBERS -1;
 }
 
-static void spawn_floating_string(float x, float y, char* string,int color)
+static void spawn_floating_string(float x, float y, char* string, int color, int board_index)
 {
     floating_numbers[num_floating_numbers].string = string;
     floating_numbers[num_floating_numbers].x = x;
@@ -41,6 +41,7 @@ static void spawn_floating_string(float x, float y, char* string,int color)
     floating_numbers[num_floating_numbers].float_duration_counter = 0;
     floating_numbers[num_floating_numbers].float_duration_counter_max = 60;
     floating_numbers[num_floating_numbers].is_string = TRUE;
+	floating_numbers[num_floating_numbers].board_index = board_index;
 
     num_floating_numbers++;
     if(num_floating_numbers > MAX_FLOATING_NUMBERS-1)
@@ -65,7 +66,6 @@ static void update_floating_numbers()
             remove_floating_number(i);
         }
     }
-
 }
 
 static void draw_floating_number(int i)

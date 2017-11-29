@@ -1,6 +1,7 @@
 #define MAX_PROJECTILES 1000
 #define ARROW 4
 #define FIREBALL 6
+#define POISON_SPIT 13
 
 const char* projectile_tileset_name = "weapons";
 
@@ -10,23 +11,27 @@ typedef struct
     int life_counter;
     int life_span;
     float angle;
-    float damage_modifier;
+    int min_damage;
+    int max_damage;
     float friction;
     int board_index;
     PhysicalProperties phys;
 	BOOL shot;
     BOOL collision;
+    BOOL projectile_from_player;
 } Projectile;
 
 Projectile projectiles[MAX_PROJECTILES];
 static int num_projectiles = 0;
 
-static int spawn_projectile(float x, float y, float z, float x_vel, float y_vel, float z_vel, int tile_index, float rotation_angle, float damage_modifier)
+static int spawn_projectile(float x, float y, float z, float x_vel, float y_vel, float z_vel, int tile_index, float rotation_angle, int min_damage, int max_damage, BOOL projectile_from_player)
 {
     projectiles[num_projectiles].tile_index = tile_index;
     projectiles[num_projectiles].angle = rotation_angle;
-    projectiles[num_projectiles].damage_modifier = damage_modifier;
+    projectiles[num_projectiles].min_damage = min_damage;
+    projectiles[num_projectiles].max_damage = max_damage;
     projectiles[num_projectiles].friction = AIR_RESISTANCE;
+    projectiles[num_projectiles].projectile_from_player = projectile_from_player;
     projectiles[num_projectiles].phys.x = x;
     projectiles[num_projectiles].phys.y = y;
     projectiles[num_projectiles].phys.z = z;
@@ -103,57 +108,84 @@ static void update_projectiles()
         // check collisions with creatures
 		if(projectiles[i].shot)
 		{
-			for(int j = 0; j < num_creatures; ++j)
-			{
-                if(creatures[j].untargetable)
-                    continue;
+            // check with player
+            if(projectiles[i].projectile_from_player)
+            {
+                for(int j = 0; j < num_creatures; ++j)
+                {
+                    if(creatures[j].untargetable)
+                        continue;
 
-                if(creatures[j].board_index != current_board_index)
-                    continue;
+                    if(creatures[j].board_index != current_board_index)
+                        continue;
 
-				double distance = get_distance(projectiles[i].phys.x + TILE_WIDTH / 2, projectiles[i].phys.y + TILE_HEIGHT / 2, creatures[j].phys.x + TILE_WIDTH / 2, creatures[j].phys.y + TILE_HEIGHT / 2);
-				if(distance <= 20)
-				{
-					if(are_entities_colliding(&projectiles[i].phys, &creatures[j].phys))
-					{
-                        int damage = (rand() % (player.weapon.weapon_props.max_damage - player.weapon.weapon_props.min_damage + 1)) + player.weapon.weapon_props.min_damage;
-                        
-                        // add floating number
-                        spawn_floating_number(projectiles[i].phys.x,projectiles[i].phys.y,damage,6,projectiles[i].board_index);
-                        
-                        // creature hurt!
-                        creatures[j].phys.hp -= damage;
-
-                        // check if creature died
-                        if (creatures[j].phys.hp <= 0)
+                    double distance = get_distance(projectiles[i].phys.x + TILE_WIDTH / 2, projectiles[i].phys.y + TILE_HEIGHT / 2, creatures[j].phys.x + TILE_WIDTH / 2, creatures[j].phys.y + TILE_HEIGHT / 2);
+                    if(distance <= 20)
+                    {
+                        if(are_entities_colliding(&projectiles[i].phys, &creatures[j].phys))
                         {
-                            foes_killed++;
+                            int damage = (rand() % (projectiles[i].max_damage - projectiles[i].min_damage + 1)) + projectiles[i].min_damage;
                             
-                            // player get xp
-                            player.xp += creatures[j].xp;
-                            if(player.xp >= next_level)
+                            // add floating number
+                            spawn_floating_number(projectiles[i].phys.x,projectiles[i].phys.y,damage,6,projectiles[i].board_index);
+                            
+                            // creature hurt!
+                            creatures[j].phys.hp -= damage;
+
+                            // check if creature died
+                            if (creatures[j].phys.hp <= 0)
                             {
-                                gain_level();
+                                foes_killed++;
+                                
+                                // player get xp
+                                player.xp += creatures[j].xp;
+                                if(player.xp >= next_level)
+                                {
+                                    gain_level();
+                                }
+
+                                creature_death(j);
+
                             }
-
-                            creature_death(j);
-
-                        }
-                        else
-                        {
-                            creatures[j].stunned = TRUE;
-
-                            if(creatures[j].behavior == CREATURE_BEHAVIOR_PASSIVE)
+                            else
                             {
-                                creatures[j].behavior = CREATURE_BEHAVIOR_AGGRESSIVE;
-                                creatures[i].deaggress = TRUE;
+                                creatures[j].stunned = TRUE;
+
+                                if(creatures[j].behavior == CREATURE_BEHAVIOR_PASSIVE)
+                                {
+                                    creatures[j].behavior = CREATURE_BEHAVIOR_AGGRESSIVE;
+                                    creatures[i].deaggress = TRUE;
+                                }
                             }
+                            remove_projectile(i);
                         }
-						remove_projectile(i);
-					}
-				}
-			}
+                    }
+                }
+            }
+            else
+            {
+                if(are_entities_colliding(&projectiles[i].phys, &player.phys))
+                {
+                    // projectile hit player
+                    int damage = (rand() % (projectiles[i].max_damage - projectiles[i].min_damage + 1)) + projectiles[i].min_damage;
+
+                    // add floating number
+                    spawn_floating_number(projectiles[i].phys.x,projectiles[i].phys.y,damage,6,projectiles[i].board_index);
+                    
+                    // player hurt!
+                    player.phys.hp -= damage;
+
+                    creatures[i].attack_recovery = TRUE;
+
+                    // check if creature died
+                    if (creatures[i].phys.hp <= 0)
+                        player_die();
+                    else
+                        player.state |= PLAYER_STATE_HURT;
+                }
+            }
 		}
+            
         if(projectiles[i].shot && projectiles[i].phys.z == 0.0f)
         {
             // projectile on ground, count down to remove

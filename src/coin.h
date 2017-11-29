@@ -110,8 +110,8 @@ static void update_coins()
                                 break;
                         }
                         creatures[index].npc_props.vendor_credit += amount;
-                        spawn_floating_string(coins[i].phys.x, coins[i].phys.y, "$", color);
-                        spawn_floating_string(coins[i].phys.x, coins[i].phys.y, "*thanks*", 14);
+                        spawn_floating_string(coins[i].phys.x, coins[i].phys.y, "$", color,coins[i].board_index);
+						spawn_floating_string(coins[i].phys.x, coins[i].phys.y, "*thanks*", 14, coins[i].board_index);
                         remove_coin(i);
                     }
                 }

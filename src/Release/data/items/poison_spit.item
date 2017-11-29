@@ -1,0 +1,17 @@
+name: "Poison Spit"
+description: "This is gooey"
+type: 3 #Weapon
+weapon_type: 1 # Ranged
+min_damage: 1
+max_damage: 2
+attack_speed: 1.0 
+attack_range: 2 
+tileset_name: weapons
+tile_index: 13
+consummable: 0 #FALSE
+coin_value: 18 
+width: 5 
+length: 5 
+height: 5
+x_offset: 6
+y_offset: 6

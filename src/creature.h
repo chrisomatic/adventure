@@ -513,49 +513,70 @@ static void update_creatures()
 
             if(creatures[i].attacking)
             {
-                creatures[i].attack_angle += creatures[i].weapon.weapon_props.attack_speed*(PI/30.0f);
-
-                // check for collision with player
-                float cosa = cos(creatures[i].attack_angle);
-                float sina = sin(creatures[i].attack_angle);
-
-                for(int j = 0; j < creatures[i].weapon.weapon_props.attack_range; ++j)
+                if(creatures[i].weapon.weapon_props.weapon_type == WEAPON_TYPE_MELEE)
                 {
-                    if((player.state & PLAYER_STATE_DEAD) == PLAYER_STATE_DEAD)
-                        break;
+                    creatures[i].attack_angle += creatures[i].weapon.weapon_props.attack_speed*(PI/30.0f);
 
-                    if(creatures[i].attack_recovery)
-                        break;
+                    // check for collision with player
+                    float cosa = cos(creatures[i].attack_angle);
+                    float sina = sin(creatures[i].attack_angle);
 
-                    int start_weapon_x = creatures[i].phys.x + TILE_WIDTH/2;
-                    int start_weapon_y = creatures[i].phys.y + TILE_HEIGHT/2;
-                
-                    float delta_x = +cosa*j;
-                    float delta_y = -sina*j;
-
-                    if(start_weapon_x+delta_x >= player.phys.x && start_weapon_x+delta_x <= player.phys.x+0.75*TILE_WIDTH)
+                    for(int j = 0; j < creatures[i].weapon.weapon_props.attack_range; ++j)
                     {
-                        if(start_weapon_y+delta_y >= player.phys.y && start_weapon_y+delta_y <= player.phys.y+0.75*TILE_HEIGHT)
-                        {
-                            int damage = (rand() % (creatures[i].weapon.weapon_props.max_damage - creatures[i].weapon.weapon_props.min_damage + 1)) + creatures[i].weapon.weapon_props.min_damage;
-                            
-                            // add floating number
-                            spawn_floating_number(start_weapon_x+delta_x,start_weapon_y+delta_y,damage,6,creatures[i].board_index);
-
-                            // player hurt!
-                            player.phys.hp -= damage;
-
-                            creatures[i].attack_recovery = TRUE;
-
-                            // check if creature died
-                            if (creatures[i].phys.hp <= 0)
-                                player_die();
-                            else
-                                player.state |= PLAYER_STATE_HURT;
-
+                        if((player.state & PLAYER_STATE_DEAD) == PLAYER_STATE_DEAD)
                             break;
+
+                        if(creatures[i].attack_recovery)
+                            break;
+
+                        int start_weapon_x = creatures[i].phys.x + TILE_WIDTH/2;
+                        int start_weapon_y = creatures[i].phys.y + TILE_HEIGHT/2;
+                    
+                        float delta_x = +cosa*j;
+                        float delta_y = -sina*j;
+
+                        if(start_weapon_x+delta_x >= player.phys.x && start_weapon_x+delta_x <= player.phys.x+0.75*TILE_WIDTH)
+                        {
+                            if(start_weapon_y+delta_y >= player.phys.y && start_weapon_y+delta_y <= player.phys.y+0.75*TILE_HEIGHT)
+                            {
+                                int damage = (rand() % (creatures[i].weapon.weapon_props.max_damage - creatures[i].weapon.weapon_props.min_damage + 1)) + creatures[i].weapon.weapon_props.min_damage;
+                                
+                                // add floating number
+                                spawn_floating_number(start_weapon_x+delta_x,start_weapon_y+delta_y,damage,6,creatures[i].board_index);
+
+                                // player hurt!
+                                player.phys.hp -= damage;
+
+                                creatures[i].attack_recovery = TRUE;
+
+                                // check if creature died
+                                if (creatures[i].phys.hp <= 0)
+                                    player_die();
+                                else
+                                    player.state |= PLAYER_STATE_HURT;
+                                break;
+                            }
                         }
                     }
+                }
+                else if(creatures[i].weapon.weapon_props.weapon_type == WEAPON_TYPE_RANGED)
+                {
+                    switch(player.weapon.tile_index)
+                    {
+                        case BOW:
+                        case CROSSBOW:
+                            spawn_projectile(creatures[i].phys.x, creatures[i].phys.y, 5, 0, 0, 0, ARROW, creatures[i].attack_angle, creatures[i].weapon.weapon_props.min_damage, creatures[i].weapon.weapon_props.max_damage,FALSE);
+                            break;
+                        case STAFF:
+                            spawn_projectile(creatures[i].phys.x, creatures[i].phys.y, 5, 0, 0, 0, FIREBALL creatures[i].attack_angle, creatures[i].weapon.weapon_props.min_damage, creatures[i].weapon.weapon_props.max_damage,FALSE);
+                            break;
+                        case POISON_SPIT:
+                            spawn_projectile(creatures[i].phys.x, creatures[i].phys.y, 5, 0, 0, 0, POISON_SPIT, creatures[i].attack_angle, creatures[i].weapon.weapon_props.min_damage, creatures[i].weapon.weapon_props.max_damage,FALSE);
+                            break;
+                    }
+
+                    creatures[i].attacking = FALSE;
+                    creatures[i].attack_recovery = FALSE;
                 }
             }
         }
@@ -872,12 +893,33 @@ static void update_creatures()
                     spawn_particle(creatures[i].phys.x + (rand()%TILE_WIDTH), creatures[i].phys.y + (rand()%(TILE_HEIGHT/2)), rand()%2 + 1,3,0,c[rand()%5],creatures[i].board_index);
             }
             
-            // @TEMP: Indicate male reproductive creatures
             if(creatures[i].reproductive)
             {
+                // @TEMP: Indicate male reproductive creatures
                 if(creatures[i].gender == MALE)
                 {
                     spawn_particle(creatures[i].phys.x + (rand()%TILE_WIDTH), creatures[i].phys.y + (rand()%(TILE_HEIGHT/2)),1,2,CHAR_MALE_SYMBOL,8,creatures[i].board_index);
+                }
+
+                // handle death
+                ++creatures[i].death_check_counter;
+                if(creatures[i].death_check_counter >= SECONDS_PER_DAY)
+                {
+                    // one day since last death check.
+                    creatures[i].death_check_counter = 0;
+
+                    int death_num = rand() % 10000;
+                    int life_in_days = min(60,floor(creatures[i].age / SECONDS_PER_DAY));
+
+                    // min(max((rats/200)^2,1),maxq_mult) * base_rate
+                    float num_rat_rate = num_creatures/200.0f;
+                    float chance_of_death = min(max(num_rat_rate*num_rat_rate,1),25) * mortality_table[life_in_days];
+
+                    if(death_num >= (10000 - (10000.0f*chance_of_death)))
+                    {
+                        // creature dies.
+                        creature_death(i);
+                    }
                 }
             }
 
@@ -993,26 +1035,6 @@ static void update_creatures()
                 }
             }
             
-            // handle death
-            ++creatures[i].death_check_counter;
-            if(creatures[i].death_check_counter >= SECONDS_PER_DAY)
-            {
-                // one day since last death check.
-                creatures[i].death_check_counter = 0;
-
-                int death_num = rand() % 10000;
-                int life_in_days = min(60,floor(creatures[i].age / SECONDS_PER_DAY));
-
-                // min(max((rats/200)^2,1),maxq_mult) * base_rate
-                float num_rat_rate = num_creatures/200.0f;
-                float chance_of_death = min(max(num_rat_rate*num_rat_rate,1),25) * mortality_table[life_in_days];
-
-                if(death_num >= (10000 - (10000.0f*chance_of_death)))
-                {
-                    // creature dies.
-                    creature_death(i);
-                }
-            }
         }
     }
     

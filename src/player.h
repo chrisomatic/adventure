@@ -36,6 +36,7 @@ static void init_player()
     player.jump = FALSE;
     player.notch = FALSE;
     player.shoot = FALSE;
+    player.unequip = FALSE;
     player.notch_index = -1;
     player.hurt_counter = 0;
     player.hurt_counter_max = 10;
@@ -70,7 +71,7 @@ static void gain_level()
     player.xp -= next_level;
     next_level *= 2.00f;
 
-    spawn_floating_string(player.phys.x + TILE_WIDTH/2, player.phys.y,"+Lvl",8);
+    spawn_floating_string(player.phys.x + TILE_WIDTH/2, player.phys.y,"+Lvl",8,current_board_index);
     for(int i = 0; i < 10; ++i)
         spawn_particle(rand() % TILE_WIDTH + player.phys.x,player.phys.y,2,5,'*',8,current_board_index);
     player.available_stat_points += 5;
@@ -474,14 +475,17 @@ static void update_player()
             {
                 case BOW:
                 case CROSSBOW:
-                    player.notch_index = spawn_projectile(player.phys.x, player.phys.y, 5, 0, 0, 0, ARROW, player.attack_angle, 1.0f);
+                    player.notch_index = spawn_projectile(player.phys.x, player.phys.y, 5, 0, 0, 0, ARROW, player.attack_angle, player.weapon.weapon_props.min_damage, player.weapon.weapon_props.max_damage,TRUE);
                     break;
                 case STAFF:
                     if(player.mp > 0)
-                        player.notch_index = spawn_projectile(player.phys.x, player.phys.y, 5, 0, 0, 0, FIREBALL, player.attack_angle, 1.0f);
+                        player.notch_index = spawn_projectile(player.phys.x, player.phys.y, 5, 0, 0, 0, FIREBALL, player.attack_angle, player.weapon.weapon_props.min_damage, player.weapon.weapon_props.max_damage,TRUE);
 
                     --player.mp;
                     player.mp = max(0,player.mp);
+                    break;
+                case POISON_SPIT:
+                    player.notch_index = spawn_projectile(player.phys.x, player.phys.y, 5, 0, 0, 0, POISON_SPIT, player.attack_angle, player.weapon.weapon_props.min_damage, player.weapon.weapon_props.max_damage,TRUE);
                     break;
             }
         }
@@ -566,9 +570,9 @@ static void update_player()
                                 break;
                         }
                         player.gold += amount;
-						spawn_floating_string(player.phys.x, player.phys.y, "$", color);
+						spawn_floating_string(coins[i].phys.x, coins[i].phys.y, "$", color,current_board_index);
 						remove_coin(i);
-                        //PlaySound("data\\sfx\\pickup_coin.wav", NULL, SND_FILENAME | SND_ASYNC);
+                        PlaySound("data\\sfx\\pickup_coin.wav", NULL, SND_FILENAME | SND_ASYNC);
                     }
                 }
             }
@@ -678,7 +682,7 @@ static void update_player()
                             creatures[items[i].vendor_index].npc_props.vendor_credit -= items[i].coin_value;
                             items[i].mounted = FALSE;
                             items[i].vendor_index = -1;
-                            spawn_floating_string(items[i].phys.x, items[i].phys.y, "*purchased*", 14);
+                            spawn_floating_string(items[i].phys.x, items[i].phys.y, "*purchased*", 14,current_board_index);
                         }
                     }
                     else
@@ -855,6 +859,7 @@ static void update_player()
             player.phys.z_vel = 3.0f;
         }
     }
+    
 }
 static void draw_player_and_armor()
 {

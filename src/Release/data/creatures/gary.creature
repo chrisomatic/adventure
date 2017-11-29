@@ -1,0 +1,24 @@
+name: Gary
+is_npc: 1 #TRUE
+hp: 100
+max_hp: 100
+xp: 1
+num_dialogue: 1
+dialogue0: "Welcome to my shop!"
+
+speed: 0.5
+gold_drop_max: 12
+
+behavior: 0 # Passive
+untargetable: 1 # TRUE
+tileset_name: characters
+is_vendor: 1 #TRUE
+tile_index: 0
+species: Human
+reproductive: 0 #FALSE
+adult_age: 5040
+width: 16
+length: 8
+height: 16
+x_offset: 2
+y_offset: 8

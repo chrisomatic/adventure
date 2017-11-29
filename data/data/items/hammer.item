@@ -1,23 +1,14 @@
 name: "Hammer"
-
 description: "It's hammer time!"
-
 type: 3 #Weapon
-
 weapon_type: 0 #Melee
-
 min_damage: 2
-
 max_damage: 4
 attack_speed: 1.2
-
 attack_range: 15
 tileset_name: weapons
-
 tile_index: 9
 consummable: 0 #FALSE
-
-
 coin_value: 10
 width: 11
 length: 10

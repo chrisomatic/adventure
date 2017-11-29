@@ -6,9 +6,7 @@ speed: 0.6
 gold_drop_max: 15
 behavior: 0 # Passive
 untargetable: 0 # FALSE
-
 tileset_name: creatures
-
 tile_index: 80
 species: Bat
 reproductive: 0 #FALSE
