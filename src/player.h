@@ -7,6 +7,7 @@ static void init_player()
     player.board_name = "Astoria";
     player.tileset_name = "characters";
     player.tile_index = 0;
+    player.available_stat_points = 0;
     player.lvl = 1;
     player.xp  = 0;
     player.phys.hp  = 6;
@@ -64,7 +65,6 @@ static void init_player()
     get_item_by_name("Sword",&player.weapon);
 }
 
-<<<<<<< HEAD
 static void gain_level()
 {
     player.lvl++;
@@ -77,8 +77,6 @@ static void gain_level()
     player.available_stat_points += 5;
 }
 
-=======
->>>>>>> b710567aa5daa8b71f4877af32d4c97294cc392e
 static void player_die()
 {
     // drop all player gold
@@ -260,7 +258,8 @@ static void update_player()
 
             }
         }
-        else if(portal_links[i].b.board_index == current_board_index)
+
+        if(portal_links[i].b.board_index == current_board_index)
         {
             // check if player is colliding with portal
             if(player.phys.x + player.phys.x_offset >= portal_links[i].b.x && player.phys.x + player.phys.x_offset + player.phys.width <= portal_links[i].b.x + TILE_WIDTH)
@@ -486,7 +485,7 @@ static void update_player()
                     player.mp = max(0,player.mp);
                     break;
                 case POISON_SPIT:
-                    player.notch_index = spawn_projectile(player.phys.x, player.phys.y, 5, 0, 0, 0, POISON_SPIT, player.attack_angle, player.weapon.weapon_props.min_damage, player.weapon.weapon_props.max_damage,TRUE);
+                    player.notch_index = spawn_projectile(player.phys.x, player.phys.y, 5, 0, 0, 0, POISON_SPIT, player.attack_angle, player.weapon.weapon_props.min_damage, player.weapon.weapon_props.max_damage,TRUE); 
                     break;
             }
         }
@@ -571,14 +570,9 @@ static void update_player()
                                 break;
                         }
                         player.gold += amount;
-<<<<<<< HEAD
 						spawn_floating_string(coins[i].phys.x, coins[i].phys.y, "$", color,current_board_index);
 						remove_coin(i);
                         PlaySound("data\\sfx\\pickup_coin.wav", NULL, SND_FILENAME | SND_ASYNC);
-=======
-						spawn_floating_string(coins[i].phys.x, coins[i].phys.y, "$", color);
-						remove_coin(i);
->>>>>>> b710567aa5daa8b71f4877af32d4c97294cc392e
                     }
                 }
             }
@@ -683,9 +677,9 @@ static void update_player()
                         if(items[i].vendor_index < 0)
                             continue;
 
-                        if(npcs[items[i].vendor_index].vendor_credit >= items[i].coin_value)
+                        if(creatures[items[i].vendor_index].npc_props.vendor_credit >= items[i].coin_value)
                         {
-                            npcs[items[i].vendor_index].vendor_credit -= items[i].coin_value;
+                            creatures[items[i].vendor_index].npc_props.vendor_credit -= items[i].coin_value;
                             items[i].mounted = FALSE;
                             items[i].vendor_index = -1;
                             spawn_floating_string(items[i].phys.x, items[i].phys.y, "*purchased*", 14,current_board_index);

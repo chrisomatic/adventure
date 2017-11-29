@@ -1,7 +1,5 @@
 #define MAX_PROJECTILES 1000
-#define ARROW 4
-#define FIREBALL 6
-#define POISON_SPIT 13
+
 
 const char* projectile_tileset_name = "weapons";
 

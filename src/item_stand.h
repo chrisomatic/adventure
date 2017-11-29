@@ -37,7 +37,7 @@ static void spawn_item_stand(float x, float y,int board_index, int vendor_index)
 
 static void init_item_stands()
 {
-	int vendor_index = get_npc_index_by_name("Gary");
+	int vendor_index = get_creature_index_by_name("Gary");
     spawn_item_stand(1232,896,current_board_index, vendor_index);
     spawn_item_stand(1232,912,current_board_index, vendor_index);
     spawn_item_stand(1232,928,current_board_index, vendor_index);

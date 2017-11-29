@@ -30,4 +30,14 @@ static void init_portals()
 
     ++num_portal_links;
 
+	portal_links[num_portal_links].a.board_index = get_board_index_by_name("Caverns");
+	portal_links[num_portal_links].a.x = 32*TILE_WIDTH;
+	portal_links[num_portal_links].a.y = 5*TILE_HEIGHT;
+
+	portal_links[num_portal_links].b.board_index = get_board_index_by_name("Caverns");
+	portal_links[num_portal_links].b.x = 100*TILE_WIDTH;
+	portal_links[num_portal_links].b.y = 36*TILE_HEIGHT;
+
+    ++num_portal_links;
+
 }

@@ -1,75 +1,3 @@
-#define MAX_CREATURES       100000
-#define MAX_CREATURE_GRID   1000
-#define MAX_CREATURE_LIST   100
-#define CREATURE_GRID_X_MAX 32
-#define CREATURE_GRID_Y_MAX 32
-
-typedef struct
-{
-    char* name;
-    char* board_name;
-    int   board_index;
-    char* species;
-    char* tileset_name;
-    int tile_index;
-    int xp;
-    Item weapon;
-    PhysicalProperties phys;
-    int stun_counter;
-    int stun_duration;
-    int gold_drop_max;
-    int aggro_radius;
-    int action_counter;
-    int action_counter_max;
-    int action_duration_counter;
-    int action_duration_counter_max;
-    int particle_spawn_counter;
-    BOOL untargetable;
-    CreatureState state;
-    CreatureMode  mode;
-    CreatureBehavior behavior;
-    Direction dir;
-    Animation anim;
-    Gender gender;
-    BOOL reproductive;
-    BOOL pregnant;
-    BOOL birth_recovery;
-    BOOL attacking;
-    BOOL stunned;
-    BOOL deaggress;
-    BOOL attack_recovery;
-    float attack_angle;
-    int gestation_period;
-    int gestation_counter; 
-    int mating_radius;
-    int grouping_radius;
-    int age;
-    int max_age;
-    int age_counter;
-    int adult_age;
-    int litter_max;
-    int deaggression_counter;
-    int deaggression_duration;
-    int birth_recovery_time;
-    int birth_recovery_counter;
-    int death_check_counter;
-    int grid_index_x;
-    int grid_index_y;
-} Creature;
-
-typedef struct
-{
-    Creature* creatures[MAX_CREATURE_GRID];
-    int num_creatures;
-} CreatureSection;
-
-Creature creatures[MAX_CREATURES];
-Creature creature_list[MAX_CREATURE_LIST];
-
-CreatureSection creature_grid[CREATURE_GRID_X_MAX][CREATURE_GRID_Y_MAX];
-
-int num_creatures = 0;
-int num_creature_list = 0;
 
 // @TEMP:
 int num_pregs = 0;
@@ -141,6 +69,22 @@ float mortality_table[61] = {
     0.1000
 };
 
+static int get_creature_index_by_name(const char* name)
+{
+    for(int i = 0; i < num_creatures; ++i)
+    {
+		if (creatures[i].name == NULL)
+			continue;
+
+        if(strcmp(creatures[i].name, name) == 0)
+        {
+            return i;
+        }
+    }
+
+    return -1;
+
+}
 static BOOL get_creature_by_name(const char* name,Creature* creature)
 {
 	if (name == NULL)
@@ -176,6 +120,19 @@ static BOOL get_creature_by_name(const char* name,Creature* creature)
             creature->max_age = creature_list[i].max_age;
             creature->phys.x_offset = creature_list[i].phys.x_offset;
             creature->phys.y_offset = creature_list[i].phys.y_offset;
+            creature->npc_props.is_npc = creature_list[i].npc_props.is_npc;
+            creature->npc_props.is_vendor = creature_list[i].npc_props.is_vendor;
+            creature->npc_props.num_dialogue = creature_list[i].npc_props.num_dialogue;
+            creature->npc_props.dialogue[0] = creature_list[i].npc_props.dialogue[0];
+            creature->npc_props.dialogue[1] = creature_list[i].npc_props.dialogue[1];
+            creature->npc_props.dialogue[2] = creature_list[i].npc_props.dialogue[2];
+            creature->npc_props.dialogue[3] = creature_list[i].npc_props.dialogue[3];
+            creature->npc_props.dialogue[4] = creature_list[i].npc_props.dialogue[4];
+            creature->npc_props.dialogue[5] = creature_list[i].npc_props.dialogue[5]; 
+            creature->npc_props.dialogue[6] = creature_list[i].npc_props.dialogue[6];
+            creature->npc_props.dialogue[7] = creature_list[i].npc_props.dialogue[7];
+            creature->npc_props.dialogue[8] = creature_list[i].npc_props.dialogue[8];
+            creature->npc_props.dialogue[9] = creature_list[i].npc_props.dialogue[9];
 
             return TRUE;
         }
@@ -259,6 +216,23 @@ static BOOL spawn_creature(const char* creature_name,const char* board_name,floa
     creatures[num_creatures].death_check_counter = rand() % DAY_CYCLE_COUNTER_MAX;
     creatures[num_creatures].phys.x_offset = creature.phys.x_offset;
     creatures[num_creatures].phys.y_offset = creature.phys.y_offset;
+    creatures[num_creatures].npc_props.is_npc = creature.npc_props.is_npc;
+    creatures[num_creatures].npc_props.is_vendor = creature.npc_props.is_vendor;
+    creatures[num_creatures].npc_props.num_dialogue = creature.npc_props.num_dialogue;
+    creatures[num_creatures].npc_props.dialogue[0] = creature.npc_props.dialogue[0];
+    creatures[num_creatures].npc_props.dialogue[1] = creature.npc_props.dialogue[1];
+    creatures[num_creatures].npc_props.dialogue[2] = creature.npc_props.dialogue[2];
+    creatures[num_creatures].npc_props.dialogue[3] = creature.npc_props.dialogue[3];
+    creatures[num_creatures].npc_props.dialogue[4] = creature.npc_props.dialogue[4];
+    creatures[num_creatures].npc_props.dialogue[5] = creature.npc_props.dialogue[5]; 
+    creatures[num_creatures].npc_props.dialogue[6] = creature.npc_props.dialogue[6];
+    creatures[num_creatures].npc_props.dialogue[7] = creature.npc_props.dialogue[7];
+    creatures[num_creatures].npc_props.dialogue[8] = creature.npc_props.dialogue[8];
+    creatures[num_creatures].npc_props.dialogue[9] = creature.npc_props.dialogue[9];
+    creatures[num_creatures].npc_props.talking = FALSE;
+    creatures[num_creatures].npc_props.vendor_credit = 0;
+    creatures[num_creatures].npc_props.talk_radius = 20;
+    creatures[num_creatures].npc_props.distance_from_player = -1.0f;
 
     if(strcmp(creature_name,"Orc") == 0)
         get_item_by_name("Axe",&creatures[num_creatures].weapon);
@@ -289,92 +263,52 @@ static BOOL spawn_creature(const char* creature_name,const char* board_name,floa
 
 static void init_creatures()
 {
+    if (num_creature_list == 0)
+        return;
+
     num_creatures = 0;
+    num_npcs = 0;
 
-    // spawn rats
-    for (int i = 0; i < 150; ++i)
+    for(int i = 0; i < num_zones; ++i)
     {
-        int creature_x, creature_y;
-        int test_collision_1, test_collision_2, test_collision_3, test_collision_4;
-        BOOL collision = TRUE;
+        int creatures_in_zone = zone_list[i].num_creatures;
 
-        int board_index = get_board_index_by_name("Astoria");
-
-        if(board_index < 0)
-            return;
-        
-        // make sure not to spawn creature in a solid object
-        while(collision)
+        for(int j = 0; j < creatures_in_zone; ++j)
         {
-            creature_x = rand() % (TILE_WIDTH*(BOARD_TILE_WIDTH -1));
-            creature_y = rand() % (TILE_HEIGHT*(BOARD_TILE_HEIGHT -1));
+            int creature_type_index = rand() % zone_list[i].num_creature_types;
+            int board_index = get_board_index_by_name(zone_list[i].board_name);
 
-            test_collision_1 = board_list[board_index].collision[creature_x/TILE_WIDTH][creature_y/TILE_HEIGHT]; 
-            test_collision_2 = board_list[board_index].collision[(creature_x + TILE_WIDTH)/TILE_WIDTH][(creature_y + TILE_HEIGHT)/TILE_HEIGHT];
-            test_collision_3 = board_list[board_index].collision[creature_x/TILE_WIDTH][(creature_y+TILE_HEIGHT)/TILE_HEIGHT]; 
-            test_collision_4 = board_list[board_index].collision[(creature_x + TILE_WIDTH)/TILE_WIDTH][creature_y/TILE_HEIGHT];
+            int creature_x;
+            int creature_y;
+
+            int test_collision_1, test_collision_2, test_collision_3, test_collision_4;
+            BOOL collision = TRUE;
             
-            collision = (test_collision_1 == 5 && test_collision_2 == 5 || test_collision_3 == 5 || test_collision_4 == 5);
+            // make sure not to spawn creature in a solid object
+            while(collision)
+            {
+                creature_x = (rand() % (int)zone_list[i].w) + zone_list[i].x;
+                creature_y = (rand() % (int)zone_list[i].h) + zone_list[i].y;
+
+                test_collision_1 = board_list[board_index].collision[creature_x/TILE_WIDTH][creature_y/TILE_HEIGHT]; 
+                test_collision_2 = board_list[board_index].collision[creature_x/TILE_WIDTH][creature_y/TILE_HEIGHT];
+                test_collision_3 = board_list[board_index].collision[creature_x/TILE_WIDTH][creature_y/TILE_HEIGHT];
+                test_collision_4 = board_list[board_index].collision[creature_x/TILE_WIDTH][creature_y/TILE_HEIGHT];
+                
+                collision = (test_collision_1 == 5 && test_collision_2 == 5 || test_collision_3 == 5 || test_collision_4 == 5);
+            }
+
+            spawn_creature(zone_list[i].creature_type_names[creature_type_index],zone_list[i].board_name,creature_x,creature_y);
+
+            // set zone for creature
+            get_zone_by_name(zone_list[i].name,&creatures[num_creatures-1].zone);
+
+            if(creatures[num_creatures-1].npc_props.is_npc)
+            {
+                npc_creature_indices[num_npcs++] = num_creatures-1;
+            }
         }
-
-		if (num_creature_list == 0)
-			return;
-
-		//int creature_type = rand() % num_creature_list;
-        //spawn_creature(creature_list[creature_type].name,creature_x,creature_y);
-
-		int creature_type = rand() % 2;
-
-        if(creature_type == 0)
-            spawn_creature("Rat","Astoria",creature_x,creature_y);
-        else
-			spawn_creature("White Rat", "Astoria", creature_x, creature_y);
-        
     }
-    
-	/*
-    // spawn bats and orcs
-    for (int i = 0; i < 50; ++i)
-    {
-        int creature_x, creature_y;
-        int test_collision_1, test_collision_2, test_collision_3, test_collision_4;
-        BOOL collision = TRUE;
-
-        int board_index = get_board_index_by_name("Caverns");
-
-        if(board_index < 0)
-            return;
-        
-        // make sure not to spawn creature in a solid object
-        while(collision)
-        {
-            creature_x = rand() % (TILE_WIDTH*(BOARD_TILE_WIDTH -1));
-            creature_y = rand() % (TILE_HEIGHT*(BOARD_TILE_HEIGHT -1));
-
-            test_collision_1 = board_list[board_index].collision[creature_x/TILE_WIDTH][creature_y/TILE_HEIGHT]; 
-            test_collision_2 = board_list[board_index].collision[(creature_x + TILE_WIDTH)/TILE_WIDTH][(creature_y + TILE_HEIGHT)/TILE_HEIGHT];
-            test_collision_3 = board_list[board_index].collision[creature_x/TILE_WIDTH][(creature_y+TILE_HEIGHT)/TILE_HEIGHT]; 
-            test_collision_4 = board_list[board_index].collision[(creature_x + TILE_WIDTH)/TILE_WIDTH][creature_y/TILE_HEIGHT];
-            
-            collision = (test_collision_1 == 5 && test_collision_2 == 5 || test_collision_3 == 5 || test_collision_4 == 5);
-        }
-
-		if (num_creature_list == 0)
-			return;
-
-		//int creature_type = rand() % num_creature_list;
-        //spawn_creature(creature_list[creature_type].name,creature_x,creature_y);
-
-        
-		int creature_type = rand() % 2;
-
-        if(creature_type == 0)
-			spawn_creature("Orc", "Caverns", creature_x, creature_y);
-        else
-            spawn_creature("Bat", "Caverns", creature_x,creature_y);
-        
-    }
-	*/
 }
 
 static void remove_creature(int index)
@@ -403,51 +337,11 @@ static void creature_death(int i)
         spawn_coin(creatures[i].phys.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].phys.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)),2,0,0,2.0f, COIN_GOLD, creatures[i].board_index);
 
     // drop item(s)
-    int item_percent = rand() % 100 + 1;
-    
-    if(item_percent >= 1 && item_percent <= 20)
+    int item_index = rand() % (2*num_item_list);
+
+    if(item_index < num_item_list)
     {
-        spawn_item("Meat",creatures[i].phys.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].phys.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)), creatures[i].board_index);
-    }
-    else if(item_percent >= 21 && item_percent <= 40)
-    {
-        spawn_item("Mana Vial",creatures[i].phys.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].phys.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)), creatures[i].board_index);
-    }
-    else if(item_percent >= 41 && item_percent <= 42)
-    {
-        spawn_item("Knife",creatures[i].phys.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].phys.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)), creatures[i].board_index);
-    }
-    else if(item_percent >= 43 && item_percent <= 44)
-    {
-        spawn_item("Sword",creatures[i].phys.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].phys.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)), creatures[i].board_index);
-    }
-    else if(item_percent >= 45 && item_percent <= 46)
-    {
-        spawn_item("Axe",creatures[i].phys.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].phys.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)), creatures[i].board_index);
-    }
-    else if(item_percent >= 47 && item_percent <= 48)
-    {
-        spawn_item("Bow",creatures[i].phys.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].phys.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)), creatures[i].board_index);
-    }
-    else if(item_percent >= 49 && item_percent <= 50)
-    {
-        spawn_item("Staff",creatures[i].phys.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].phys.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)), creatures[i].board_index);
-    }
-    else if(item_percent >= 51 && item_percent <= 59)
-    {
-        spawn_item("Helm",creatures[i].phys.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].phys.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)), creatures[i].board_index);
-    }
-    else if(item_percent >= 60 && item_percent <= 69)
-    {
-        spawn_item("Cloak",creatures[i].phys.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].phys.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)), creatures[i].board_index);
-    }
-    else if(item_percent >= 70 && item_percent <= 79)
-    {
-        spawn_item("Red Cloak",creatures[i].phys.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].phys.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)), creatures[i].board_index);
-    }
-    else if(item_percent >= 80 && item_percent <= 89)
-    {
-        spawn_item("Rat Helm",creatures[i].phys.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].phys.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)), creatures[i].board_index);
+        spawn_item(item_list[item_index].name,creatures[i].phys.x + (rand()%(TILE_WIDTH/2) -(TILE_WIDTH/4)),creatures[i].phys.y + (rand() % (TILE_HEIGHT/2) - (TILE_HEIGHT / 4)), creatures[i].board_index);
     }
 
     if(creatures[i].pregnant)
@@ -460,7 +354,6 @@ static void creature_death(int i)
 
 static void update_creatures()
 {
-    
     // init creature grid
     for(int i = 0; i < CREATURE_GRID_X_MAX; ++i)
     {
@@ -469,6 +362,9 @@ static void update_creatures()
             creature_grid[i][j].num_creatures = 0;
         }
     }
+
+    float min_distance = 1000.0f;
+    int min_index = -1;
 
     for(int i = num_creatures -1; i >= 0;--i)
     {
@@ -560,6 +456,36 @@ static void update_creatures()
                 if(creatures[i].stunned)
                     creatures[i].phys.speed /= 2.0f;
                 
+                // keep creature in zone boundaries
+                if(creatures[i].phys.x < creatures[i].zone.x)
+                {
+                    creatures[i].phys.x = creatures[i].zone.x;
+                    creatures[i].phys.x_vel *= -1; // flip creature in other direction
+                    if(creatures[i].dir == DIR_LEFT) creatures[i].dir = DIR_RIGHT;
+                    if(creatures[i].dir == DIR_RIGHT) creatures[i].dir = DIR_LEFT;
+                }
+                if(creatures[i].phys.y < creatures[i].zone.y)
+                {
+                    creatures[i].phys.y = creatures[i].zone.y;
+                    creatures[i].phys.y_vel *= -1; // flip creature in other direction
+                    if(creatures[i].dir == DIR_UP) creatures[i].dir = DIR_DOWN;
+                    if(creatures[i].dir == DIR_DOWN) creatures[i].dir = DIR_UP;
+                }
+                if(creatures[i].phys.x > creatures[i].zone.x + creatures[i].zone.w)
+                {
+                    creatures[i].phys.x = creatures[i].zone.x + creatures[i].zone.w;
+                    creatures[i].phys.x_vel *= -1; // flip creature in other direction
+                    if(creatures[i].dir == DIR_LEFT) creatures[i].dir = DIR_RIGHT;
+                    if(creatures[i].dir == DIR_RIGHT) creatures[i].dir = DIR_LEFT;
+                }
+                if(creatures[i].phys.y > creatures[i].zone.y + creatures[i].zone.h)
+                {
+                    creatures[i].phys.y = creatures[i].zone.y + creatures[i].zone.h;
+                    creatures[i].phys.y_vel *= -1; // flip creature in other direction
+                    if(creatures[i].dir == DIR_UP) creatures[i].dir = DIR_DOWN;
+                    if(creatures[i].dir == DIR_DOWN) creatures[i].dir = DIR_UP;
+                }
+                
                 // keep creature in board boundaries
                 if(creatures[i].phys.x < 0) creatures[i].phys.x = 0;
                 if(creatures[i].phys.y < 0) creatures[i].phys.y = 0;
@@ -628,10 +554,12 @@ static void update_creatures()
                                     player_die();
                                 else
                                     player.state |= PLAYER_STATE_HURT;
+
                                 break;
                             }
                         }
                     }
+
                 }
                 else if(creatures[i].weapon.weapon_props.weapon_type == WEAPON_TYPE_RANGED)
                 {
@@ -642,7 +570,7 @@ static void update_creatures()
                             spawn_projectile(creatures[i].phys.x, creatures[i].phys.y, 5, 0, 0, 0, ARROW, creatures[i].attack_angle, creatures[i].weapon.weapon_props.min_damage, creatures[i].weapon.weapon_props.max_damage,FALSE);
                             break;
                         case STAFF:
-                            spawn_projectile(creatures[i].phys.x, creatures[i].phys.y, 5, 0, 0, 0, FIREBALL creatures[i].attack_angle, creatures[i].weapon.weapon_props.min_damage, creatures[i].weapon.weapon_props.max_damage,FALSE);
+                            spawn_projectile(creatures[i].phys.x, creatures[i].phys.y, 5, 0, 0, 0, FIREBALL, creatures[i].attack_angle, creatures[i].weapon.weapon_props.min_damage, creatures[i].weapon.weapon_props.max_damage,FALSE);
                             break;
                         case POISON_SPIT:
                             spawn_projectile(creatures[i].phys.x, creatures[i].phys.y, 5, 0, 0, 0, POISON_SPIT, creatures[i].attack_angle, creatures[i].weapon.weapon_props.min_damage, creatures[i].weapon.weapon_props.max_damage,FALSE);
@@ -651,6 +579,47 @@ static void update_creatures()
 
                     creatures[i].attacking = FALSE;
                     creatures[i].attack_recovery = FALSE;
+                }
+            }
+        }
+        else if (creatures[i].npc_props.is_npc && creatures[i].npc_props.talking)
+        {
+            // update direction to face player
+            float diff_x = player.phys.x - creatures[i].phys.x;
+            float diff_y = player.phys.y - creatures[i].phys.y;
+
+            if(diff_x <0)
+            {
+                if(diff_y < 0)
+                {
+                    if(abs(diff_x) > abs(diff_y))
+                        creatures[i].dir = DIR_LEFT;
+                    else
+                        creatures[i].dir = DIR_UP;
+                }
+                else
+                {
+                    if(abs(diff_x) > abs(diff_y))
+                        creatures[i].dir = DIR_LEFT;
+                    else
+                        creatures[i].dir = DIR_DOWN;
+                }
+            }
+            else
+            {
+                if(diff_y < 0)
+                {
+                    if(abs(diff_x) > abs(diff_y))
+                        creatures[i].dir = DIR_RIGHT;
+                    else
+                        creatures[i].dir = DIR_UP;
+                }
+                else
+                {
+                    if(abs(diff_x) > abs(diff_y))
+                        creatures[i].dir = DIR_RIGHT;
+                    else
+                        creatures[i].dir = DIR_DOWN;
                 }
             }
         }
@@ -870,6 +839,45 @@ static void update_creatures()
             creatures[i].anim.frame = 0;
         }
 
+        // handle npc stuff
+        if(creatures[i].npc_props.is_npc)
+        {
+            // check if player is near
+            float distance = get_distance(player.phys.x,player.phys.y,creatures[i].phys.x,creatures[i].phys.y);
+
+            if(distance <= creatures[i].npc_props.talk_radius)
+            {
+                BOOL prev_talking = creatures[i].npc_props.talking;
+
+                if(prev_talking == FALSE)
+                {
+                    // randomly select new dialogue
+                    creatures[i].npc_props.selected_dialogue_num = rand() % creatures[i].npc_props.num_dialogue;
+                }
+
+                creatures[i].npc_props.talking = TRUE;
+                creatures[i].npc_props.distance_from_player = distance;
+                creatures[i].state = CREATURE_STATE_NEUTRAL; // return to neutral state
+                creatures[i].phys.x_vel = +0;
+                creatures[i].phys.y_vel = +0;
+            }
+            else
+            {
+                creatures[i].npc_props.talking = FALSE;
+                creatures[i].npc_props.distance_from_player = -1.0f;
+            }
+            
+            // update min index
+            if(creatures[i].npc_props.talking)
+            {
+                if(creatures[i].npc_props.distance_from_player < min_distance)
+                {
+                    min_distance = creatures[i].npc_props.distance_from_player;
+                    min_index = i;
+                }
+            }
+        }
+        
         // handle aging
         ++creatures[i].age_counter;
         if(creatures[i].age_counter >= 60)
@@ -943,32 +951,36 @@ static void update_creatures()
                                     // is creature not recoverying from a pregnancy?
                                     if(!creature_j->birth_recovery)
                                     {
-                                        // are creatures the same species?
-                                        if(strcmp(creature_j->species, creatures[i].species) == 0)
+                                        // are creatures in same zone?
+                                        if(strcmp(creature_j->zone.name, creatures[i].zone.name) == 0)
                                         {
-                                            // look at x distance
-                                            if(abs(creatures[i].phys.x - creature_j->phys.x) <= creatures[i].mating_radius)
+                                            // are creatures the same species?
+                                            if(strcmp(creature_j->species, creatures[i].species) == 0)
                                             {
-                                                // look at y distance
-                                                if(abs(creatures[i].phys.y - creature_j->phys.y) <= creatures[i].mating_radius)
+                                                // look at x distance
+                                                if(abs(creatures[i].phys.x - creature_j->phys.x) <= creatures[i].mating_radius)
                                                 {
-                                                    // get direct distance
-                                                    double distance = get_distance(creatures[i].phys.x,creatures[i].phys.y,creature_j->phys.x, creature_j->phys.y);
-
-                                                    if(distance <= creatures[i].mating_radius)
+                                                    // look at y distance
+                                                    if(abs(creatures[i].phys.y - creature_j->phys.y) <= creatures[i].mating_radius)
                                                     {
-                                                        // spawn flames
-                                                        for(int k = 0; k < 10; ++k)
-                                                            spawn_particle(creature_j->phys.x + (rand()%TILE_WIDTH), creature_j->phys.y + (rand()%(TILE_HEIGHT/2)),1,3,CHAR_FLAME,9, creature_j->board_index);
+                                                        // get direct distance
+                                                        double distance = get_distance(creatures[i].phys.x,creatures[i].phys.y,creature_j->phys.x, creature_j->phys.y);
 
-                                                        // calculate chance of pregnancy
-                                                        int chance_of_preg = rand()%100;
-
-                                                        if(chance_of_preg < 100) // 100% chance of pregnancy
+                                                        if(distance <= creatures[i].mating_radius)
                                                         {
-                                                            creature_j->pregnant = TRUE;
-                                                            creature_j->phys.base_speed /= 2.0f; // reduce speed of pregnant creature
-                                                            ++num_pregs;
+                                                            // spawn flames
+                                                            for(int k = 0; k < 10; ++k)
+                                                                spawn_particle(creature_j->phys.x + (rand()%TILE_WIDTH), creature_j->phys.y + (rand()%(TILE_HEIGHT/2)),1,3,CHAR_FLAME,9, creature_j->board_index);
+
+                                                            // calculate chance of pregnancy
+                                                            int chance_of_preg = rand()%100;
+
+                                                            if(chance_of_preg < 100) // 100% chance of pregnancy
+                                                            {
+                                                                creature_j->pregnant = TRUE;
+                                                                creature_j->phys.base_speed /= 2.0f; // reduce speed of pregnant creature
+                                                                ++num_pregs;
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -999,6 +1011,7 @@ static void update_creatures()
                     {
 						spawn_creature(creatures[i].name, creatures[i].board_name, creatures[i].phys.x, creatures[i].phys.y);
                         creatures[num_creatures - 1].age = 0; // set age to zero (newborn)
+                        get_zone_by_name(creatures[i].zone.name,&creatures[num_creatures - 1].zone); // set zone
                         ++num_births;
                     }
 
@@ -1026,6 +1039,22 @@ static void update_creatures()
             
         }
     }
+    
+    // update npc message
+    if(min_index > -1)
+    {
+        message.name = creatures[min_index].name;
+        message.message = creatures[min_index].npc_props.dialogue[creatures[min_index].npc_props.selected_dialogue_num];
+
+        if(creatures[min_index].npc_props.is_vendor)
+            message.value = creatures[min_index].npc_props.vendor_credit;
+        else
+            message.value = -1;
+
+        message.color = 10;
+        message.active = TRUE;
+    }
+    
 }
 
 static void draw_creature_only(int i)

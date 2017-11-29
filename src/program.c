@@ -14,6 +14,7 @@
 #include "timer.h"
 #include "animation.h"
 #include "tile.h"
+#include "zone.h"
 #include "board.h"
 #include "item.h"
 #include "item_stand.h"
@@ -25,7 +26,6 @@
 #include "projectile.h"
 #include "portal.h"
 #include "player.h"
-#include "npc.h"
 #include "entity.h"
 #include "asset.h"
 #include "hud.h"
@@ -42,6 +42,8 @@ int window_height;
 
 int counter_for_seconds = 0;
 int counter_for_minutes = 0;
+
+BOOL shift_down = FALSE;
 
 const int BYTES_PER_PIXEL = 1;
 
@@ -74,7 +76,6 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
     init_creatures();
     init_items();
     init_player();
-    init_npcs();
     init_boards();
     init_item_stands();
     init_portals();
@@ -84,7 +85,7 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
     // 
 
     // @TEMP
-    
+   /* 
     time_t timer;
     char buffer[26];
     struct tm* tm_info;
@@ -112,8 +113,8 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
     FILE* fp_rat_plot = fopen(outputnameplot,"w");
     fprintf(fp_rat_plot,"rat_index,x,y\n");
     fclose(fp_rats);
+    */
     //
-    
 
     timer_init(TARGET_FPS); 
     is_running = TRUE;
@@ -133,7 +134,7 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
 		if (timer_ready(&current_fps))
 		{
             // @TEMP
-            
+            /*
             ++counter_for_seconds;
             if(counter_for_seconds == TARGET_FPS)
             {
@@ -157,15 +158,14 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
                 fprintf(fp_rats,"%i,%i,%i,%i\n",num_creatures,num_births,num_deaths,num_pregs);
                 fclose(fp_rats);
             }
-            
+            */
             //
-            
             update_scene();
             draw_scene();
         }
 	}
 
-    fclose(fp_rats);
+    //fclose(fp_rats);
 
 	return EXIT_SUCCESS;
 }
@@ -183,11 +183,7 @@ static void update_scene()
     update_coins();
     update_floating_numbers();
     update_creatures();
-<<<<<<< HEAD
     update_weather();
-=======
-    update_npcs();
->>>>>>> b710567aa5daa8b71f4877af32d4c97294cc392e
     update_particles();
     update_projectiles();
 	update_hud();
@@ -265,14 +261,8 @@ static void setup_window(HINSTANCE hInstance)
  	buffer_width  = 240; // 15 16px tiles
 	buffer_height = 176; // 11 16px tiles
 
-	/*
 	window_width = 1024;
 	window_height = 751;
-	*/
-
-	// @TEMP
-	window_width = 240;
-	window_height = 176;
 
 	wc.lpfnWndProc = MainWndProc;
 	wc.hInstance = hInstance;
@@ -490,17 +480,34 @@ static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM 
             }
             else if(wparam == VK_SHIFT)
             {
+                shift_down = TRUE;
                 player.phys.base_speed = 2.0f;
             }
-            else if(wparam == 'O')
+            else if(wparam == 'U')
             {
                 display_stats = !display_stats;
             }
             else if(wparam == 'I')
             {
                 display_inventory = !display_inventory;
+                inventory_selection_index = 0;
             }
-
+            else if(wparam == VK_TAB)
+            {
+                if(shift_down)
+                {
+                    --inventory_selection_index;
+                    if(inventory_selection_index < 0)
+                        inventory_selection_index = INVENTORY_SELECTION_MAX -1;
+                }
+                else
+                {
+                    ++inventory_selection_index;
+                    if(inventory_selection_index == INVENTORY_SELECTION_MAX)
+                        inventory_selection_index = 0;
+                }
+            }
+            
             // @DEV
             if(wparam == '1')
             {
@@ -537,7 +544,6 @@ static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM 
 
                 init_creatures();
                 init_items();
-                init_npcs();
             }
             else if(wparam == 'K')
             {
@@ -584,6 +590,7 @@ static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM 
             // @DEV
             if(wparam == VK_SHIFT)
             {
+                shift_down = FALSE;
                 player.phys.base_speed = 1.0f;
             }
 

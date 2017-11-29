@@ -82,13 +82,14 @@ static void update_coins()
         // check if it collides with a vendor
         for(int j = 0; j < num_npcs; ++j)
         {
-            if(npcs[j].is_vendor)
+            int index = npc_creature_indices[j];
+            if(creatures[index].npc_props.is_vendor)
             {
-				double distance = get_distance(coins[i].phys.x + TILE_WIDTH / 2, coins[i].phys.y + TILE_HEIGHT / 2, npcs[j].phys.x + TILE_WIDTH / 2, npcs[j].phys.y + TILE_HEIGHT / 2);
+                double distance = get_distance(coins[i].phys.x + TILE_WIDTH / 2, coins[i].phys.y + TILE_HEIGHT / 2, creatures[index].phys.x + TILE_WIDTH / 2, creatures[index].phys.y + TILE_HEIGHT / 2);
 
                 if(distance <= 20)
                 {
-                    if(are_entities_colliding(&coins[i].phys, &npcs[j].phys))
+                    if(are_entities_colliding(&coins[i].phys, &creatures[index].phys))
                     {
                         char color = 0;
                         int  amount = 0;
@@ -108,17 +109,10 @@ static void update_coins()
                                 color = 14;
                                 break;
                         }
-<<<<<<< HEAD
                         creatures[index].npc_props.vendor_credit += amount;
                         spawn_floating_string(coins[i].phys.x, coins[i].phys.y, "$", color,coins[i].board_index);
 						spawn_floating_string(coins[i].phys.x, coins[i].phys.y, "*thanks*", 14, coins[i].board_index);
                         remove_coin(i);
-=======
-                        npcs[j].vendor_credit += amount;
-						spawn_floating_string(coins[i].phys.x, coins[i].phys.y, "$", color);
-						spawn_floating_string(coins[i].phys.x, coins[i].phys.y, "*thanks*", 14);
-						remove_coin(i);
->>>>>>> b710567aa5daa8b71f4877af32d4c97294cc392e
                     }
                 }
             }
