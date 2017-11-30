@@ -4,19 +4,19 @@ KeyPress keypress_attack = 0x0000;
 static void init_player()
 {
     player.name = "Hero";
-    player.board_name = "Astoria";
+    player.board_name = "Caverns";
     player.tileset_name = "characters";
     player.tile_index = 0;
     player.available_stat_points = 0;
     player.lvl = 1;
     player.xp  = 0;
-    player.phys.hp  = 6;
-    player.phys.max_hp = 6;
+    player.phys.hp  = 10;
+    player.phys.max_hp = 10;
     player.mp  = 6;
     player.max_mp = 6;
     player.gold = 10;
-    player.phys.x   = 1271.0f;
-    player.phys.y   = 863.0f;
+    player.phys.x   = 40.0f*TILE_WIDTH; // 1271.0f;
+    player.phys.y   = 75.0f*TILE_HEIGHT; //863.0f;
     player.phys.z   = 0;
     player.phys.x_offset = 2;
     player.phys.y_offset = 8;
@@ -252,8 +252,11 @@ static void update_player()
                     display_board_title = TRUE;
                     board_title_display_counter = 0;
 
-                    player.phys.x += player.phys.x_vel*player.phys.speed*16;
-                    player.phys.y += player.phys.y_vel*player.phys.speed*16;
+                    if(player.phys.x_vel > 0) player.phys.x += TILE_WIDTH;
+                    else if(player.phys.x_vel < 0) player.phys.x -= TILE_WIDTH;
+
+                    if(player.phys.y_vel > 0) player.phys.y += TILE_HEIGHT;
+                    else if(player.phys.y_vel < 0) player.phys.y -= TILE_HEIGHT;
                 }
 
             }

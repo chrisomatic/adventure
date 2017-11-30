@@ -173,6 +173,7 @@ static void update_projectiles()
                     // player hurt!
                     player.phys.hp -= damage;
 
+					creatures[i].attacking = FALSE;
                     creatures[i].attack_recovery = TRUE;
 
                     // check if creature died
@@ -180,6 +181,8 @@ static void update_projectiles()
                         player_die();
                     else
                         player.state |= PLAYER_STATE_HURT;
+
+                    remove_projectile(i);
                 }
             }
 		}

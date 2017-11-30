@@ -236,6 +236,8 @@ static BOOL spawn_creature(const char* creature_name,const char* board_name,floa
 
     if(strcmp(creature_name,"Orc") == 0)
         get_item_by_name("Axe",&creatures[num_creatures].weapon);
+    else if(strcmp(creature_name,"Bat") == 0)
+        get_item_by_name("Poison Spit",&creatures[num_creatures].weapon);
     else
         get_item_by_name("Claw",&creatures[num_creatures].weapon);
 
@@ -563,22 +565,47 @@ static void update_creatures()
                 }
                 else if(creatures[i].weapon.weapon_props.weapon_type == WEAPON_TYPE_RANGED)
                 {
-                    switch(player.weapon.tile_index)
+                    if((player.state & PLAYER_STATE_DEAD) == PLAYER_STATE_DEAD)
+                        break;
+
+                    if(creatures[i].attack_recovery)
+                        break;
+
+                    float x_diff = creatures[i].phys.x - player.phys.x;
+                    float y_diff = creatures[i].phys.y - player.phys.y;
+
+                    float angle = atan(y_diff/x_diff);
+
+
+                    float x_vel = cos(angle)*2;
+                    float y_vel = -sin(angle)*2;
+
+                    if(x_diff > 0)
+                    {
+                        x_vel *=-1.0f;
+                        y_vel *=-1.0f;
+                    }
+
+                    int projectile_index;
+
+                    switch(creatures[i].weapon.tile_index)
                     {
                         case BOW:
                         case CROSSBOW:
-                            spawn_projectile(creatures[i].phys.x, creatures[i].phys.y, 5, 0, 0, 0, ARROW, creatures[i].attack_angle, creatures[i].weapon.weapon_props.min_damage, creatures[i].weapon.weapon_props.max_damage,FALSE);
+                            projectile_index = ARROW;
                             break;
                         case STAFF:
-                            spawn_projectile(creatures[i].phys.x, creatures[i].phys.y, 5, 0, 0, 0, FIREBALL, creatures[i].attack_angle, creatures[i].weapon.weapon_props.min_damage, creatures[i].weapon.weapon_props.max_damage,FALSE);
+                            projectile_index = FIREBALL;
                             break;
                         case POISON_SPIT:
-                            spawn_projectile(creatures[i].phys.x, creatures[i].phys.y, 5, 0, 0, 0, POISON_SPIT, creatures[i].attack_angle, creatures[i].weapon.weapon_props.min_damage, creatures[i].weapon.weapon_props.max_damage,FALSE);
+                            projectile_index = POISON_SPIT;
                             break;
                     }
+                    
+                    spawn_projectile(creatures[i].phys.x, creatures[i].phys.y, 5.0f, x_vel, -y_vel, 2.0f, projectile_index, creatures[i].attack_angle, creatures[i].weapon.weapon_props.min_damage, creatures[i].weapon.weapon_props.max_damage,FALSE);
+					projectiles[num_projectiles - 1].shot = TRUE;
 
-                    creatures[i].attacking = FALSE;
-                    creatures[i].attack_recovery = FALSE;
+                    creatures[i].attack_recovery = TRUE;
                 }
             }
         }

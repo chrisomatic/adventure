@@ -61,8 +61,10 @@ typedef enum
 static BOOL spawn_coin(float x, float y, float z, float x_vel, float y_vel, float z_vel, CoinType type, int board_index);
 static void spawn_floating_number(float x, float y, int number,int color);
 static void spawn_floating_string(float x, float y, char* string,int color);
+static int spawn_projectile(float x, float y, float z, float x_vel, float y_vel, float z_vel, int tile_index, float rotation_angle, int min_damage, int max_damage, BOOL projectile_from_player);
 static void spawn_particle(int x, int y, int size,int intensity,unsigned char character,unsigned char color,int board_index);
-static void player_die();
-static void draw_message();
 static void gain_level();
+static void player_die();
+static void creature_death(int i);
+static void draw_message();
 

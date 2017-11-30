@@ -5,7 +5,7 @@ weapon_type: 1 # Ranged
 min_damage: 1
 max_damage: 2
 attack_speed: 1.0
-attack_range: 2 
+attack_range: 30 
 tileset_name: weapons
 tile_index: 13
 consummable: 0 #FALSE
