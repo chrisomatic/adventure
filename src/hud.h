@@ -3,10 +3,12 @@
 
 BOOL display_stats = FALSE;
 BOOL display_inventory = FALSE;
+BOOL display_map = FALSE;
 
 int stat_anim_counter = 0;
 int inventory_anim_counter = 0;
 int inventory_selection_index = 0;
+int player_map_color = 6;
 
 int current_fps = 0;
 
@@ -29,6 +31,56 @@ static void draw_message()
         draw_char(CHAR_COIN,buffer_width - 40 - 18,149,14);
         draw_number_string(message.value,buffer_width - 40 - 12,149,1.0f,14);
     }
+}
+
+static void draw_map()
+{
+    int map_width  = floor(BOARD_TILE_WIDTH  / 8.0f);
+    int map_height = floor(BOARD_TILE_HEIGHT / 8.0f);
+
+    int player_index_x = floor(player.phys.x / (8.0f*16.0f));
+    int player_index_y = floor(player.phys.y / (8.0f*16.0f));
+
+    int element;
+
+    if (world_water_anim_counter == 0)
+    {
+        if(player_map_color == 6)
+            player_map_color = 15;
+        else
+            player_map_color = 6;
+    }
+
+    for(int i = 0; i < map_width; ++i)
+        for(int j = 0; j < map_height; ++j)
+        {
+            element = board_list[current_board_index].data[j*8][i*8];
+            switch(element)
+            {
+                case GRASS:       element = 11; break;
+                case MARSH:       element = 5;  break;
+                case WATER:       element = 8;  break;
+                case WATER2:      element = 8;  break;
+                case WATER_DEEP:  element = 2;  break;
+                case WATER_DEEP2: element = 2;  break;
+                case SAND:        element = 14; break;
+                case MUD:         element = 4;  break;
+                case MOUNTAIN:    element = 3;  break;
+                case SNOW:        element = 15; break;
+                case LAVA:        element = 6;  break;
+                case LAVA2:       element = 6;  break;
+                case STONE:       element = 10; break;
+                case WOOD:        element = 9;  break;
+                case CAVE:        element = 0;  break;
+            }
+
+
+            if(i == player_index_x && j == player_index_y)
+                draw_pixel8(buffer_width - map_width + i,j,player_map_color);
+            else
+                draw_pixel8(buffer_width - map_width + i,j,element);
+
+        }
 }
 
 static void draw_stats()
@@ -271,10 +323,14 @@ static void draw_hud()
     //    draw_bounding_box(&npcs[i].phys);
     //}
 
+    if(display_map)
+        draw_map();
+
     //if(display_stats)
     draw_stats();
 
     //if(display_inventory)
     draw_inventory();
+
 
 }

@@ -492,6 +492,10 @@ static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM 
                 display_inventory = !display_inventory;
                 inventory_selection_index = 0;
             }
+            else if(wparam == 'M')
+            {
+                display_map = !display_map;
+            }
             else if(wparam == VK_TAB)
             {
                 if(shift_down)

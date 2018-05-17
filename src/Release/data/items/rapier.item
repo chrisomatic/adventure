@@ -1,0 +1,15 @@
+name: "Rapier"
+description: "Quick and elegant"
+type: 3 #Weapon
+weapon_type: 0 #Melee
+min_damage: 3
+max_damage: 4
+attack_speed: 1.4
+attack_range: 20
+tileset_name: weapons
+tile_index: 10
+consummable: 0 #FALSE
+coin_value: 10
+width: 16
+length: 10
+height: 6

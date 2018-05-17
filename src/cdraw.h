@@ -77,7 +77,6 @@ static void generate_palette_file(const char* image_path)
 
 static void update_game_colors()
 {
-
 	FILE *fp;
     fp = fopen("data\\palette","rb");
 

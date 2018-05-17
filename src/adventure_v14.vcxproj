@@ -45,10 +45,10 @@
   </ItemGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>C:\dev\C\stb;$(IncludePath)</IncludePath>
+    <IncludePath>C:\dev\cpp\stb;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>C:\dev\C\stb;$(IncludePath)</IncludePath>
+    <IncludePath>C:\dev\cpp\stb;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

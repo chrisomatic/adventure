@@ -1,0 +1,9 @@
+name: Caverns_1
+board_name: Caverns
+num_creatures: 50
+num_creature_types: 1
+creature_type_name0: Bat
+x: 0    #pixels
+y: 0    #pixels
+w: 1312 #pixels
+h: 1312 #pixels

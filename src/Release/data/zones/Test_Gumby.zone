@@ -1,0 +1,9 @@
+name: Test_Gumby
+board_name: Astoria
+num_creatures: 3
+num_creature_types: 1
+creature_type_name0: Gumby
+x: 1200 #pixels
+y: 1200 #pixels
+w: 100 #pixels
+h: 100 #pixels
