@@ -170,10 +170,10 @@ c:\dev\git\adventure\src\hud.h(41): warning C4244: 'initializing': conversion fr
 c:\dev\git\adventure\src\hud.h(42): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
 c:\dev\git\adventure\src\hud.h(116): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
 program.c(67): warning C4244: 'function': conversion from 'time_t' to 'unsigned int', possible loss of data
-program.c(192): warning C4244: '=': conversion from 'float' to 'LONG', possible loss of data
-program.c(196): warning C4244: '=': conversion from 'float' to 'LONG', possible loss of data
-program.c(205): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
-program.c(347): warning C4047: 'initializing': 'RECT *' differs in levels of indirection from 'LPARAM'
+program.c(133): warning C4244: '=': conversion from 'float' to 'LONG', possible loss of data
+program.c(137): warning C4244: '=': conversion from 'float' to 'LONG', possible loss of data
+program.c(146): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+program.c(288): warning C4047: 'initializing': 'RECT *' differs in levels of indirection from 'LPARAM'
   Generating code
 c:\dev\git\adventure\src\board.h(376): warning C4715: 'get_board_index_by_name': not all control paths return a value
 c:\dev\git\adventure\src\tile.h(28): warning C4715: 'get_tileset_index_by_name': not all control paths return a value

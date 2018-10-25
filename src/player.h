@@ -4,7 +4,7 @@ KeyPress keypress_attack = 0x0000;
 static void init_player()
 {
     player.name = "Hero";
-    player.board_name = "Caverns";
+    player.board_name = "Astoria";
     player.tileset_name = "characters";
     player.tile_index = 0;
     player.available_stat_points = 0;
@@ -15,8 +15,8 @@ static void init_player()
     player.mp  = 6;
     player.max_mp = 6;
     player.gold = 10;
-    player.phys.x   = 40.0f*TILE_WIDTH; // 1271.0f;
-    player.phys.y   = 75.0f*TILE_HEIGHT; //863.0f;
+    player.phys.x   = 80.0f*TILE_WIDTH;
+    player.phys.y   = 64.0f*TILE_HEIGHT;
     player.phys.z   = 0;
     player.phys.x_offset = 2;
     player.phys.y_offset = 8;
@@ -575,7 +575,7 @@ static void update_player()
                         player.gold += amount;
 						spawn_floating_string(coins[i].phys.x, coins[i].phys.y, "$", color,current_board_index);
 						remove_coin(i);
-                        PlaySound("data\\sfx\\pickup_coin.wav", NULL, SND_FILENAME | SND_ASYNC);
+                        //PlaySound("data\\sfx\\pickup_coin.wav", NULL, SND_FILENAME | SND_ASYNC);
                     }
                 }
             }

@@ -84,38 +84,6 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
     //playMIDIFile(main_window,"data\\music\\village.mid");
     // 
 
-    // @TEMP
-   /* 
-    time_t timer;
-    char buffer[26];
-    struct tm* tm_info;
-
-    time(&timer);
-    tm_info = localtime(&timer);
-
-    strftime(buffer,26, "%Y%m%d%H%M%S",tm_info);
-    char outputname[50] = {0};
-
-    strcpy(outputname,"rats_stats");
-    strcat(outputname,buffer);
-    strcat(outputname,".csv");
-
-    FILE* fp_rats = fopen(outputname,"w");
-    fprintf(fp_rats,"num_rats,num_births,num_deaths,num_pregs\n");
-    fclose(fp_rats);
-
-    char outputnameplot[50] = {0};
-
-    strcpy(outputnameplot,"rat_plot");
-    strcat(outputnameplot,buffer);
-    strcat(outputnameplot,".csv");
-
-    FILE* fp_rat_plot = fopen(outputnameplot,"w");
-    fprintf(fp_rat_plot,"rat_index,x,y\n");
-    fclose(fp_rats);
-    */
-    //
-
     timer_init(TARGET_FPS); 
     is_running = TRUE;
 
@@ -133,33 +101,6 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
 
 		if (timer_ready(&current_fps))
 		{
-            // @TEMP
-            /*
-            ++counter_for_seconds;
-            if(counter_for_seconds == TARGET_FPS)
-            {
-                counter_for_minutes++;
-                if(counter_for_minutes == 60)
-                {
-                    counter_for_minutes = 0;
-                    // write out data to CSV
-                    FILE* fp_rats_plot = fopen(outputnameplot,"a");
-                    for(int r = 0; r < num_creatures; ++r)
-                    {
-                        fprintf(fp_rat_plot,"%i,%f,%f\n",r,creatures[r].phys.x, creatures[r].phys.y);
-                    }
-                    fclose(fp_rat_plot);
-
-                }
-                counter_for_seconds = 0;
-
-                // write out data to CSV
-                FILE* fp_rats = fopen(outputname,"a");
-                fprintf(fp_rats,"%i,%i,%i,%i\n",num_creatures,num_births,num_deaths,num_pregs);
-                fclose(fp_rats);
-            }
-            */
-            //
             update_scene();
             draw_scene();
         }
