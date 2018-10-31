@@ -4,7 +4,7 @@ KeyPress keypress_attack = 0x0000;
 static void init_player()
 {
     player.name = "Hero";
-    player.board_name = "Astoria";
+    player.board_name = "test2";
     player.tileset_name = "characters";
     player.tile_index = 0;
     player.available_stat_points = 0;

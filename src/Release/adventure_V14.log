@@ -18,20 +18,20 @@ c:\dev\git\adventure\src\tile.h(267): warning C4244: 'initializing': conversion 
 c:\dev\git\adventure\src\tile.h(268): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
 c:\dev\git\adventure\src\tile.h(328): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
 c:\dev\git\adventure\src\tile.h(329): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-c:\dev\git\adventure\src\board.h(367): warning C4033: 'get_board_index_by_name' must return a value
-c:\dev\git\adventure\src\board.h(402): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-c:\dev\git\adventure\src\board.h(403): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-c:\dev\git\adventure\src\board.h(404): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\board.h(370): warning C4033: 'get_board_index_by_name' must return a value
 c:\dev\git\adventure\src\board.h(405): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-c:\dev\git\adventure\src\board.h(437): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-c:\dev\git\adventure\src\board.h(438): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-c:\dev\git\adventure\src\board.h(439): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\board.h(406): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\board.h(407): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\board.h(408): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
 c:\dev\git\adventure\src\board.h(440): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-c:\dev\git\adventure\src\board.h(482): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
-c:\dev\git\adventure\src\board.h(494): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
-c:\dev\git\adventure\src\board.h(506): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
-c:\dev\git\adventure\src\board.h(513): warning C4020: 'spawn_floating_number': too many actual parameters
-c:\dev\git\adventure\src\board.h(792): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\board.h(441): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\board.h(442): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\board.h(443): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\board.h(485): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\board.h(497): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\board.h(509): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
+c:\dev\git\adventure\src\board.h(516): warning C4020: 'spawn_floating_number': too many actual parameters
+c:\dev\git\adventure\src\board.h(859): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
 c:\dev\git\adventure\src\item.h(70): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
 c:\dev\git\adventure\src\item.h(149): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
 c:\dev\git\adventure\src\item.h(204): warning C4013: 'are_entities_colliding' undefined; assuming extern returning int
@@ -175,9 +175,9 @@ program.c(137): warning C4244: '=': conversion from 'float' to 'LONG', possible 
 program.c(146): warning C4244: 'function': conversion from 'float' to 'int', possible loss of data
 program.c(288): warning C4047: 'initializing': 'RECT *' differs in levels of indirection from 'LPARAM'
   Generating code
-c:\dev\git\adventure\src\board.h(376): warning C4715: 'get_board_index_by_name': not all control paths return a value
-c:\dev\git\adventure\src\tile.h(28): warning C4715: 'get_tileset_index_by_name': not all control paths return a value
-  All 189 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
   Finished generating code
+  8 of 191 functions ( 4.2%) were compiled, the rest were copied from previous compilation.
+    4 functions were new in current compilation
+    6 functions had inline decision re-evaluated but remain unchanged
   adventure_V14.vcxproj -> C:\dev\git\adventure\src\Release\adventure_V14.exe
   adventure_V14.vcxproj -> C:\dev\git\adventure\src\Release\adventure_V14.pdb (Full PDB)

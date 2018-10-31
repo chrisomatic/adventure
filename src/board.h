@@ -168,6 +168,9 @@ typedef struct
     int energy;
 } Stats;
 
+char tileset_map[16][100] = { 0 };
+int tileset_num = 0;
+
 typedef struct
 {
     char* name;
@@ -528,31 +531,31 @@ static void init_boards()
 
 static void load_board_map()
 {
-    FILE* fp_map = fopen("data\\boards\\board_map","r");
+	FILE* fp_map = fopen("data\\boards\\board_map", "r");
 
 	if (fp_map == NULL)
 		return;
 
-    int c;
-    int  board_name_counter = 0;
-    char board_name[100] = {0};
+	int c;
+	int  board_name_counter = 0;
+	char board_name[100] = { 0 };
 
-    int x_index = 0;
-    int y_index = 0;
-    do
-    {
-        c = fgetc(fp_map);
+	int x_index = 0;
+	int y_index = 0;
+	do
+	{
+		c = fgetc(fp_map);
 
-        if(c == '0')
-        {
-            // ignore
-        }
-        else if(c == ',')
-        {
-            // make sure board_name is not nothing
-            if(board_name[0] != '\0')
-            {
-                int board_index = get_board_index_by_name(board_name);
+		if (c == '0')
+		{
+			// ignore
+		}
+		else if (c == ',')
+		{
+			// make sure board_name is not nothing
+			if (board_name[0] != '\0')
+			{
+				int board_index = get_board_index_by_name(board_name);
 				if (board_index >= 0)
 				{
 					board_list[board_index].map_x_index = x_index;
@@ -560,11 +563,11 @@ static void load_board_map()
 				}
 				memset(board_name, 0, 100);
 				board_name_counter = 0;
-            }
+			}
 			++x_index;
-        }
-        else if(c == '\n' || c == EOF)
-        {
+		}
+		else if (c == '\n' || c == EOF)
+		{
 			if (board_name[0] != '\0')
 			{
 				int board_index = get_board_index_by_name(board_name);
@@ -579,16 +582,16 @@ static void load_board_map()
 			}
 
 			++y_index;
-            x_index = 0;
-        }
-        else
-            board_name[board_name_counter++] = c;
+			x_index = 0;
+		}
+		else
+			board_name[board_name_counter++] = c;
 
-        
 
-    } while (c != EOF);
 
-    fclose(fp_map);
+	} while (c != EOF);
+
+	fclose(fp_map);
 }
 
 static void generate_indexed_board(const char* rgb_image_path,const char* indexed_path)
@@ -674,36 +677,100 @@ static void load_board(const char* path_to_board_file, int board_index)
 	if (fp_board == NULL)
 		return;
 
-    int c;
-	unsigned char uc;
+    // find :/data section
+    char s[1000] = {0};
+	int key = 0;
+    char value[100] = {0};
 
-	for (int j = 0; j < BOARD_TILE_HEIGHT; ++j)
-	{
-		for(int i = 0; i < BOARD_TILE_WIDTH; ++i)
-		{
-            c = fgetc(fp_board);
-            if(c == EOF) return;
+    int current_section = 0;
 
-			uc = (unsigned char)c;
+    for(;;) {
 
-            board_list[board_index].data[j][i] = uc;
+        if(fgets(s,1000,fp_board) == NULL)
+            break;
 
-            switch(uc)
-            {
-                case GRASS: board_list[board_index].collision[i][j] = 1; break;
-                case MARSH: board_list[board_index].collision[i][j] = 1; break;
-                case WOOD:  board_list[board_index].collision[i][j] = 1; break;
-                case SAND:  board_list[board_index].collision[i][j] = 2; break;
-                case MUD:   board_list[board_index].collision[i][j] = 3; break;
-                case WATER: board_list[board_index].collision[i][j] = 4; break;
-                case LAVA:  board_list[board_index].collision[i][j] = 6; break;
-                case MOUNTAIN: board_list[board_index].collision[i][j] = 5; break;
-                case STONE: board_list[board_index].collision[i][j] = 5; break;
-                case WATER_DEEP: board_list[board_index].collision[i][j] = 5; break;
-                case CAVE: board_list[board_index].collision[i][j] = 1; break;
-            }
+        if(str_contains(s,":/board_info"))
+            current_section = 1;
+        else if(str_contains(s,":/tileset_info"))
+            current_section = 2;
+        else if(str_contains(s,":/data"))
+            current_section = 3;
+
+        switch(current_section) {
+            case 1: {
+                // board info
+               
+            } break;
+            case 2: {
+                // tileset info
+				/*
+				fscanf(fp_board, "%d=%s\n", key, value);
+				switch (key) {
+					case 0:  strncpy(tileset_map[0], value, 100);  break;
+					case 1:  strncpy(tileset_map[1], value, 100);  break;
+					case 2:  strncpy(tileset_map[2], value, 100);  break;
+					case 3:  strncpy(tileset_map[3], value, 100);  break;
+					case 4:  strncpy(tileset_map[4], value, 100);  break;
+					case 5:  strncpy(tileset_map[5], value, 100);  break;
+					case 6:  strncpy(tileset_map[6], value, 100);  break;
+					case 7:  strncpy(tileset_map[7], value, 100);  break;
+					case 8:  strncpy(tileset_map[8], value, 100);  break;
+					case 9:  strncpy(tileset_map[9], value, 100);  break;
+					case 10: strncpy(tileset_map[10], value, 100); break;
+					case 11: strncpy(tileset_map[11], value, 100); break;
+					case 12: strncpy(tileset_map[12], value, 100); break;
+					case 13: strncpy(tileset_map[13], value, 100); break;
+					case 14: strncpy(tileset_map[14], value, 100); break;
+					case 15: strncpy(tileset_map[15], value, 100); break;
+					
+				}
+				*/
+            } break;
+            case 3: {
+                
+                // data
+                for (int j = 0; j < BOARD_TILE_HEIGHT; ++j)
+                {
+                    for(int i = 0; i < BOARD_TILE_WIDTH; ++i)
+                    {
+                        int tileset_index = 0;
+                        int tile_index = 0;
+
+                        int r = fscanf(fp_board,"%d:%d",&tileset_index,&tile_index);
+                        int c = fgetc(fp_board); // eat comma
+
+                        if(r == EOF || c == EOF)
+                            break;
+
+                        if(tile_index == -1) {
+                            board_list[board_index].data[j][i] = 255;
+                        }
+                        else {
+
+                            board_list[board_index].data[j][i] = tile_index;
+
+                            switch(tile_index)
+                            {
+                                case GRASS: board_list[board_index].collision[i][j] = 1; break;
+                                case MARSH: board_list[board_index].collision[i][j] = 1; break;
+                                case WOOD:  board_list[board_index].collision[i][j] = 1; break;
+                                case SAND:  board_list[board_index].collision[i][j] = 2; break;
+                                case MUD:   board_list[board_index].collision[i][j] = 3; break;
+                                case WATER: board_list[board_index].collision[i][j] = 4; break;
+                                case LAVA:  board_list[board_index].collision[i][j] = 6; break;
+                                case MOUNTAIN: board_list[board_index].collision[i][j] = 5; break;
+                                case STONE: board_list[board_index].collision[i][j] = 5; break;
+                                case WATER_DEEP: board_list[board_index].collision[i][j] = 5; break;
+                                case CAVE: board_list[board_index].collision[i][j] = 1; break;
+                                default: board_list[board_index].collision[i][j] = 1; break;
+                            }
+                        }
+                    }
+                }
+            } break;
         }
     }
+
 
     board_list[board_index].map_x_index = -1;
     board_list[board_index].map_y_index = -1;

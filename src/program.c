@@ -61,7 +61,7 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
 	setup_window(hinstance);
 
     generate_all_tilesets();
-    generate_all_boards();
+    //generate_all_boards();
     
     // seed PRNG
 	srand(time(NULL));
