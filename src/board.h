@@ -348,6 +348,7 @@ typedef struct
     int map_x_index;
     int map_y_index;
     unsigned int data[BOARD_TILE_HEIGHT][BOARD_TILE_WIDTH];
+	unsigned int tileset_data[BOARD_TILE_HEIGHT][BOARD_TILE_WIDTH];
     unsigned int collision[BOARD_TILE_HEIGHT][BOARD_TILE_WIDTH];
 } Board;
 
@@ -703,28 +704,28 @@ static void load_board(const char* path_to_board_file, int board_index)
             } break;
             case 2: {
                 // tileset info
-				/*
-				fscanf(fp_board, "%d=%s\n", key, value);
-				switch (key) {
-					case 0:  strncpy(tileset_map[0], value, 100);  break;
-					case 1:  strncpy(tileset_map[1], value, 100);  break;
-					case 2:  strncpy(tileset_map[2], value, 100);  break;
-					case 3:  strncpy(tileset_map[3], value, 100);  break;
-					case 4:  strncpy(tileset_map[4], value, 100);  break;
-					case 5:  strncpy(tileset_map[5], value, 100);  break;
-					case 6:  strncpy(tileset_map[6], value, 100);  break;
-					case 7:  strncpy(tileset_map[7], value, 100);  break;
-					case 8:  strncpy(tileset_map[8], value, 100);  break;
-					case 9:  strncpy(tileset_map[9], value, 100);  break;
-					case 10: strncpy(tileset_map[10], value, 100); break;
-					case 11: strncpy(tileset_map[11], value, 100); break;
-					case 12: strncpy(tileset_map[12], value, 100); break;
-					case 13: strncpy(tileset_map[13], value, 100); break;
-					case 14: strncpy(tileset_map[14], value, 100); break;
-					case 15: strncpy(tileset_map[15], value, 100); break;
-					
+				
+				int matches = fscanf(fp_board, "%d=%s\n", &key, value);
+				if(matches == 2) {
+					switch (key) {
+						case 0:  strncpy(tileset_map[0], value, 100);  break;
+						case 1:  strncpy(tileset_map[1], value, 100);  break;
+						case 2:  strncpy(tileset_map[2], value, 100);  break;
+						case 3:  strncpy(tileset_map[3], value, 100);  break;
+						case 4:  strncpy(tileset_map[4], value, 100);  break;
+						case 5:  strncpy(tileset_map[5], value, 100);  break;
+						case 6:  strncpy(tileset_map[6], value, 100);  break;
+						case 7:  strncpy(tileset_map[7], value, 100);  break;
+						case 8:  strncpy(tileset_map[8], value, 100);  break;
+						case 9:  strncpy(tileset_map[9], value, 100);  break;
+						case 10: strncpy(tileset_map[10], value, 100); break;
+						case 11: strncpy(tileset_map[11], value, 100); break;
+						case 12: strncpy(tileset_map[12], value, 100); break;
+						case 13: strncpy(tileset_map[13], value, 100); break;
+						case 14: strncpy(tileset_map[14], value, 100); break;
+						case 15: strncpy(tileset_map[15], value, 100); break;
+					}
 				}
-				*/
             } break;
             case 3: {
                 
@@ -744,26 +745,32 @@ static void load_board(const char* path_to_board_file, int board_index)
 
                         if(tile_index == -1) {
                             board_list[board_index].data[j][i] = 255;
+							board_list[board_index].tileset_data[j][i] = 0;
                         }
                         else {
 
                             board_list[board_index].data[j][i] = tile_index;
+							board_list[board_index].tileset_data[j][i] = tileset_index;
 
-                            switch(tile_index)
-                            {
-                                case GRASS: board_list[board_index].collision[i][j] = 1; break;
-                                case MARSH: board_list[board_index].collision[i][j] = 1; break;
-                                case WOOD:  board_list[board_index].collision[i][j] = 1; break;
-                                case SAND:  board_list[board_index].collision[i][j] = 2; break;
-                                case MUD:   board_list[board_index].collision[i][j] = 3; break;
-                                case WATER: board_list[board_index].collision[i][j] = 4; break;
-                                case LAVA:  board_list[board_index].collision[i][j] = 6; break;
-                                case MOUNTAIN: board_list[board_index].collision[i][j] = 5; break;
-                                case STONE: board_list[board_index].collision[i][j] = 5; break;
-                                case WATER_DEEP: board_list[board_index].collision[i][j] = 5; break;
-                                case CAVE: board_list[board_index].collision[i][j] = 1; break;
-                                default: board_list[board_index].collision[i][j] = 1; break;
-                            }
+							if (strcmp(tileset_map[tileset_index], "terrain") == 0) {
+								switch (tile_index)
+								{
+								case GRASS: board_list[board_index].collision[i][j] = 1; break;
+								case MARSH: board_list[board_index].collision[i][j] = 1; break;
+								case WOOD:  board_list[board_index].collision[i][j] = 1; break;
+								case SAND:  board_list[board_index].collision[i][j] = 2; break;
+								case MUD:   board_list[board_index].collision[i][j] = 3; break;
+								case WATER: board_list[board_index].collision[i][j] = 4; break;
+								case LAVA:  board_list[board_index].collision[i][j] = 6; break;
+								case MOUNTAIN: board_list[board_index].collision[i][j] = 5; break;
+								case STONE: board_list[board_index].collision[i][j] = 5; break;
+								case WATER_DEEP: board_list[board_index].collision[i][j] = 5; break;
+								case CAVE: board_list[board_index].collision[i][j] = 1; break;
+								default: board_list[board_index].collision[i][j] = 1; break;
+								}
+							}
+							else
+								board_list[board_index].collision[i][j] = 1;
                         }
                     }
                 }
@@ -879,9 +886,9 @@ static void draw_board(int index)
         for(int i = start_x; i < end_x; ++i)
         {
             if(board_list[index].data[j][i] == LAVA || board_list[index].data[j][i] == LAVA2)
-                draw_tile(i*TILE_WIDTH - camera.x,j*TILE_HEIGHT - camera.y,terrain_tileset_name, board_list[index].data[j][i],0); // don't shade lava tiles
+                draw_tile(i*TILE_WIDTH - camera.x,j*TILE_HEIGHT - camera.y,tileset_map[board_list[index].tileset_data[j][i]], board_list[index].data[j][i],0); // don't shade lava tiles
             else
-                draw_tile(i*TILE_WIDTH - camera.x,j*TILE_HEIGHT - camera.y,terrain_tileset_name, board_list[index].data[j][i],day_cycle_shade_amount);
+                draw_tile(i*TILE_WIDTH - camera.x,j*TILE_HEIGHT - camera.y,tileset_map[board_list[index].tileset_data[j][i]], board_list[index].data[j][i],day_cycle_shade_amount);
         }
     }
 }
