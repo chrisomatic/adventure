@@ -10,7 +10,7 @@ import os
 
 import sys
 from PyQt5.QtWidgets import *
-from PyQt5.QtGui import QKeyEvent, QPainter,QImage, QPen, QIcon, QPixmap, QColor, QCursor
+from PyQt5.QtGui import QKeyEvent, QPainter,QImage, QPen, QIcon, QPixmap, QColor, QCursor, QFont
 from PyQt5.QtCore import Qt, QPoint, QPointF, QSize, QEvent
 
 
@@ -65,7 +65,8 @@ class Editor(QWidget):
         
         temp_list = []
         temp_list2 = []
-        img = QImage(path_to_tileset_image)
+        img = QImage(path_to_tileset_image,"PNG")
+        
         for i in range(0,self.tile_size):
             for j in range(0,self.tile_size):
                 temp_list.append(img.copy(self.tile_size*j,self.tile_size*i,self.tile_size_zoom,self.tile_size_zoom))
@@ -337,6 +338,11 @@ class Editor(QWidget):
 class MyWidget(QWidget):
     def __init__(self, parent=None):
         QWidget.__init__(self, parent)
+
+        self.setFont(QFont('Arial', 10))
+        QToolTip.setFont(QFont('Arial', 10))
+
+
         self.root = os.path.dirname(os.path.abspath(__file__))  + "\\"
         self.ts_path = r"X:\DEPO\SOFTWARE\INHOUSE\GAMES\adventure\data\tilesets" + "\\"
         if not os.path.isdir(self.ts_path):
@@ -346,10 +352,10 @@ class MyWidget(QWidget):
         self.housekeeping()
 
         self.editor = Editor(self)
-        self.editor.setMinimumWidth(4096*self.editor.zoom_ratio)
-        self.editor.setMaximumWidth(4096*self.editor.zoom_ratio)
-        self.editor.setMinimumHeight(4096*self.editor.zoom_ratio)
-        self.editor.setMaximumHeight(4096*self.editor.zoom_ratio)
+        self.editor.setMinimumWidth(self.editor.board_width*self.editor.tile_size_zoom)
+        self.editor.setMaximumWidth(self.editor.board_width*self.editor.tile_size_zoom)
+        self.editor.setMinimumHeight(self.editor.board_height*self.editor.tile_size_zoom)
+        self.editor.setMaximumHeight(self.editor.board_height*self.editor.tile_size_zoom)
 
         
 
@@ -394,6 +400,7 @@ class MyWidget(QWidget):
         self.save_btn = QPushButton('Save', self)
         self.save_btn.clicked.connect(self.save_map)
         self.save_btn.resize(self.save_btn.sizeHint())
+        self.save_btn.setToolTip("Ctrl+S")
 
         self.save2_btn = QPushButton('Save PNG', self)
         self.save2_btn.clicked.connect(self.save_png)
@@ -415,25 +422,31 @@ class MyWidget(QWidget):
         self.draw_over_chk.setChecked(True)
         self.draw_over_chk.installEventFilter(self)
 
+        self.lbl_pen_size = QLabel('Pen Size: 1', self)
+
+        self.lbl_zoom = QLabel('Zoom: x16', self)
+
+
         self.list_tiles()
 
         self.grid = QGridLayout()
         self.grid.setSpacing(10)
         self.grid.addWidget(self.scroll, 0, 0, 10, 1)
         self.grid.addWidget(self.tool_combo, 0, 1)
-        # self.grid.addWidget(self.size_combo, 1, 1)
-        self.grid.addWidget(self.sld, 1, 1)
-        self.grid.addWidget(self.draw_over_chk, 2, 1)
-        self.grid.addWidget(self.ts_combo, 3, 1)
-        self.grid.addWidget(self.qlist, 4, 1, 6, 1)
+        self.grid.addWidget(self.lbl_pen_size, 1, 1)
+        self.grid.addWidget(self.sld, 2, 1)
+        self.grid.addWidget(self.draw_over_chk, 3, 1)
+        self.grid.addWidget(self.ts_combo, 4, 1)
+        self.grid.addWidget(self.qlist, 5, 1, 5, 1) # also change in load_tileset()
 
         self.grid.addWidget(self.save_btn, 0, 2)
         self.grid.addWidget(self.load_btn, 1, 2)
         self.grid.addWidget(self.clear_btn, 3, 2)
         self.grid.addWidget(self.undo_btn, 4, 2)
         self.grid.addWidget(self.save2_btn, 5, 2)
-        self.grid.addWidget(self.sld_zoom, 6, 2,1,1)
-        # self.grid.addWidget(QLabel("",self), 5, 2)
+        self.grid.addWidget(self.lbl_zoom, 6, 2)
+        self.grid.addWidget(self.sld_zoom, 7, 2,1,1)
+        # self.grid.addWidget(QLabel("",self), 8, 2)
         # self.grid.setAlignment(Qt.AlignTop)
         
         self.setLayout(self.grid)
@@ -452,10 +465,10 @@ class MyWidget(QWidget):
 
         self.editor.zoom_ratio = zoom
         self.editor.tile_size_zoom = int(self.editor.tile_size * zoom)
-        self.editor.setMinimumWidth(4096*self.editor.zoom_ratio)
-        self.editor.setMaximumWidth(4096*self.editor.zoom_ratio)
-        self.editor.setMinimumHeight(4096*self.editor.zoom_ratio)
-        self.editor.setMaximumHeight(4096*self.editor.zoom_ratio)
+        self.editor.setMinimumWidth(self.editor.board_width*self.editor.tile_size_zoom)
+        self.editor.setMaximumWidth(self.editor.board_width*self.editor.tile_size_zoom)
+        self.editor.setMinimumHeight(self.editor.board_height*self.editor.tile_size_zoom)
+        self.editor.setMaximumHeight(self.editor.board_height*self.editor.tile_size_zoom)
 
         self.scroll = self.scroll_area(self.editor)
         self.scroll.verticalScrollBar().valueChanged.connect(self.repaint)
@@ -466,8 +479,11 @@ class MyWidget(QWidget):
 
         self.editor.build_tiles(self.ts_path + self.editor.tile_set_name)
 
+        self.lbl_zoom.setText("Zoom: x" + str(int(self.editor.tile_size*zoom)))
+
         # self.repaint()
-        # self.editor.update()
+        self.editor.update()
+        
     
     def housekeeping(self):
         from getpass import getuser
@@ -688,6 +704,7 @@ class MyWidget(QWidget):
 
     def change_size(self):
         self.editor.bsize = max(1,int(self.sld.value()))
+        self.lbl_pen_size.setText("Pen Size: " + str(self.editor.bsize))
         # self.sld.setValue(self.editor.bsize)
 
 
@@ -717,7 +734,7 @@ class MyWidget(QWidget):
         # self.qlist.setParent(None)
 
         self.list_tiles()
-        self.grid.addWidget(self.qlist, 4, 1, 6, 1)
+        self.grid.addWidget(self.qlist, 5, 1, 5, 1)
         self.setLayout(self.grid)
 
 
