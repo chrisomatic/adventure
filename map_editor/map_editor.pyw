@@ -42,6 +42,7 @@ class Editor(QWidget):
         self.painting = False
         self.tool = "pen"
         self.bsize = 1
+        self.copied_range = False
         self.draw_over = True
         self.rect_moved = False
         self.draw_grid()
@@ -339,8 +340,8 @@ class MyWidget(QWidget):
     def __init__(self, parent=None):
         QWidget.__init__(self, parent)
 
-        self.setFont(QFont('Arial', 10))
-        QToolTip.setFont(QFont('Arial', 10))
+        self.setFont(QFont('Arial', 9))
+        QToolTip.setFont(QFont('Arial', 9))
 
 
         self.root = os.path.dirname(os.path.abspath(__file__))  + "\\"
@@ -374,11 +375,13 @@ class MyWidget(QWidget):
             self.ts_combo.setCurrentIndex(index)
 
         self.ts_combo.activated[str].connect(self.load_tileset)
+        self.ts_combo.setToolTip("Ctrl + T")
 
         self.tool_combo = QComboBox(self)
-        self.tool_list = ['Pen','Rectangle','Rectangle Fill','Fill']
+        self.tool_list = ['Pen','Rectangle','Rectangle Fill','Fill','Copy Range']
         self.tool_combo.addItems(self.tool_list)
         self.tool_combo.activated[str].connect(self.change_tool)
+        self.tool_combo.setToolTip("Ctrl + D")
 
         # self.size_combo = QComboBox(self)
         # self.size_combo.addItems(['1','2','4'])
@@ -400,7 +403,7 @@ class MyWidget(QWidget):
         self.save_btn = QPushButton('Save', self)
         self.save_btn.clicked.connect(self.save_map)
         self.save_btn.resize(self.save_btn.sizeHint())
-        self.save_btn.setToolTip("Ctrl+S")
+        self.save_btn.setToolTip("Ctrl + S")
 
         self.save2_btn = QPushButton('Save PNG', self)
         self.save2_btn.clicked.connect(self.save_png)
@@ -409,6 +412,7 @@ class MyWidget(QWidget):
         self.load_btn = QPushButton('Load', self)
         self.load_btn.clicked.connect(self.load_map)
         self.load_btn.resize(self.load_btn.sizeHint())
+        self.load_btn.setToolTip("Ctrl + O")
 
         self.clear_btn = QPushButton('Clear', self)
         self.clear_btn.clicked.connect(self.clear_map)
@@ -417,6 +421,7 @@ class MyWidget(QWidget):
         self.undo_btn = QPushButton('Undo', self)
         self.undo_btn.clicked.connect(self.undo)
         self.undo_btn.resize(self.undo_btn.sizeHint())
+        self.undo_btn.setToolTip("Ctrl + Z")
 
         self.draw_over_chk = QCheckBox("Draw Over Tiles",self)
         self.draw_over_chk.setChecked(True)
@@ -743,7 +748,7 @@ class MyWidget(QWidget):
         self.eraser_item.setText("Eraser")
         if os.path.isfile("eraser.png"):
             self.eraser_item.setIcon(QIcon("eraser.png"))
-        
+
 
     def list_tiles(self):
 
