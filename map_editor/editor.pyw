@@ -47,6 +47,7 @@ class Editor(QWidget):
         self.rect_moved = False
         self.rectangling = False
         self.rectangle_wh = False
+        self.grid = True
         self.c1_ghost = (0,0)
         self.c4_ghost = (0,0)
         self.mouse_x = 0
@@ -99,7 +100,7 @@ class Editor(QWidget):
         self.drawGhostRect()
 
     def draw_grid(self):
-        if self.tile_size_zoom >= 4:
+        if self.tile_size_zoom >= 4 and self.grid:
             qp = QPainter()
             qp.begin(self)
             pen = QPen(Qt.gray, 1, Qt.SolidLine)

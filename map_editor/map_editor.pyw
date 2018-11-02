@@ -100,6 +100,11 @@ class MyWidget(QWidget):
         self.draw_over_chk.setChecked(True)
         self.draw_over_chk.installEventFilter(self)
 
+        self.draw_grid_chk = QCheckBox("Grid",self)
+        self.draw_grid_chk.setChecked(True)
+        self.draw_grid_chk.installEventFilter(self)
+
+
         self.lbl_pen_size = QLabel('Pen Size: 1', self)
 
         self.lbl_zoom = QLabel('Zoom: x16', self)
@@ -122,8 +127,10 @@ class MyWidget(QWidget):
         self.grid.addWidget(self.clear_btn, 3, 2)
         self.grid.addWidget(self.undo_btn, 4, 2)
         self.grid.addWidget(self.save2_btn, 5, 2)
-        self.grid.addWidget(self.lbl_zoom, 6, 2)
-        self.grid.addWidget(self.sld_zoom, 7, 2,1,1)
+        self.grid.addWidget(self.draw_grid_chk, 6, 2)
+        self.grid.addWidget(self.lbl_zoom, 7, 2)
+        self.grid.addWidget(self.sld_zoom, 8, 2,1,1)
+        
         # self.grid.addWidget(QLabel("",self), 8, 2)
         # self.grid.setAlignment(Qt.AlignTop)
         
@@ -191,6 +198,11 @@ class MyWidget(QWidget):
     def eventFilter(self,source,event):
         if source is self.draw_over_chk:
             self.editor.draw_over = self.draw_over_chk.isChecked()
+
+        elif source is self.draw_grid_chk:
+            self.editor.grid = self.draw_grid_chk.isChecked()
+            self.editor.update()
+
         elif event.type() == QEvent.KeyPress:
 
             modifiers = QApplication.keyboardModifiers()
