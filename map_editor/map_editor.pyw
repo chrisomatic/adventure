@@ -352,7 +352,7 @@ class MyWidget(QWidget):
 
         self.editor.board_width  = int(w)
         self.editor.board_height = int(h)
-        self.editor.board = [[Tile() for i in range(self.editor.board_width)] for j in range(self.editor.board_height)]
+        self.editor.board = [[editor.Tile() for i in range(self.editor.board_width)] for j in range(self.editor.board_height)]
             
         for j in range(0,self.editor.board_height):
             jdlines = dlines[j].split(",")
