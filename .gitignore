@@ -3,3 +3,4 @@ src/Debug/
 src/Release/
 src/*.db
 src/*.opendb
+map_editor/__pycache__/
