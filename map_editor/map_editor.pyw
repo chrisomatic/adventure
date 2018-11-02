@@ -201,7 +201,7 @@ class Editor(QWidget):
             qp.fillRect(x,y,w,h,brush)
             qp.end()
 
-        if(self.tool in ["rectangle","rectangle fill"]):
+        if(self.tool in ["rectangle","rectangle fill","copy range"]):
             qp.begin(self)
             side = self.tile_size
 
@@ -221,6 +221,25 @@ class Editor(QWidget):
             qp.fillRect(x,y,w,h,brush)
             qp.end()
 
+        # elif(self.tool in "copy range"):
+        #     qp.begin(self)
+        #     side = self.tile_size
+
+        #     # print(self.c1_ghost,self.c4_ghost)
+
+        #     Xrange = range(min([self.c1_ghost[0],self.c4_ghost[0]]),max([self.c1_ghost[0],self.c4_ghost[0]])+1)
+        #     Yrange = range(min([self.c1_ghost[1],self.c4_ghost[1]]),max([self.c1_ghost[1],self.c4_ghost[1]])+1)
+
+        #     x = min(Xrange)*self.tile_size
+        #     y = min(Yrange)*self.tile_size
+
+        #     w = (max(Xrange) - min(Xrange)+1)*self.tile_size
+        #     h = (max(Yrange) - min(Yrange)+1)*self.tile_size
+        #     print(x,y,w,h)
+
+        #     brush = QBrush(QColor(128, 128, 255, 128))
+        #     qp.fillRect(x,y,w,h,brush)
+        #     qp.end()
 
 
     def mousePressEvent(self, event):
@@ -271,12 +290,13 @@ class Editor(QWidget):
             self.rectangling = True
 
 
-
         # copy range
         elif(event.button() == Qt.LeftButton and self.tool == "copy range" and not self.copied_range):
             x = int(event.pos().x() / self.tile_size_zoom)
             y = int(event.pos().y() / self.tile_size_zoom)
             self.c1_copy = (x,y)
+            self.c1_ghost = (x,y)
+            self.c4_ghost = (x,y)
             self.copied_range = True
             self.copying = True
         
@@ -288,6 +308,7 @@ class Editor(QWidget):
             # copied range
             Xcrange = range(min([self.c1_copy[0],self.c4_copy[0]]),max([self.c1_copy[0],self.c4_copy[0]])+1)
             Ycrange = range(min([self.c1_copy[1],self.c4_copy[1]]),max([self.c1_copy[1],self.c4_copy[1]])+1)
+
 
             self.c1 = (x,y)
             # # self.c4 = (x+(self.c4_copy[0] - self.c1_copy[0]),y+(self.c4_copy[1] - self.c1_copy[1]))
@@ -380,8 +401,8 @@ class Editor(QWidget):
             self.draw_line(x1,x2,y1,y2)
 
             self.rect_moved = False
-            self.c1_ghost = (self.mouse_x,self.mouse_y)
-            self.c4_ghost = (self.mouse_x,self.mouse_y)
+            self.c1_ghost = (int(self.mouse_x / self.tile_size_zoom),int(self.mouse_y / self.tile_size_zoom))
+            self.c4_ghost = (int(self.mouse_x / self.tile_size_zoom),int(self.mouse_y / self.tile_size_zoom))
 
         elif self.tool == "rectangle fill":
 
@@ -397,12 +418,14 @@ class Editor(QWidget):
             self.draw_line(x1,x2,y1,y2)
 
             self.rect_moved = False
-            self.c1_ghost = (self.mouse_x,self.mouse_y)
-            self.c4_ghost = (self.mouse_x,self.mouse_y)
+            self.c1_ghost = (int(self.mouse_x / self.tile_size_zoom),int(self.mouse_y / self.tile_size_zoom))
+            self.c4_ghost = (int(self.mouse_x / self.tile_size_zoom),int(self.mouse_y / self.tile_size_zoom))
         
         elif self.copied_range and self.tool == "copy range":
             if not self.copy_moved:
                 self.c4_copy = (self.c1_copy[0],self.c1_copy[1])
+            self.c4_ghost = (self.c4_copy[0],self.c4_copy[1])
+            
             self.copy_moved = False
 
         self.update()
@@ -434,12 +457,28 @@ class Editor(QWidget):
             self.c1_ghost = (int(self.mouse_x / self.tile_size_zoom),int(self.mouse_y / self.tile_size_zoom))
             self.c4_ghost = (int(self.mouse_x / self.tile_size_zoom),int(self.mouse_y / self.tile_size_zoom))
 
-        elif(self.copied_range and self.tool == "copy range" and self.copying):
+        elif self.copied_range and self.tool == "copy range" and self.copying:
             x = int(event.pos().x() / self.tile_size_zoom)
             y = int(event.pos().y() / self.tile_size_zoom)
             self.c4_copy = (x,y)
             self.copy_moved = True
+            self.c4_ghost = (self.c4_copy[0],self.c4_copy[1])
 
+
+        # if you have a copied range 
+        elif self.copied_range and self.tool == "copy range":
+            x = int(event.pos().x() / self.tile_size_zoom)
+            y = int(event.pos().y() / self.tile_size_zoom)
+            # copied range
+            Xcrange = range(min([self.c1_copy[0],self.c4_copy[0]]),max([self.c1_copy[0],self.c4_copy[0]])+1)
+            Ycrange = range(min([self.c1_copy[1],self.c4_copy[1]]),max([self.c1_copy[1],self.c4_copy[1]])+1)
+            # past range
+            self.c1_ghost = (x,y)
+            self.c4_ghost = (x+max(Xcrange)-min(Xcrange),y+max(Ycrange)-min(Ycrange))
+
+        elif self.tool == "copy range":
+            self.c1_ghost = (int(self.mouse_x / self.tile_size_zoom),int(self.mouse_y / self.tile_size_zoom))
+            self.c4_ghost = (int(self.mouse_x / self.tile_size_zoom),int(self.mouse_y / self.tile_size_zoom))
 
 
         self.update()
@@ -844,6 +883,9 @@ class MyWidget(QWidget):
 
     def change_tool(self,text):
         self.editor.tool = text.lower()
+        self.editor.copied_range = False
+        self.editor.copy_moved = False
+        self.editor.copying = False
 
     # def change_size(self,text):
     #     self.editor.bsize = int(text)
