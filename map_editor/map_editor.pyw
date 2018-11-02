@@ -183,63 +183,45 @@ class Editor(QWidget):
     def drawGhostRect(self):
         qp = QPainter()
         
-        if(self.tool == "pen"):
+        # if(self.tool == "pen"):
+        #     qp.begin(self)
+        #     side = self.tile_size*self.bsize
+
+        #     x = max(0.0,self.mouse_x - side/2.0)
+        #     y = max(0.0,self.mouse_y - side/2.0)
+
+        #     # align ghost with grid
+        #     x = x + (self.tile_size/2) - self.mouse_x % (self.tile_size)
+        #     y = y + (self.tile_size/2) - self.mouse_y % (self.tile_size)
+
+        #     w = int(side) + side % 2
+        #     h = int(side) + side % 2
+
+        #     brush = QBrush(QColor(128, 128, 255, 128))
+        #     qp.fillRect(x,y,w,h,brush)
+        #     qp.end()
+
+        if(self.tool in ["pen","rectangle","rectangle fill","copy range"]):
             qp.begin(self)
-            side = self.tile_size*self.bsize
-
-            x = max(0.0,self.mouse_x - side/2.0)
-            y = max(0.0,self.mouse_y - side/2.0)
-
-            # align ghost with grid
-            x = x + (self.tile_size/2) - self.mouse_x % (self.tile_size)
-            y = y + (self.tile_size/2) - self.mouse_y % (self.tile_size)
-
-            w = int(side) + side % 2
-            h = int(side) + side % 2
-
-            brush = QBrush(QColor(128, 128, 255, 128))
-            qp.fillRect(x,y,w,h,brush)
-            qp.end()
-
-        if(self.tool in ["rectangle","rectangle fill","copy range"]):
-            qp.begin(self)
-            side = self.tile_size
+            # side = self.tile_size
 
             # print(self.c1_ghost,self.c4_ghost)
 
             Xrange = range(min([self.c1_ghost[0],self.c4_ghost[0]]),max([self.c1_ghost[0],self.c4_ghost[0]])+1)
             Yrange = range(min([self.c1_ghost[1],self.c4_ghost[1]]),max([self.c1_ghost[1],self.c4_ghost[1]])+1)
 
-            x = min(Xrange)*self.tile_size
-            y = min(Yrange)*self.tile_size
+            x = min(Xrange)*self.tile_size_zoom
+            y = min(Yrange)*self.tile_size_zoom
 
-            w = (max(Xrange) - min(Xrange)+1)*self.tile_size
-            h = (max(Yrange) - min(Yrange)+1)*self.tile_size
-            print(x,y,w,h)
+            w = (max(Xrange) - min(Xrange)+1)*self.tile_size_zoom
+            h = (max(Yrange) - min(Yrange)+1)*self.tile_size_zoom
+            # print(x,y,w,h)
 
             brush = QBrush(QColor(128, 128, 255, 128))
             qp.fillRect(x,y,w,h,brush)
             qp.end()
 
-        # elif(self.tool in "copy range"):
-        #     qp.begin(self)
-        #     side = self.tile_size
-
-        #     # print(self.c1_ghost,self.c4_ghost)
-
-        #     Xrange = range(min([self.c1_ghost[0],self.c4_ghost[0]]),max([self.c1_ghost[0],self.c4_ghost[0]])+1)
-        #     Yrange = range(min([self.c1_ghost[1],self.c4_ghost[1]]),max([self.c1_ghost[1],self.c4_ghost[1]])+1)
-
-        #     x = min(Xrange)*self.tile_size
-        #     y = min(Yrange)*self.tile_size
-
-        #     w = (max(Xrange) - min(Xrange)+1)*self.tile_size
-        #     h = (max(Yrange) - min(Yrange)+1)*self.tile_size
-        #     print(x,y,w,h)
-
-        #     brush = QBrush(QColor(128, 128, 255, 128))
-        #     qp.fillRect(x,y,w,h,brush)
-        #     qp.end()
+        
 
 
     def mousePressEvent(self, event):
@@ -254,13 +236,15 @@ class Editor(QWidget):
             self.painting = True
             x = int(event.pos().x() / self.tile_size_zoom)
             y = int(event.pos().y() / self.tile_size_zoom)
-
             side = self.bsize-1
-            self.draw_line(x-int(side/2),
-                           x+int(side/2)+side % 2,
-                           y-int(side/2),
-                           y+int(side/2)+side % 2)
+            x1 = x-int(side/2)
+            x2 = x+int(side/2)+side % 2
+            y1 = y-int(side/2)
+            y2 = y+int(side/2)+side % 2
+            self.draw_line(x1, x2, y1, y2)
             # self.draw_line(x,x+self.bsize-1,y,y+self.bsize-1)
+            self.c1_ghost = (x1,y1)
+            self.c4_ghost = (x2,y2)
 
     
 
@@ -440,11 +424,29 @@ class Editor(QWidget):
             y = int(self.mouse_y / self.tile_size_zoom)
 
             side = self.bsize-1
-            self.draw_line(x-int(side/2),
-                           x+int(side/2)+side % 2,
-                           y-int(side/2),
-                           y+int(side/2)+side % 2)
+            x1 = x-int(side/2)
+            x2 = x+int(side/2)+side % 2
+            y1 = y-int(side/2)
+            y2 = y+int(side/2)+side % 2
+            self.draw_line(x1, x2, y1, y2)
             # self.draw_line(x,x+self.bsize-1,y,y+self.bsize-1)
+
+            self.c1_ghost = (x1,y1)
+            self.c4_ghost = (x2,y2)
+
+        if self.tool == "pen" and not self.painting:
+            x = int(self.mouse_x / self.tile_size_zoom)
+            y = int(self.mouse_y / self.tile_size_zoom)
+
+            side = self.bsize-1
+            x1 = x-int(side/2)
+            x2 = x+int(side/2)+side % 2
+            y1 = y-int(side/2)
+            y2 = y+int(side/2)+side % 2
+
+            self.c1_ghost = (x1,y1)
+            self.c4_ghost = (x2,y2)
+
 
         elif self.tool in ["rectangle","rectangle fill"] and self.rectangling:
             x = int(event.pos().x() / self.tile_size_zoom)
