@@ -2,3 +2,4 @@ src/.vs/
 src/Debug/
 src/Release/
 src/*.db
+src/*.opendb

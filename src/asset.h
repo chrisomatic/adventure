@@ -162,7 +162,7 @@ static void load_assets(ASSET_TYPE type)
                         break;
                     case ASSET_TYPE_ZONE:
 						if (strcmp(key, "name") == 0) zone_list[asset_counter].name = _strdup(value);
-						if (strcmp(key, "board_name") == 0) zone_list[asset_counter].board_name = _strdup(value);
+                        else if (strcmp(key, "board_name") == 0) zone_list[asset_counter].board_name = _strdup(value);
 						else if (strcmp(key, "x") == 0) zone_list[asset_counter].x = atof(value);
 						else if (strcmp(key, "y") == 0) zone_list[asset_counter].y = atof(value);
 						else if (strcmp(key, "w") == 0) zone_list[asset_counter].w = atof(value);

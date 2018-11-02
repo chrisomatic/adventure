@@ -1,0 +1,15 @@
+name: Hero
+board_name: test2
+tileset_name: characters
+tile_index: 0
+available_stat_points: 0
+lvl: 1
+xp: 0
+hp: 10
+max_hp: 10
+mp: 6
+max_mp: 6
+gold: 1000
+x: 1280 #pixels
+y: 1024 #pixels
+z: 0

@@ -690,22 +690,27 @@ static void load_board(const char* path_to_board_file, int board_index)
         if(fgets(s,1000,fp_board) == NULL)
             break;
 
-        if(str_contains(s,":/board_info"))
-            current_section = 1;
-        else if(str_contains(s,":/tileset_info"))
-            current_section = 2;
-        else if(str_contains(s,":/data"))
-            current_section = 3;
+		if (str_contains(s, ":/board_info")) {
+			current_section = 1;
+            continue;
+        }
+		else if (str_contains(s, ":/tileset_info")) {
+			current_section = 2;
+            continue;
+        }
+		else if (str_contains(s, ":/data")) {
+			current_section = 3;
+        }
 
         switch(current_section) {
             case 1: {
                 // board info
-               
             } break;
             case 2: {
                 // tileset info
-				
-				int matches = fscanf(fp_board, "%d=%s\n", &key, value);
+				int matches = sscanf(s, "%d=%s\n", &key, value);
+                str_replace(value,100,".tileset.png","",value);
+
 				if(matches == 2) {
 					switch (key) {
 						case 0:  strncpy(tileset_map[0], value, 100);  break;
@@ -728,7 +733,6 @@ static void load_board(const char* path_to_board_file, int board_index)
 				}
             } break;
             case 3: {
-                
                 // data
                 for (int j = 0; j < BOARD_TILE_HEIGHT; ++j)
                 {

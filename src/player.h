@@ -65,6 +65,95 @@ static void init_player()
     get_item_by_name("Sword",&player.weapon);
 }
 
+static void load_player_props()
+{
+    // open file
+    FILE* fp = fopen("data\\player\\props.player","r");
+
+    if (fp == NULL)
+        return;
+
+    // Expected:
+    // key : value \n
+    // key : value \n
+    // ...
+    // key : value EOF
+
+    BOOL is_key = TRUE;
+    BOOL is_string = FALSE;
+
+    int ikey = 0;
+    int ivalue = 0;
+
+    char key[100] = { 0 };
+    char value[100] = { 0 };
+
+    int c;
+    do
+    {
+        c = fgetc(fp);
+        if (c == '#')
+        {
+            // comment, read til end of line or end of file, whichever comes first.
+            while(c != EOF && c != '\n')
+                c = fgetc(fp);
+        }
+        
+        if (c == '"')
+        {
+            is_string = !is_string;
+        }
+        else if (c == ':')
+        {
+            is_key = FALSE;
+            key[ikey] = '\0';
+            ikey = 0;
+        }
+        else if (c == '\n' || c == EOF)
+        {
+            is_key = TRUE;
+            ivalue = 0;
+            
+            if (strcmp(key, "name") == 0) player.name = _strdup(value);
+            else if (strcmp(key, "board_name") == 0) player.board_name = _strdup(value);
+            else if (strcmp(key, "tileset_name") == 0) player.tileset_name = _strdup(value);
+            else if (strcmp(key, "tile_index") == 0) C_atoi(value, &player.tile_index);
+            else if (strcmp(key, "available_stat_points") == 0) C_atoi(value, &player.available_stat_points);
+            else if (strcmp(key, "lvl") == 0) C_atoi(value, &player.lvl);
+            else if (strcmp(key, "xp") == 0) C_atoi(value, &player.xp);
+            else if (strcmp(key, "hp") == 0) C_atoi(value, &player.phys.hp);
+            else if (strcmp(key, "max_hp") == 0) C_atoi(value, &player.phys.max_hp);
+            else if (strcmp(key, "mp") == 0) C_atoi(value, &player.mp);
+            else if (strcmp(key, "max_mp") == 0) C_atoi(value, &player.max_mp);
+            else if (strcmp(key, "gold") == 0) C_atoi(value, &player.gold);
+            else if (strcmp(key, "x") == 0) player.phys.x = atof(value);
+            else if (strcmp(key, "y") == 0) player.phys.y = atof(value);
+            else if (strcmp(key, "z") == 0) player.phys.z = atof(value);
+
+            memset(key, 0, 100);
+            memset(value, 0, 100);
+        }
+        else
+        {
+            if(!is_string && (c == ' ' || c == '\t' || c == '\r'))
+            {
+                // ignore white space unless it's inside a string
+            }
+            else
+            {
+                if (is_key)
+                    key[ikey++] = c;
+                else
+                    value[ivalue++] = c;
+            }
+        }
+
+    } while (c != EOF);
+
+    fclose(fp);
+
+}
+
 static void gain_level()
 {
     player.lvl++;
