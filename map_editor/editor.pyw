@@ -46,6 +46,7 @@ class Editor(QWidget):
         self.draw_over = True
         self.rect_moved = False
         self.rectangling = False
+        self.rectangle_wh = False
         self.c1_ghost = (0,0)
         self.c4_ghost = (0,0)
         self.mouse_x = 0
@@ -94,6 +95,7 @@ class Editor(QWidget):
                     painter.drawImage(x*self.tile_size_zoom,y*self.tile_size_zoom,self.tiles[s.tile_set_name][s.tile_index])
                     
         self.draw_grid()
+        self.draw_rect_wh(hl*self.tile_size_zoom,vl*self.tile_size_zoom)
         self.drawGhostRect()
 
     def draw_grid(self):
@@ -128,7 +130,17 @@ class Editor(QWidget):
             qp.fillRect(x,y,w,h,brush)
             qp.end()
 
-        
+    def draw_rect_wh(self,x,y):
+        if self.rectangle_wh:
+            qp = QPainter()
+            qp.begin(self)
+            x1 = self.c1[0]; x2 = self.c4[0]; y1 = self.c1[1]; y2 = self.c4[1]
+            w = max([x1,x2]) - min([x1,x2]) + 1
+            h = max([y1,y2]) - min([y1,y2]) + 1
+            qp.drawText(QPointF(x+2,y+12),"W: " + str(w) + " H: " + str(h))
+            qp.end()
+            self.rectangle_wh = False
+
     def mousePressEvent(self, event):
         self.mouse_x = event.pos().x()
         self.mouse_y = event.pos().y()
@@ -239,10 +251,13 @@ class Editor(QWidget):
                 self.rect_moved = True
                 self.c4_ghost = (self.c4[0],self.c4[1])
 
+                self.rectangle_wh = True
+
             elif not self.rectangling:
                 self.c1_ghost = (int(self.mouse_x / self.tile_size_zoom),int(self.mouse_y / self.tile_size_zoom))
                 self.c4_ghost = (int(self.mouse_x / self.tile_size_zoom),int(self.mouse_y / self.tile_size_zoom))
 
+            
 
         elif mouse == "release":
             if not self.rect_moved:
@@ -268,7 +283,7 @@ class Editor(QWidget):
                 x1 = self.c2[0]; x2 = self.c4[0]; y1 = self.c2[1]; y2 = self.c4[1]
                 self.draw_area(x1,x2,y1,y2)
 
-            elif self.tool == "rectangle fill":    
+            elif self.tool == "rectangle fill":
                 x1 = self.c1[0]; x2 = self.c4[0]; y1 = self.c1[1]; y2 = self.c4[1]
                 self.draw_area(x1,x2,y1,y2)
 

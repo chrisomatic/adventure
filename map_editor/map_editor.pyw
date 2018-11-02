@@ -62,7 +62,7 @@ class MyWidget(QWidget):
 
         self.sld = QSlider(Qt.Horizontal, self)
         self.sld.setMinimum(1)
-        self.sld.setMaximum(50)
+        self.sld.setMaximum(64)
         self.sld.setMaximumWidth(200)
         self.sld.valueChanged.connect(self.change_size)
 
