@@ -10,7 +10,7 @@ import os
 
 import sys
 from PyQt5.QtWidgets import *
-from PyQt5.QtGui import QKeyEvent, QPainter,QImage, QPen, QIcon, QPixmap, QColor, QCursor, QFont
+from PyQt5.QtGui import QKeyEvent, QPainter,QImage, QPen, QIcon, QPixmap, QColor, QBrush, QCursor, QFont
 from PyQt5.QtCore import Qt, QPoint, QPointF, QSize, QEvent
 
 
@@ -43,11 +43,14 @@ class Editor(QWidget):
         self.tool = "pen"
         self.bsize = 1
         self.copied_range = False
+        self.copy_moved = False
+        self.copying = False
         self.draw_over = True
         self.rect_moved = False
+        self.mouse_x = 0
+        self.mouse_y = 0
+        self.setMouseTracking(True)
         self.draw_grid()
-
-        
     
     def edit_board(self,x,y):
         if not self.draw_over and self.board[y][x].tile_index != -1 and self.tile_index != -1 and self.tool != "fill":
@@ -72,7 +75,6 @@ class Editor(QWidget):
             for j in range(0,self.tile_size):
                 temp_list.append(img.copy(self.tile_size*j,self.tile_size*i,self.tile_size_zoom,self.tile_size_zoom))
                 temp_list2.append(img.copy(self.tile_size*j,self.tile_size*i,self.tile_size,self.tile_size))
-                # temp_list.append(img.copy(self.tile_size*j,self.tile_size*i,self.tile_size*self.zoom_ratio,self.tile_size*self.zoom_ratio))
         self.tiles[self.tile_set_name] = temp_list
         self.tiles_actual[self.tile_set_name] = temp_list2
     
@@ -145,6 +147,7 @@ class Editor(QWidget):
                     queue.append((n[0]+0,n[1]-1))
 
     def paintEvent(self, event):
+
         painter = QPainter(self)
 
         vl = max(int(self.v_lbound / self.tile_size_zoom),0)
@@ -172,7 +175,28 @@ class Editor(QWidget):
                     painter.drawImage(i*self.tile_size_zoom,j*self.tile_size_zoom,self.tiles[s.tile_set_name][s.tile_index])
                     
         self.draw_grid()
-    
+        self.drawGhostRect()
+
+    def drawGhostRect(self):
+        qp = QPainter()
+        
+        if(self.tool == "pen"):
+            qp.begin(self)
+            side = self.tile_size*self.bsize-1
+
+            x = max(0.0,self.mouse_x - side/2.0)
+            y = max(0.0,self.mouse_y - side/2.0)
+
+            # align ghost with grid
+            x = x + (self.tile_size/2) - self.mouse_x % (self.tile_size)
+            y = y + (self.tile_size/2) - self.mouse_y % (self.tile_size)
+
+            w = int(side) + side % 2
+            h = int(side) + side % 2
+
+            brush = QBrush(QColor(128, 128, 255, 128))
+            qp.fillRect(x,y,w,h,brush)
+            qp.end()
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
@@ -182,12 +206,10 @@ class Editor(QWidget):
                     self.board_prev[j][i].tile_set_name = self.board[j][i].tile_set_name
 
 
-
         if(event.button() == Qt.LeftButton and self.tool == "pen"):
             self.painting = True
             x = int(event.pos().x() / self.tile_size_zoom)
             y = int(event.pos().y() / self.tile_size_zoom)
-            # print(x,y)
 
             side = self.bsize-1
             self.draw_line(x-int(side/2),
@@ -196,8 +218,7 @@ class Editor(QWidget):
                            y+int(side/2)+side % 2)
             # self.draw_line(x,x+self.bsize-1,y,y+self.bsize-1)
 
-        
-
+    
 
         elif(event.button() == Qt.LeftButton and self.tool == "fill"):
             x = int(event.pos().x() / self.tile_size_zoom)
@@ -207,7 +228,6 @@ class Editor(QWidget):
         elif(event.button() == Qt.LeftButton and self.tool == "rectangle"):
             x = int(event.pos().x() / self.tile_size_zoom)
             y = int(event.pos().y() / self.tile_size_zoom)
-            # print(x,y)
 
             self.c1 = (x,y)
             self.edit_board(x,y)
@@ -215,15 +235,79 @@ class Editor(QWidget):
         elif(event.button() == Qt.LeftButton and self.tool == "rectangle fill"):
             x = int(event.pos().x() / self.tile_size_zoom)
             y = int(event.pos().y() / self.tile_size_zoom)
-            # print(x,y)
 
             self.c1 = (x,y)
-            self.edit_board(x,y)   
+            self.edit_board(x,y)
+
+        # copy range
+        elif(event.button() == Qt.LeftButton and self.tool == "copy range" and not self.copied_range):
+            x = int(event.pos().x() / self.tile_size_zoom)
+            y = int(event.pos().y() / self.tile_size_zoom)
+            self.c1_copy = (x,y)
+            self.copied_range = True
+            self.copying = True
+        
+        # paste range
+        elif(event.button() == Qt.LeftButton and self.tool == "copy range" and self.copied_range):
+            x = int(event.pos().x() / self.tile_size_zoom)
+            y = int(event.pos().y() / self.tile_size_zoom)
+            
+            # copied range
+            Xcrange = range(min([self.c1_copy[0],self.c4_copy[0]]),max([self.c1_copy[0],self.c4_copy[0]])+1)
+            Ycrange = range(min([self.c1_copy[1],self.c4_copy[1]]),max([self.c1_copy[1],self.c4_copy[1]])+1)
+
+            self.c1 = (x,y)
+            # # self.c4 = (x+(self.c4_copy[0] - self.c1_copy[0]),y+(self.c4_copy[1] - self.c1_copy[1]))
+            self.c4 = (x+max(Xcrange)-min(Xcrange),y+max(Ycrange)-min(Ycrange))
+            
+            # paste range
+            Xrange = range(min([self.c1[0],self.c4[0]]),max([self.c1[0],self.c4[0]])+1)
+            Yrange = range(min([self.c1[1],self.c4[1]]),max([self.c1[1],self.c4[1]])+1)
+
+            # board_temp = [[Tile() for x in range(self.board_width)] for y in range(self.board_height)]
+            # for x in Xrange:
+            #     for y in Yrange:
+            #         board_temp[y][x].tile_index = self.board[y][x].tile_index
+            #         board_temp[y][x].tile_set_name = self.board[y][x].tile_set_name                 
+
+
+            board_temp = [[Tile() for x in range(self.board_width)] for y in range(self.board_height)]
+            for x in range(self.board_width):
+                for y in range(self.board_height):
+                    board_temp[y][x].tile_index = self.board[y][x].tile_index
+                    board_temp[y][x].tile_set_name = self.board[y][x].tile_set_name   
+
+
+            for x in Xrange:
+                for y in Yrange:
+                    if x >= 0 and x < self.board_width and y >= 0 and y < self.board_height:
+                        
+                        # if not self.draw_over and self.board[y][x].tile_index != -1 and self.tile_index != -1:
+                        #     continue
+
+                        xc = Xcrange[Xrange.index(x)]
+                        yc = Ycrange[Yrange.index(y)]
+                        # tile_index = self.board[yc][xc].tile_index
+                        # tile_set_name = self.board[yc][xc].tile_set_name
+                        tile_index = board_temp[yc][xc].tile_index
+                        tile_set_name = board_temp[yc][xc].tile_set_name
+
+                        self.board[y][x].tile_index = tile_index
+                        if tile_index == -1:
+                            self.board[y][x].tile_set_name = "-1"
+                        else:
+                            self.board[y][x].tile_set_name = tile_set_name
+
+
+            
+            self.copied_range = False
+
 
         self.update()
 
     def mouseReleaseEvent(self, event):
         self.painting = False
+        self.copying = False
         
 
         if self.tool == "rectangle":
@@ -278,13 +362,22 @@ class Editor(QWidget):
             self.draw_line(x1,x2,y1,y2)
 
             self.rect_moved = False
+        
+        elif self.copied_range and self.tool == "copy range":
+            if not self.copy_moved:
+                self.c4_copy = (self.c1_copy[0],self.c1_copy[1])
+            self.copy_moved = False
 
         self.update()
 
     def mouseMoveEvent(self, event):
+
+        self.mouse_x = event.pos().x()
+        self.mouse_y = event.pos().y()
+
         if(self.painting):
-            x = int(event.pos().x() / self.tile_size_zoom)
-            y = int(event.pos().y() / self.tile_size_zoom)
+            x = int(self.mouse_x / self.tile_size_zoom)
+            y = int(self.mouse_y / self.tile_size_zoom)
 
             side = self.bsize-1
             self.draw_line(x-int(side/2),
@@ -293,12 +386,17 @@ class Editor(QWidget):
                            y+int(side/2)+side % 2)
             # self.draw_line(x,x+self.bsize-1,y,y+self.bsize-1)
 
-
         if self.tool in ["rectangle","rectangle fill"]:
             x = int(event.pos().x() / self.tile_size_zoom)
             y = int(event.pos().y() / self.tile_size_zoom)
             self.c4 = (x,y)
             self.rect_moved = True
+
+        elif(self.copied_range and self.tool == "copy range" and self.copying):
+            x = int(event.pos().x() / self.tile_size_zoom)
+            y = int(event.pos().y() / self.tile_size_zoom)
+            self.c4_copy = (x,y)
+            self.copy_moved = True
 
         self.update()
 
@@ -518,7 +616,6 @@ class MyWidget(QWidget):
     def eventFilter(self,source,event):
         if source is self.draw_over_chk:
             self.editor.draw_over = self.draw_over_chk.isChecked()
-
         elif event.type() == QEvent.KeyPress:
 
             modifiers = QApplication.keyboardModifiers()
