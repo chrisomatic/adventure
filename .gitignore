@@ -2,3 +2,4 @@ src/.vs/
 src/Debug/
 src/Release/
 src/*.db
+map_editor/__pycache__/editor.cpython-36.pyc
