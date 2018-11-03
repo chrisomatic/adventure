@@ -166,8 +166,8 @@ class MyWidget(QWidget):
 
         self.lbl_zoom.setText("Zoom: x" + str(int(self.editor.tile_size*zoom)))
 
-        # self.repaint()
-        self.editor.update()
+        self.repaint()
+        # self.editor.update()
         
     
     def housekeeping(self):
@@ -194,6 +194,7 @@ class MyWidget(QWidget):
 
     def resizeEvent(self, event):
         self.repaint()
+        # self.editor.update()
 
     def eventFilter(self,source,event):
         if source is self.draw_over_chk:
@@ -413,6 +414,8 @@ class MyWidget(QWidget):
         self.editor.h_lbound = self.h_lbound
         self.editor.h_ubound = self.h_ubound
 
+        self.editor.update()
+
         # print("vertical:",self.v_lbound,self.v_ubound)
         # print("horizontal:",self.h_lbound,self.h_ubound)
 
@@ -507,7 +510,7 @@ class MyWidget(QWidget):
         self.editor.board = p
         self.editor.board_prev = c
         self.repaint()
-        self.editor.update()
+        # self.editor.update()
 
 
 

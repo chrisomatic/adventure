@@ -101,7 +101,7 @@ class Editor(QWidget):
         # self.draw_coords(self.mouse_x,self.mouse_y)
 
         self.draw_rect_wh(self.h_lbound,self.v_lbound)
-        self.draw_coords(self.h_lbound,self.v_lbound)
+        self.draw_coords(self.h_lbound,self.v_ubound)
         self.drawGhostRect()
 
     def draw_grid(self):
@@ -143,14 +143,15 @@ class Editor(QWidget):
             x1 = self.c1[0]; x2 = self.c4[0]; y1 = self.c1[1]; y2 = self.c4[1]
             w = max([x1,x2]) - min([x1,x2]) + 1
             h = max([y1,y2]) - min([y1,y2]) + 1
-            qp.drawText(QPointF(x+2,y+32),"W: " + str(w) + " H: " + str(h))
+            # qp.drawText(QPointF(x+2,y+32),"W: " + str(w) + " H: " + str(h))
+            qp.drawText(QPointF(x+2,y+12),"W: " + str(w) + " H: " + str(h))
             qp.end()
             self.rectangle_wh = False
 
     def draw_coords(self,x,y):
         qp = QPainter()
         qp.begin(self)
-        qp.drawText(QPointF(x+2,y+12),"(" + str(self.mouse_x) + "," + str(self.mouse_y) + ")")
+        qp.drawText(QPointF(x+2,y-5),"(" + str(self.mouse_x) + "," + str(self.mouse_y) + ")")
         qp.end()
 
 
