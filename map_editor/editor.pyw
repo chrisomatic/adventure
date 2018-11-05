@@ -13,12 +13,19 @@ class Tile:
         self.tile_index = -1
         self.tile_set_name = "-1"
 
+class Object:
+    def __init__(self):
+        self.png = ""
+        self.x = 0
+        self.y = 0
+
 class Editor(QWidget):
 
     def __init__(self, parent=None):
         QWidget.__init__(self, parent)
 
         self.init_variables()
+        self.setMouseTracking(True)
 
     
     def init_variables(self):
@@ -52,9 +59,14 @@ class Editor(QWidget):
         self.c4_ghost = (0,0)
         self.mouse_x = 0
         self.mouse_y = 0
-        self.setMouseTracking(True)
 
-    
+        self.painted_objects = []
+        self.objects = {}
+        self.objects2 = []
+        self.object_name = ""
+
+
+
     def edit_board(self,x,y):
         if not self.draw_over and self.board[y][x].tile_index != -1 and self.tile_index != -1 and self.tool != "fill":
             return
@@ -64,12 +76,22 @@ class Editor(QWidget):
         else:
             self.board[y][x].tile_set_name = self.tile_set_name
 
+    def build_objects(self,path,lst):
+        self.objects = {}
+        for l in lst:
+            img = QImage(path + l,"PNG")
+            self.objects[l] = img
+            # self.objects.append(img)
+            # self.objects2.append(img.copy(self.tile_size*j,self.tile_size*i,self.tile_size,self.tile_size))
+        
+
+
     def build_tiles(self,path_to_tileset_image):
         self.tile_set_name = path_to_tileset_image.split("\\")[-1]
         if self.tile_set_name in self.tiles.keys():
             del self.tiles[self.tile_set_name]
             del self.tiles_actual[self.tile_set_name]
-        
+
         temp_list = []
         temp_list2 = []
         img = QImage(path_to_tileset_image,"PNG")
@@ -83,6 +105,14 @@ class Editor(QWidget):
 
     def paintEvent(self, event):
 
+        self.draw_tiles()
+        self.draw_objects()
+        self.draw_grid()
+        self.draw_rect_wh(self.h_lbound,self.v_lbound)
+        self.draw_coords(self.h_lbound,self.v_ubound)
+        self.drawGhostRect()
+
+    def draw_tiles(self):
         painter = QPainter(self)
         vl = max(int(self.v_lbound / self.tile_size_zoom),0)
         vu = min(int(self.v_ubound / self.tile_size_zoom)+1,self.board_height)
@@ -94,15 +124,16 @@ class Editor(QWidget):
                 if(self.board[y][x].tile_index > -1):
                     s = self.board[y][x]
                     painter.drawImage(x*self.tile_size_zoom,y*self.tile_size_zoom,self.tiles[s.tile_set_name][s.tile_index])
-                    
-        self.draw_grid()
-        # self.draw_rect_wh(hl*self.tile_size_zoom,vl*self.tile_size_zoom)
-        # self.draw_coords(hl*self.tile_size_zoom,vl*self.tile_size_zoom)
-        # self.draw_coords(self.mouse_x,self.mouse_y)
 
-        self.draw_rect_wh(self.h_lbound,self.v_lbound)
-        self.draw_coords(self.h_lbound,self.v_ubound)
-        self.drawGhostRect()
+    def draw_objects(self):
+        painter = QPainter(self)
+        for i in range(len(self.painted_objects)):
+            x = self.painted_objects[i].x
+            y = self.painted_objects[i].y
+            png = self.painted_objects[i].png
+            if not png.lower() in ['','eraser']:
+                img = self.objects[png]
+                painter.drawImage(x,y,img)
 
     def draw_grid(self):
         if self.tile_size_zoom >= 4 and self.grid:
@@ -183,6 +214,14 @@ class Editor(QWidget):
 
             elif self.tool == "fill":
                 self.flood_fill(x,y)
+            
+            elif self.tool == "objects":
+                obj = Object()
+                obj.x = self.mouse_x
+                obj.y = self.mouse_y
+                obj.png = self.object_name
+                if not self.object_name.lower() in ["","eraser"]:
+                    self.painted_objects.append(obj)
         
         self.update()
 

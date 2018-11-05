@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import os
+import ctypes
 
 import sys
 from PyQt5.QtWidgets import *
@@ -9,12 +10,25 @@ from PyQt5.QtCore import Qt, QPoint, QPointF, QSize, QEvent
 
 import editor
 
+# TODO
+# 1) add align to grid check box for drawing objects
+# 2) add check box for showing/hiding the objects
+
+
 class MyWidget(QWidget):
     def __init__(self, parent=None):
         QWidget.__init__(self, parent)
 
         self.setFont(QFont('Arial', 9))
         QToolTip.setFont(QFont('Arial', 9))
+
+        self.setWindowTitle('Excel Grid Editor')
+
+        ico = r"X:\DEPO\SOFTWARE\SUPPORT\excel.ico"
+        if os.path.isfile(ico):
+            self.setWindowIcon(QIcon(ico))
+
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("adventure_map_editor")
 
 
         self.root = os.path.dirname(os.path.abspath(__file__))  + "\\"
@@ -23,6 +37,13 @@ class MyWidget(QWidget):
             self.ts_path = r"C:\Users\Kameron\Desktop\map_editor\tilesets" + "\\"
         self.tilesets = [x for x in os.listdir(self.ts_path) if ".tileset.png" in x]
 
+        self.ob_path = r"X:\DEPO\SOFTWARE\INHOUSE\GAMES\adventure\data\objects" + "\\"
+        if not os.path.isdir(self.ob_path):
+            self.ob_path = r"X:\DEPO\SOFTWARE\INHOUSE\GAMES\adventure\data\objects" + "\\"
+        self.object_lst = [x for x in os.listdir(self.ob_path) if ".png" in x]
+
+        
+
         self.housekeeping()
 
         self.editor = editor.Editor(self)
@@ -30,7 +51,6 @@ class MyWidget(QWidget):
         self.editor.setMaximumWidth(self.editor.board_width*self.editor.tile_size_zoom)
         self.editor.setMinimumHeight(self.editor.board_height*self.editor.tile_size_zoom)
         self.editor.setMaximumHeight(self.editor.board_height*self.editor.tile_size_zoom)
-
         
 
         self.scroll = self.scroll_area(self.editor)
@@ -51,7 +71,7 @@ class MyWidget(QWidget):
         self.ts_combo.setToolTip("Ctrl + T")
 
         self.tool_combo = QComboBox(self)
-        self.tool_list = ['Pen','Rectangle','Rectangle Fill','Fill','Copy Range']
+        self.tool_list = ['Pen','Rectangle','Rectangle Fill','Fill','Copy Range','Objects']
         self.tool_combo.addItems(self.tool_list)
         self.tool_combo.activated[str].connect(self.change_tool)
         self.tool_combo.setToolTip("Ctrl + D")
@@ -110,7 +130,7 @@ class MyWidget(QWidget):
         self.lbl_zoom = QLabel('Zoom: x16', self)
 
 
-        self.list_tiles()
+        self.list_tiles("tiles")
 
         self.grid = QGridLayout()
         self.grid.setSpacing(10)
@@ -145,8 +165,6 @@ class MyWidget(QWidget):
     def change_zoom(self):
         value = self.sld_zoom.value()
         zoom = 1/self.zoom_values[value-1]
-        # zoom = 1/(min([abs(x-value) for x in values]) + value)
-        # print(zoom)
 
         self.editor.zoom_ratio = zoom
         self.editor.tile_size_zoom = int(self.editor.tile_size * zoom)
@@ -167,7 +185,6 @@ class MyWidget(QWidget):
         self.lbl_zoom.setText("Zoom: x" + str(int(self.editor.tile_size*zoom)))
 
         self.repaint()
-        # self.editor.update()
         
     
     def housekeeping(self):
@@ -259,7 +276,6 @@ class MyWidget(QWidget):
     def save_map(self):
 
         options = QFileDialog.Options()
-        # options |= QFileDialog.DontUseNativeDialog
         fileName, _ = QFileDialog.getSaveFileName(self,"Save",self.ts_path,"Board Files (*.board);;All Files (*)", options=options)
         if not fileName:
             return 
@@ -322,7 +338,6 @@ class MyWidget(QWidget):
     def load_map(self):
 
         options = QFileDialog.Options()
-        # options |= QFileDialog.DontUseNativeDialog
         fileName, _ = QFileDialog.getOpenFileName(self,"Save",self.board_path,"Board Files (*.board);;All Files (*)", options=options)
         if not fileName:
             return 
@@ -385,20 +400,30 @@ class MyWidget(QWidget):
 
 
 
-
     def change_tool(self,text):
         self.editor.tool = text.lower()
         self.editor.copied_range = False
         self.editor.copy_moved = False
         self.editor.copying = False
 
-    # def change_size(self,text):
-    #     self.editor.bsize = int(text)
+        if text.lower() == "objects":
+            # self.editor.build_tiles(self.ts_path + text)
+            # self.list_tiles()
+            # self.grid.addWidget(self.qlist, 5, 1, 5, 1)
+            # self.setLayout(self.grid)
+
+            self.object_lst = [x for x in os.listdir(self.ob_path) if ".png" in x]
+            self.editor.build_objects(self.ob_path,self.object_lst)
+            self.load_tileset("objects")
+        else:
+            self.load_tileset("")
+
+
 
     def change_size(self):
         self.editor.bsize = max(1,int(self.sld.value()))
         self.lbl_pen_size.setText("Pen Size: " + str(self.editor.bsize))
-        # self.sld.setValue(self.editor.bsize)
+
 
 
     def repaint(self):
@@ -423,12 +448,14 @@ class MyWidget(QWidget):
         
     def load_tileset(self,text):
 
-        self.editor.build_tiles(self.ts_path + text)
-        self.editor.tile_index = 0
+        if self.editor.tool != "objects":
+            self.editor.build_tiles(self.ts_path + self.ts_combo.currentText())
+            self.editor.tile_index = 0
+            # self.qlist.setParent(None)
+            self.list_tiles("tiles")
+        else:
+            self.list_tiles("objects")
 
-        # self.qlist.setParent(None)
-
-        self.list_tiles()
         self.grid.addWidget(self.qlist, 5, 1, 5, 1)
         self.setLayout(self.grid)
 
@@ -440,7 +467,7 @@ class MyWidget(QWidget):
             self.eraser_item.setIcon(QIcon("eraser.png"))
 
 
-    def list_tiles(self):
+    def list_tiles(self,string):
 
         self.qlist = QListWidget(self)
         
@@ -450,28 +477,39 @@ class MyWidget(QWidget):
         self.qlist.clear()
         self.qlist_text = ["Eraser"]
 
-        tiles = self.editor.tiles[self.editor.tile_set_name]
-        tiles_actual = self.editor.tiles_actual[self.editor.tile_set_name]
-
         self.eraser()
         self.qlist.addItem(self.eraser_item)     
 
-        for i in range(len(tiles)):
+        if string == "tiles":
+            tiles = self.editor.tiles[self.editor.tile_set_name]
+            tiles_actual = self.editor.tiles_actual[self.editor.tile_set_name]
 
-            item = QListWidgetItem()
-            item.setText('Tile ' + str(i))
-            item.setIcon(QIcon(QPixmap.fromImage(tiles_actual[i])))
+            for i in range(len(tiles)):
 
-        
-            colors = []
-            for ii in range(tiles[i].width()):
-                for jj in range(tiles[i].height()):
-                    colors.append(QColor(tiles[i].pixel(ii,jj)).getRgbF())
-   
-            if list(set(colors)) != [(1.0, 0.0, 1.0, 1.0)]:
+                item = QListWidgetItem()
+                item.setText('Tile ' + str(i))
+                item.setIcon(QIcon(QPixmap.fromImage(tiles_actual[i])))
+            
+                colors = []
+                for ii in range(tiles[i].width()):
+                    for jj in range(tiles[i].height()):
+                        colors.append(QColor(tiles[i].pixel(ii,jj)).getRgbF())
+    
+                if list(set(colors)) != [(1.0, 0.0, 1.0, 1.0)]:
+                    self.qlist.addItem(item)
+                    self.qlist_text += ["Tile " + str(i)]
+
+        elif string == "objects":
+
+            for k in self.editor.objects.keys():
+
+                item = QListWidgetItem()
+                item.setText(k)
+                item.setIcon(QIcon(QPixmap.fromImage(self.editor.objects[k])))
+
                 self.qlist.addItem(item)
-                self.qlist_text += ["Tile " + str(i)]
-        
+                self.qlist_text += [k]
+            
         self.qlist.itemClicked.connect(self.qlist_clicked)
     
     def qlist_clicked(self,curr):
@@ -479,11 +517,18 @@ class MyWidget(QWidget):
         self.qlist.selectedItems()
         itext = curr.text()
 
-        if itext == "Eraser":
-            ind = -1
+        if self.editor.tool == "objects":
+
+            self.editor.tile_index = -1
+            self.editor.object_name = itext
+
         else:
-            ind = int(itext.split("Tile ")[-1])
-        self.editor.tile_index = ind
+
+            if itext == "Eraser":
+                ind = -1
+            else:
+                ind = int(itext.split("Tile ")[-1])
+            self.editor.tile_index = ind
 
     def save_png(self):
 
