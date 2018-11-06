@@ -83,6 +83,13 @@ class Editor(QWidget):
         self.objects = {}
         for l in lst:
             img = QImage(path + l,"PNG")
+            color = QColor(1.0, 0.0, 1.0, 0)
+            for y in range(img.height()):
+                for x in range(img.width()):
+                    col = QColor(img.pixel(x,y)).getRgbF()
+                    if col == (1.0, 0.0, 1.0, 1.0):
+                        img.setPixelColor(x,y,color)
+
             self.objects[l] = img
             # self.objects.append(img)
             # self.objects2.append(img.copy(self.tile_size*j,self.tile_size*i,self.tile_size,self.tile_size))
@@ -139,6 +146,8 @@ class Editor(QWidget):
         for i in range(len(self.painted_objects)):
             x = int(self.painted_objects[i].x * self.zoom_ratio)
             y = int(self.painted_objects[i].y * self.zoom_ratio)
+            # x = self.painted_objects[i].x
+            # y = self.painted_objects[i].y
             png = self.painted_objects[i].png
             if png in self.objects.keys():
                 img = self.objects[png]
@@ -324,11 +333,11 @@ class Editor(QWidget):
         x = int(self.mouse_x / self.tile_size_zoom)
         y = int(self.mouse_y / self.tile_size_zoom)
         if self.align_objs:
-            ox = x * self.tile_size_zoom
-            oy = y * self.tile_size_zoom
+            ox = x * self.tile_size_zoom / self.zoom_ratio
+            oy = y * self.tile_size_zoom / self.zoom_ratio
         else:
-            ox = self.mouse_x
-            oy = self.mouse_y
+            ox = self.mouse_x / self.zoom_ratio
+            oy = self.mouse_y / self.zoom_ratio
 
         def check_eraser(ox,oy):
             elx = ox
