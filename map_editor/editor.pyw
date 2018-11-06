@@ -130,7 +130,8 @@ class Editor(QWidget):
             for y in range(vl,vu):
                 if(self.board[y][x].tile_index > -1):
                     s = self.board[y][x]
-                    painter.drawImage(x*self.tile_size_zoom,y*self.tile_size_zoom,self.tiles[s.tile_set_name][s.tile_index])
+                    if s.tile_set_name != "":
+                        painter.drawImage(x*self.tile_size_zoom,y*self.tile_size_zoom,self.tiles[s.tile_set_name][s.tile_index])
 
     def draw_objects(self):
         painter = QPainter(self)
@@ -247,7 +248,6 @@ class Editor(QWidget):
             elif self.tool == "objects":
                 self.objects_tool("press")
                         
-        
         self.update()
 
     def mouseMoveEvent(self, event):
@@ -316,6 +316,8 @@ class Editor(QWidget):
             self.painting = False
 
     def objects_tool(self,mouse):
+        x = int(self.mouse_x / self.tile_size_zoom)
+        y = int(self.mouse_y / self.tile_size_zoom)
         if self.align_objs:
             ox = x * self.tile_size_zoom
             oy = y * self.tile_size_zoom

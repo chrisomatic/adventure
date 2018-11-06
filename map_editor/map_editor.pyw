@@ -32,15 +32,15 @@ class MyWidget(QWidget):
 
 
         self.root = os.path.dirname(os.path.abspath(__file__))  + "\\"
-        self.ts_path = r"X:\DEPO\SOFTWARE\INHOUSE\GAMES\adventure\data\tilesets" + "\\"
-        if not os.path.isdir(self.ts_path):
-            self.ts_path = r"C:\Users\Kameron\Desktop\map_editor\tilesets" + "\\"
-        self.tilesets = [x for x in os.listdir(self.ts_path) if ".tileset.png" in x]
+        # self.ts_path = r"X:\DEPO\SOFTWARE\INHOUSE\GAMES\adventure\data\tilesets" + "\\"
+        # if not os.path.isdir(self.ts_path):
+        #     self.ts_path = r"C:\Users\Kameron\Desktop\map_editor\tilesets" + "\\"
+        # self.tilesets = [x for x in os.listdir(self.ts_path) if ".tileset.png" in x]
 
-        self.ob_path = r"X:\DEPO\SOFTWARE\INHOUSE\GAMES\adventure\data\objects" + "\\"
-        if not os.path.isdir(self.ob_path):
-            self.ob_path = r"X:\DEPO\SOFTWARE\INHOUSE\GAMES\adventure\data\objects" + "\\"
-        self.object_lst = [x for x in os.listdir(self.ob_path) if ".png" in x]
+        # self.ob_path = r"X:\DEPO\SOFTWARE\INHOUSE\GAMES\adventure\data\objects" + "\\"
+        # if not os.path.isdir(self.ob_path):
+        #     self.ob_path = r"X:\DEPO\SOFTWARE\INHOUSE\GAMES\adventure\data\objects" + "\\"
+        # self.object_lst = [x for x in os.listdir(self.ob_path) if ".png" in x]
 
         
 
@@ -56,19 +56,20 @@ class MyWidget(QWidget):
         self.scroll = self.scroll_area(self.editor)
         self.scroll.verticalScrollBar().valueChanged.connect(self.repaint)
         self.scroll.horizontalScrollBar().valueChanged.connect(self.repaint)
-        
 
-        self.ts_combo = QComboBox(self)
-        for i in self.tilesets:
-            self.ts_combo.addItem(i)
+        self.build_ts_combo()
 
-        if "terrain.tileset.png" in self.tilesets:
-            self.editor.build_tiles(self.ts_path + "terrain.tileset.png")
-            index = self.ts_combo.findText("terrain.tileset.png", Qt.MatchFixedString)
-            self.ts_combo.setCurrentIndex(index)
+        # self.ts_combo = QComboBox(self)
+        # for i in self.tilesets:
+        #     self.ts_combo.addItem(i)
 
-        self.ts_combo.activated[str].connect(self.load_tileset)
-        self.ts_combo.setToolTip("Ctrl + T")
+        # if "terrain.tileset.png" in self.tilesets:
+        #     self.editor.build_tiles(self.ts_path + "terrain.tileset.png")
+        #     index = self.ts_combo.findText("terrain.tileset.png", Qt.MatchFixedString)
+        #     self.ts_combo.setCurrentIndex(index)
+
+        # self.ts_combo.activated[str].connect(self.load_tileset)
+        # self.ts_combo.setToolTip("Ctrl + T")
 
         self.tool_combo = QComboBox(self)
         self.tool_list = ['Pen','Rectangle','Rectangle Fill','Fill','Copy Range','Objects']
@@ -137,6 +138,14 @@ class MyWidget(QWidget):
 
         self.lbl_zoom = QLabel('Zoom: x16', self)
 
+        self.line_edit = QLineEdit(self.ad_path,self)
+        self.line_edit.setToolTip("Adventure Path")
+
+        self.save_path_btn = QPushButton('Save', self)
+        self.save_path_btn.clicked.connect(self.save_path)
+        self.save_path_btn.resize(self.save_path_btn.sizeHint())
+        self.save_path_btn.setToolTip("Save Adventure Path")
+
 
         self.list_tiles("tiles")
 
@@ -149,6 +158,9 @@ class MyWidget(QWidget):
         self.grid.addWidget(self.draw_over_chk, 3, 1)
         self.grid.addWidget(self.ts_combo, 4, 1)
         self.grid.addWidget(self.qlist, 5, 1, 6, 1) # also change in load_tileset()
+
+        self.grid.addWidget(self.line_edit,11,0,1,2)
+        self.grid.addWidget(self.save_path_btn,11,2)
 
         self.grid.addWidget(self.save_btn, 0, 2)
         self.grid.addWidget(self.load_btn, 1, 2)
@@ -171,6 +183,66 @@ class MyWidget(QWidget):
         self.center()
 
         self.installEventFilter(self)
+
+    def save_path(self):
+        with open(self.adpath_path,'w') as f:
+            f.write(self.line_edit.text())
+        
+        with open(self.adpath_path,'r') as f:
+            self.ad_path = f.read().strip()
+            if len(self.ad_path) >= 1:
+                if self.ad_path[-1] != "\\":
+                    self.ad_path += "\\"
+        
+        if not os.path.isdir(self.ad_path):
+            self.ad_path = self.root + ""
+
+        self.ts_path = self.ad_path + "data\\data\\tilesets\\"
+        if not os.path.isdir(self.ts_path):
+            self.ts_path = self.ad_path + "data\\tilesets\\"
+            if not os.path.isdir(self.ts_path):
+                self.ts_path = self.ad_path + ""
+
+        self.ob_path = self.ad_path + "data\\data\\objects\\"
+        if not os.path.isdir(self.ob_path):
+            self.ob_path = self.ad_path + "data\\objects\\"
+            if not os.path.isdir(self.ob_path):
+                self.ob_path = self.ad_path + ""
+
+
+        self.tilesets = [x for x in os.listdir(self.ts_path) if ".tileset.png" in x]
+        self.object_lst = [x for x in os.listdir(self.ob_path) if ".png" in x]
+
+        self.build_ts_combo()
+        self.grid.addWidget(self.ts_combo, 4, 1)
+        self.setLayout(self.grid)
+
+        if self.editor.tool == "objects":
+            self.editor.build_objects(self.ob_path,self.object_lst)
+            self.load_tileset("objects")
+        else:
+            # self.load_tileset("")
+            self.list_tiles("tiles")
+
+        
+
+        
+        
+
+   
+    def build_ts_combo(self):
+        self.ts_combo = QComboBox(self)
+        for i in self.tilesets:
+            self.ts_combo.addItem(i)
+
+        if "terrain.tileset.png" in self.tilesets:
+            self.editor.build_tiles(self.ts_path + "terrain.tileset.png")
+            index = self.ts_combo.findText("terrain.tileset.png", Qt.MatchFixedString)
+            self.ts_combo.setCurrentIndex(index)
+
+        self.ts_combo.activated[str].connect(self.load_tileset)
+        self.ts_combo.setToolTip("Ctrl + T")
+
 
     def change_zoom(self):
         value = self.sld_zoom.value()
@@ -205,7 +277,11 @@ class MyWidget(QWidget):
         if not(os.path.isdir(self.appd)):
             os.makedirs(self.appd)
 
-        self.board_path = self.ts_path + ""
+        self.board_path = self.root + ""
+        self.ad_path = self.root + ""
+
+
+        # board path ------- where you save the board files to
         self.path_path = self.appd + "PATH"
         if not os.path.isfile(self.path_path):
             with open(self.path_path,'w') as f:
@@ -215,9 +291,40 @@ class MyWidget(QWidget):
             self.board_path = f.read().strip()
         
         if not os.path.isdir(self.board_path):
-            self.board_path = self.ts_path + ""
-            if not os.path.isdir(self.board_path):
-                self.board_path = self.root + ""
+            self.board_path = self.root + ""
+
+        # adventure path ------- where the pngs are located
+        self.adpath_path = self.appd + "ADVENTURE"
+        if not os.path.isfile(self.adpath_path):
+            with open(self.adpath_path,'w') as f:
+                f.write(self.ad_path)
+        
+        with open(self.adpath_path,'r') as f:
+            self.ad_path = f.read().strip()
+            if len(self.ad_path) >= 1:
+                if self.ad_path[-1] != "\\":
+                    self.ad_path += "\\"
+        # print(self.ad_path)
+        
+        if not os.path.isdir(self.ad_path):
+            self.ad_path = self.root + ""
+
+        self.ts_path = self.ad_path + "data\\data\\tilesets\\"
+        if not os.path.isdir(self.ts_path):
+            self.ts_path = self.ad_path + "data\\tilesets\\"
+            if not os.path.isdir(self.ts_path):
+                self.ts_path = self.ad_path + ""
+
+        self.ob_path = self.ad_path + "data\\data\\objects\\"
+        if not os.path.isdir(self.ob_path):
+            self.ob_path = self.ad_path + "data\\objects\\"
+            if not os.path.isdir(self.ob_path):
+                self.ob_path = self.ad_path + ""
+
+        self.tilesets = [x for x in os.listdir(self.ts_path) if ".tileset.png" in x]
+        self.object_lst = [x for x in os.listdir(self.ob_path) if ".png" in x]
+
+
 
     def resizeEvent(self, event):
         self.repaint()
@@ -500,8 +607,12 @@ class MyWidget(QWidget):
         self.qlist.addItem(self.eraser_item)     
 
         if string == "tiles":
-            tiles = self.editor.tiles[self.editor.tile_set_name]
-            tiles_actual = self.editor.tiles_actual[self.editor.tile_set_name]
+            if self.editor.tile_set_name in self.editor.tiles.keys():
+                tiles = self.editor.tiles[self.editor.tile_set_name]
+                tiles_actual = self.editor.tiles_actual[self.editor.tile_set_name]
+            else:
+                tiles = []
+                tiles_actual = []
 
             for i in range(len(tiles)):
 
