@@ -137,8 +137,8 @@ class Editor(QWidget):
     def draw_objects(self):
         painter = QPainter(self)
         for i in range(len(self.painted_objects)):
-            x = self.painted_objects[i].x
-            y = self.painted_objects[i].y
+            x = int(self.painted_objects[i].x * self.zoom_ratio)
+            y = int(self.painted_objects[i].y * self.zoom_ratio)
             png = self.painted_objects[i].png
             if png in self.objects.keys():
                 img = self.objects[png]
