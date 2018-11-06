@@ -120,9 +120,17 @@ class MyWidget(QWidget):
         self.draw_over_chk.setChecked(True)
         self.draw_over_chk.installEventFilter(self)
 
-        self.draw_grid_chk = QCheckBox("Grid",self)
+        self.draw_grid_chk = QCheckBox("Show Grid",self)
         self.draw_grid_chk.setChecked(True)
         self.draw_grid_chk.installEventFilter(self)
+
+        self.draw_objs_chk = QCheckBox("Show Objects",self)
+        self.draw_objs_chk.setChecked(True)
+        self.draw_objs_chk.installEventFilter(self)
+
+        self.align_grid_chk = QCheckBox("Align To Grid",self)
+        self.align_grid_chk.setChecked(True)
+        self.align_grid_chk.installEventFilter(self)
 
 
         self.lbl_pen_size = QLabel('Pen Size: 1', self)
@@ -134,13 +142,13 @@ class MyWidget(QWidget):
 
         self.grid = QGridLayout()
         self.grid.setSpacing(10)
-        self.grid.addWidget(self.scroll, 0, 0, 10, 1)
+        self.grid.addWidget(self.scroll, 0, 0, 11, 1)
         self.grid.addWidget(self.tool_combo, 0, 1)
         self.grid.addWidget(self.lbl_pen_size, 1, 1)
         self.grid.addWidget(self.sld, 2, 1)
         self.grid.addWidget(self.draw_over_chk, 3, 1)
         self.grid.addWidget(self.ts_combo, 4, 1)
-        self.grid.addWidget(self.qlist, 5, 1, 5, 1) # also change in load_tileset()
+        self.grid.addWidget(self.qlist, 5, 1, 6, 1) # also change in load_tileset()
 
         self.grid.addWidget(self.save_btn, 0, 2)
         self.grid.addWidget(self.load_btn, 1, 2)
@@ -148,8 +156,10 @@ class MyWidget(QWidget):
         self.grid.addWidget(self.undo_btn, 4, 2)
         self.grid.addWidget(self.save2_btn, 5, 2)
         self.grid.addWidget(self.draw_grid_chk, 6, 2)
-        self.grid.addWidget(self.lbl_zoom, 7, 2)
-        self.grid.addWidget(self.sld_zoom, 8, 2,1,1)
+        self.grid.addWidget(self.draw_objs_chk, 7, 2)
+        self.grid.addWidget(self.align_grid_chk, 8, 2)
+        self.grid.addWidget(self.lbl_zoom, 9, 2)
+        self.grid.addWidget(self.sld_zoom, 10, 2)
         
         # self.grid.addWidget(QLabel("",self), 8, 2)
         # self.grid.setAlignment(Qt.AlignTop)
@@ -177,7 +187,7 @@ class MyWidget(QWidget):
         self.scroll.verticalScrollBar().valueChanged.connect(self.repaint)
         self.scroll.horizontalScrollBar().valueChanged.connect(self.repaint)
 
-        self.grid.addWidget(self.scroll, 0, 0, 10, 1)
+        self.grid.addWidget(self.scroll, 0, 0, 11, 1)
         self.setLayout(self.grid)
 
         self.editor.build_tiles(self.ts_path + self.editor.tile_set_name)
@@ -216,6 +226,14 @@ class MyWidget(QWidget):
     def eventFilter(self,source,event):
         if source is self.draw_over_chk:
             self.editor.draw_over = self.draw_over_chk.isChecked()
+
+
+        elif source is self.draw_objs_chk:
+            self.editor.draw_objs = self.draw_objs_chk.isChecked()
+            self.editor.update()
+
+        elif source is self.align_grid_chk:
+            self.editor.align_objs = self.align_grid_chk.isChecked()
 
         elif source is self.draw_grid_chk:
             self.editor.grid = self.draw_grid_chk.isChecked()
@@ -455,8 +473,9 @@ class MyWidget(QWidget):
             self.list_tiles("tiles")
         else:
             self.list_tiles("objects")
+            self.editor.object_name = "eraser"
 
-        self.grid.addWidget(self.qlist, 5, 1, 5, 1)
+        self.grid.addWidget(self.qlist, 5, 1, 6, 1)
         self.setLayout(self.grid)
 
 

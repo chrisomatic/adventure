@@ -62,8 +62,10 @@ class Editor(QWidget):
 
         self.painted_objects = []
         self.objects = {}
-        self.objects2 = []
+        # self.objects2 = {}
         self.object_name = ""
+        self.draw_objs = True
+        self.align_objs = True
 
 
 
@@ -98,15 +100,20 @@ class Editor(QWidget):
         
         for i in range(0,self.tile_size):
             for j in range(0,self.tile_size):
-                temp_list.append(img.copy(self.tile_size*j,self.tile_size*i,self.tile_size_zoom,self.tile_size_zoom))
-                temp_list2.append(img.copy(self.tile_size*j,self.tile_size*i,self.tile_size,self.tile_size))
+                # temp_list.append(img.copy(self.tile_size*j,self.tile_size*i,self.tile_size_zoom,self.tile_size_zoom))
+                # temp_list2.append(img.copy(self.tile_size*j,self.tile_size*i,self.tile_size,self.tile_size))
+                tile_image = img.copy(self.tile_size*j,self.tile_size*i,self.tile_size,self.tile_size)
+                temp_list.append(tile_image.scaledToHeight(self.tile_size_zoom))
+                temp_list2.append(tile_image)
+                # QImage.scaledToHeight (self, int height,
         self.tiles[self.tile_set_name] = temp_list
         self.tiles_actual[self.tile_set_name] = temp_list2
 
     def paintEvent(self, event):
 
         self.draw_tiles()
-        self.draw_objects()
+        if self.draw_objs:
+            self.draw_objects()
         self.draw_grid()
         self.draw_rect_wh(self.h_lbound,self.v_lbound)
         self.draw_coords(self.h_lbound,self.v_ubound)
@@ -131,9 +138,10 @@ class Editor(QWidget):
             x = self.painted_objects[i].x
             y = self.painted_objects[i].y
             png = self.painted_objects[i].png
-            if not png.lower() in ['','eraser']:
-                img = self.objects[png]
-                painter.drawImage(x,y,img)
+            img = self.objects[png]
+            img = img.scaledToHeight(int(img.height() * self.zoom_ratio))
+            painter.drawImage(x,y,img)
+
 
     def draw_grid(self):
         if self.tile_size_zoom >= 4 and self.grid:
@@ -163,6 +171,27 @@ class Editor(QWidget):
             h = (max(Yrange) - min(Yrange)+1)*self.tile_size_zoom
             # print(x,y,w,h)
 
+            brush = QBrush(QColor(128, 128, 255, 128))
+            qp.fillRect(x,y,w,h,brush)
+            qp.end()
+        
+        elif self.tool in ["objects"]:
+            qp.begin(self)
+
+            if self.align_objs:
+                x = int(self.mouse_x / self.tile_size_zoom) * self.tile_size_zoom
+                y = int(self.mouse_y / self.tile_size_zoom) * self.tile_size_zoom
+            else:
+                x = self.mouse_x
+                y = self.mouse_y
+
+            if self.object_name.lower() == "eraser":
+                w = self.tile_size_zoom
+                h = self.tile_size_zoom
+            else:
+                img = self.objects[self.object_name]
+                w = int(img.width() * self.zoom_ratio)
+                h = int(img.height() * self.zoom_ratio)
             brush = QBrush(QColor(128, 128, 255, 128))
             qp.fillRect(x,y,w,h,brush)
             qp.end()
@@ -216,12 +245,8 @@ class Editor(QWidget):
                 self.flood_fill(x,y)
             
             elif self.tool == "objects":
-                obj = Object()
-                obj.x = self.mouse_x
-                obj.y = self.mouse_y
-                obj.png = self.object_name
-                if not self.object_name.lower() in ["","eraser"]:
-                    self.painted_objects.append(obj)
+                self.objects_tool("press")
+                        
         
         self.update()
 
@@ -240,6 +265,9 @@ class Editor(QWidget):
 
         elif self.tool == "copy range":
             self.copy_tool("move")
+        
+        elif self.tool == "objects":
+            self.objects_tool("move")
 
         self.update()
 
@@ -286,6 +314,47 @@ class Editor(QWidget):
 
         elif mouse == "release":
             self.painting = False
+
+    def objects_tool(self,mouse):
+        if self.align_objs:
+            ox = x * self.tile_size_zoom
+            oy = y * self.tile_size_zoom
+        else:
+            ox = self.mouse_x
+            oy = self.mouse_y
+
+        if mouse == "press" and not self.object_name.lower() in ["","eraser"]:
+            # if not self.object_name.lower() in ["","eraser"]:
+            obj = Object()
+            obj.x = ox
+            obj.y = oy
+            obj.png = self.object_name
+            self.painted_objects.append(obj)
+
+        elif mouse in ["press","move"] and self.object_name.lower() == "eraser":
+            elx = ox
+            eux = elx + self.tile_size_zoom
+            ely = oy
+            euy = oy + self.tile_size_zoom
+            newlst = []
+            for pa in self.painted_objects:
+                img = self.objects[pa.png]
+                h = int(img.height() * self.zoom_ratio)
+                w = int(img.width() * self.zoom_ratio)
+                lx = pa.x
+                ux = lx + w
+                ly = pa.y
+                uy = ly + h
+
+                x_collision = False
+                y_collision = False
+                if (elx <= ux and elx >= lx) or (eux <= ux and eux >= lx) or (eux >= ux and elx <= lx):
+                    x_collision = True
+                if (ely <= uy and ely >= ly) or (euy <= uy and euy >= ly) or (euy >= uy and elx <= ly):
+                    y_collision = True
+                if not(x_collision and y_collision):
+                    newlst.append(pa)
+            self.painted_objects = newlst
 
     def rectangle_tool(self,mouse):
         x = int(self.mouse_x / self.tile_size_zoom)
