@@ -64,6 +64,7 @@ class Editor(QWidget):
         self.objects = {}
         # self.objects2 = {}
         self.object_name = ""
+        self.object_erasing = False
         self.draw_objs = True
         self.align_objs = True
 
@@ -139,9 +140,10 @@ class Editor(QWidget):
             x = self.painted_objects[i].x
             y = self.painted_objects[i].y
             png = self.painted_objects[i].png
-            img = self.objects[png]
-            img = img.scaledToHeight(int(img.height() * self.zoom_ratio))
-            painter.drawImage(x,y,img)
+            if png in self.objects.keys():
+                img = self.objects[png]
+                img = img.scaledToHeight(int(img.height() * self.zoom_ratio))
+                painter.drawImage(x,y,img)
 
 
     def draw_grid(self):
@@ -287,6 +289,9 @@ class Editor(QWidget):
         elif self.tool == "copy range":
             self.copy_tool("release")
 
+        elif self.tool == "objects":
+            self.objects_tool("release")
+
         self.update()
 
 
@@ -325,15 +330,7 @@ class Editor(QWidget):
             ox = self.mouse_x
             oy = self.mouse_y
 
-        if mouse == "press" and not self.object_name.lower() in ["","eraser"]:
-            # if not self.object_name.lower() in ["","eraser"]:
-            obj = Object()
-            obj.x = ox
-            obj.y = oy
-            obj.png = self.object_name
-            self.painted_objects.append(obj)
-
-        elif mouse in ["press","move"] and self.object_name.lower() == "eraser":
+        def check_eraser(ox,oy):
             elx = ox
             eux = elx + self.tile_size_zoom
             ely = oy
@@ -357,6 +354,27 @@ class Editor(QWidget):
                 if not(x_collision and y_collision):
                     newlst.append(pa)
             self.painted_objects = newlst
+
+        if mouse == "press":
+
+            if not self.object_name.lower() in ["","eraser"]:
+                obj = Object()
+                obj.x = ox
+                obj.y = oy
+                obj.png = self.object_name
+                self.painted_objects.append(obj)
+
+            elif self.object_name.lower() == "eraser":
+                check_eraser(ox,oy)
+                self.object_erasing = True
+
+        elif mouse == "move":
+            if self.object_name.lower() == "eraser" and self.object_erasing:
+                check_eraser(ox,oy)
+        
+        elif mouse == "release":
+            self.object_erasing = False
+            
 
     def rectangle_tool(self,mouse):
         x = int(self.mouse_x / self.tile_size_zoom)

@@ -213,6 +213,10 @@ class MyWidget(QWidget):
         self.tilesets = [x for x in os.listdir(self.ts_path) if ".tileset.png" in x]
         self.object_lst = [x for x in os.listdir(self.ob_path) if ".png" in x]
 
+
+        # self.editor.tiles = {}
+        # self.editor.tiles_actual = {}
+        self.editor.tile_set_name = ""
         self.build_ts_combo()
         self.grid.addWidget(self.ts_combo, 4, 1)
         self.setLayout(self.grid)
@@ -221,12 +225,9 @@ class MyWidget(QWidget):
             self.editor.build_objects(self.ob_path,self.object_lst)
             self.load_tileset("objects")
         else:
-            # self.load_tileset("")
-            self.list_tiles("tiles")
-
-        
-
-        
+            self.load_tileset("")
+            # self.list_tiles("tiles")
+       
         
 
    
@@ -235,10 +236,17 @@ class MyWidget(QWidget):
         for i in self.tilesets:
             self.ts_combo.addItem(i)
 
-        if "terrain.tileset.png" in self.tilesets:
-            self.editor.build_tiles(self.ts_path + "terrain.tileset.png")
-            index = self.ts_combo.findText("terrain.tileset.png", Qt.MatchFixedString)
+        t = "terrain.tileset.png"
+        if t in self.tilesets:
+            self.editor.build_tiles(self.ts_path + t)
+            index = self.ts_combo.findText(t, Qt.MatchFixedString)
             self.ts_combo.setCurrentIndex(index)
+            self.editor.tile_set_name = t
+        elif len(self.tilesets) > 0:
+            self.editor.build_tiles(self.ts_path + self.tilesets[0])
+            index = self.ts_combo.findText(self.tilesets[0], Qt.MatchFixedString)
+            self.ts_combo.setCurrentIndex(index)
+            self.editor.tile_set_name = self.tilesets[0]
 
         self.ts_combo.activated[str].connect(self.load_tileset)
         self.ts_combo.setToolTip("Ctrl + T")
@@ -574,7 +582,8 @@ class MyWidget(QWidget):
     def load_tileset(self,text):
 
         if self.editor.tool != "objects":
-            self.editor.build_tiles(self.ts_path + self.ts_combo.currentText())
+            if os.path.isfile(self.ts_path + self.ts_combo.currentText()):
+                self.editor.build_tiles(self.ts_path + self.ts_combo.currentText())
             self.editor.tile_index = 0
             # self.qlist.setParent(None)
             self.list_tiles("tiles")
