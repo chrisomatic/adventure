@@ -409,11 +409,11 @@ class MyWidget(QWidget):
     def save_map(self):
 
         options = QFileDialog.Options()
-        fileName, _ = QFileDialog.getSaveFileName(self,"Save",self.ts_path,"Board Files (*.board);;All Files (*)", options=options)
+        fileName, _ = QFileDialog.getSaveFileName(self,"Save",self.board_path,"Board Files (*.board);;All Files (*)", options=options)
         if not fileName:
             return 
         
-        fileName.replace("/","\\")
+        fileName = fileName.replace("/","\\")
 
         self.board_path = "\\".join(fileName.split("\\")[:-1])
         with open(self.path_path,'w') as f:
