@@ -515,6 +515,7 @@ class MyWidget(QWidget):
         w = [x.split("width_in_tiles=")[-1] for x in lines if "width_in_tiles=" in x][0]
         h = [x.split("height_in_tiles=")[-1] for x in lines if "height_in_tiles=" in x][0]
         
+
         ti = lines.index(":tileset_info")
         tile_sets = {"255":255}
         tile_sets_missing = []
@@ -565,42 +566,43 @@ class MyWidget(QWidget):
 
 
         self.editor.painted_objects = []
+        # self.editor.build_objects(self.ob_path,[x for x in os.listdir(self.ob_path)])
+        self.object_lst = [x for x in os.listdir(self.ob_path) if ".png" in x]
+        self.editor.build_objects(self.ob_path,self.object_lst)
+        if ":object_info" in lines:
+            ti = lines.index(":object_info")
+            objs = {}
+            objs_missing = []
+            for ind in range(ti+1,len(lines)):
+                l = lines[ind]
+                if ":" in l:
+                    break
+                v = int(l.split("=")[0])
+                k = l.split("=")[1]
+                if not k in objs.keys():
+                    objs[k] = v
 
-       
+                if not os.path.isfile(self.ob_path + k):
+                    objs_missing.append(k)
+                
 
-        ti = lines.index(":object_info")
-        objs = {}
-        objs_missing = []
-        for ind in range(ti+1,len(lines)):
-            l = lines[ind]
-            if ":" in l:
-                break
-            v = int(l.split("=")[0])
-            k = l.split("=")[1]
-            if not k in objs.keys():
-                objs[k] = v
-
-            if not os.path.isfile(self.ob_path + k):
-                objs_missing.append(k)
-            # self.editor.build_objects(self.ob_path,[k])
-
-        ti = lines.index(":object_data")
-        for ind in range(ti+1,len(lines)):
-            l = lines[ind]
-            if ":" in l:
-                break
-            ls = l.split(",")
-            if len(ls) != 3:
-                continue
-            v = int(ls[0])
-            x = int(ls[1])
-            y = int(ls[2])
-            png = [x for x in objs.keys() if objs[x] == v][0]
-            obj = editor.Object()
-            obj.x = x
-            obj.y = y
-            obj.png = png
-            self.editor.painted_objects.append(obj)
+            ti = lines.index(":object_data")
+            for ind in range(ti+1,len(lines)):
+                l = lines[ind]
+                if ":" in l:
+                    break
+                ls = l.split(",")
+                if len(ls) != 3:
+                    continue
+                v = int(ls[0])
+                x = int(ls[1])
+                y = int(ls[2])
+                png = [x for x in objs.keys() if objs[x] == v][0]
+                obj = editor.Object()
+                obj.x = x
+                obj.y = y
+                obj.png = png
+                self.editor.painted_objects.append(obj)
 
         self.repaint()
  
