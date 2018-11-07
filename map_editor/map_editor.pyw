@@ -86,10 +86,10 @@ class MyWidget(QWidget):
         self.sld.setMaximum(64)
         self.sld.setMaximumWidth(200)
         self.sld.valueChanged.connect(self.change_size)
+        self.sld.setToolTip("Change the brush size for the pen tool.")
 
         self.sld_zoom = QSlider(Qt.Horizontal, self)
-        
-        self.zoom_values = [.25,.5,1,2,4,8,16]
+        self.zoom_values = [1/16,1/8,.25,.5,1,2,4,8,16]
         self.sld_zoom.setMinimum(1)
         self.sld_zoom.setMaximum(len(self.zoom_values))
         self.sld_zoom.setMaximumWidth(100)
@@ -104,6 +104,7 @@ class MyWidget(QWidget):
         self.save2_btn = QPushButton('Save PNG', self)
         self.save2_btn.clicked.connect(self.save_png)
         self.save2_btn.resize(self.save2_btn.sizeHint())
+        self.save2_btn.setToolTip("Save the map as a png.")
 
         self.load_btn = QPushButton('Load', self)
         self.load_btn.clicked.connect(self.load_map)
@@ -113,6 +114,7 @@ class MyWidget(QWidget):
         self.clear_btn = QPushButton('Clear', self)
         self.clear_btn.clicked.connect(self.clear_map)
         self.clear_btn.resize(self.clear_btn.sizeHint())
+        self.clear_btn.setToolTip("Clear the current map.")
 
         self.undo_btn = QPushButton('Undo', self)
         self.undo_btn.clicked.connect(self.undo)
@@ -121,24 +123,29 @@ class MyWidget(QWidget):
 
         self.draw_over_chk = QCheckBox("Draw Over Tiles",self)
         self.draw_over_chk.setChecked(True)
+        self.draw_over_chk.setToolTip("Unselect this to only draw on tiles that are empty.")
         self.draw_over_chk.installEventFilter(self)
-
+        
         self.draw_grid_chk = QCheckBox("Show Grid",self)
         self.draw_grid_chk.setChecked(True)
+        self.draw_grid_chk.setToolTip("Unselect this to hide the grid.")
         self.draw_grid_chk.installEventFilter(self)
 
         self.draw_objs_chk = QCheckBox("Show Objects",self)
         self.draw_objs_chk.setChecked(True)
+        self.draw_objs_chk.setToolTip("Unselect this to hide objects.")
         self.draw_objs_chk.installEventFilter(self)
 
         self.align_grid_chk = QCheckBox("Align To Grid",self)
         self.align_grid_chk.setChecked(True)
+        self.align_grid_chk.setToolTip("Select this if you wish to draw objects aligned to the grid.")
         self.align_grid_chk.installEventFilter(self)
+        
 
 
         self.lbl_pen_size = QLabel('Pen Size: 1', self)
 
-        self.lbl_zoom = QLabel('Zoom: x16', self)
+        self.lbl_zoom = QLabel('Zoom: ', self)
 
         self.line_edit = QLineEdit(self.ad_path,self)
         self.line_edit.setToolTip("Adventure Path")
@@ -146,7 +153,7 @@ class MyWidget(QWidget):
         self.save_path_btn = QPushButton('Save', self)
         self.save_path_btn.clicked.connect(self.save_path)
         self.save_path_btn.resize(self.save_path_btn.sizeHint())
-        self.save_path_btn.setToolTip("Save Adventure Path")
+        self.save_path_btn.setToolTip("Save Adventure path")
 
 
         self.list_tiles("tiles")
@@ -276,7 +283,18 @@ class MyWidget(QWidget):
 
         self.editor.build_tiles(self.ts_path + self.editor.tile_set_name)
 
-        self.lbl_zoom.setText("Zoom: x" + str(int(self.editor.tile_size*zoom)))
+        # self.lbl_zoom.setText("Zoom: x" + str(int(self.editor.tile_size*zoom)))
+        if zoom == int(zoom):
+            l = str(int(zoom))
+        elif zoom == 1/2:
+            l = "1/2"
+        elif zoom == 1/4:
+            l = "1/4"
+        elif zoom == 1/8:
+            l = "1/8"
+        elif zoom == 1/16:
+            l = "1/16"
+        self.lbl_zoom.setText("Zoom: x" + l)
 
         self.repaint()
         
