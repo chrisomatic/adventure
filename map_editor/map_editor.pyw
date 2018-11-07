@@ -11,7 +11,7 @@ from PyQt5.QtCore import Qt, QPoint, QPointF, QSize, QEvent, QTimer
 import editor
 
 
-class MyWidget(QWidget):
+class MyWidget(QMainWindow):
     def __init__(self, parent=None):
         QWidget.__init__(self, parent)
 
@@ -19,6 +19,8 @@ class MyWidget(QWidget):
         self.font = QFont('Arial', 9)
         self.setFont(self.font)
         QToolTip.setFont(self.font)
+
+        self.setAcceptDrops(True)
 
         self.setWindowTitle('Excel Grid Editor')
 
@@ -32,16 +34,19 @@ class MyWidget(QWidget):
 
         self.housekeeping()
 
+        self.widget = QWidget()
+
         self.editor = editor.Editor(self)
         self.editor.setMinimumWidth(self.editor.board_width*self.editor.tile_size_zoom)
         self.editor.setMaximumWidth(self.editor.board_width*self.editor.tile_size_zoom)
         self.editor.setMinimumHeight(self.editor.board_height*self.editor.tile_size_zoom)
         self.editor.setMaximumHeight(self.editor.board_height*self.editor.tile_size_zoom)
         self.editor.ts_path = self.ts_path
-        
+
         self.scroll = self.scroll_area(self.editor)
         self.scroll.verticalScrollBar().valueChanged.connect(self.repaint)
         self.scroll.horizontalScrollBar().valueChanged.connect(self.repaint)
+        # self.scroll.installEventFilter(self)
 
         self.build_ts_combo()
 
@@ -78,7 +83,7 @@ class MyWidget(QWidget):
         self.save2_btn.setToolTip("Save the map as a png.")
 
         self.load_btn = QPushButton('Load', self)
-        self.load_btn.clicked.connect(self.load_map)
+        self.load_btn.clicked.connect(lambda x: self.load_map(""))
         self.load_btn.resize(self.load_btn.sizeHint())
         self.load_btn.setToolTip("Ctrl + O")
 
@@ -153,7 +158,8 @@ class MyWidget(QWidget):
         self.grid.addWidget(self.sld_zoom, 10, 2)
         
         
-        self.setLayout(self.grid)
+        self.widget.setLayout(self.grid)
+        self.setCentralWidget(self.widget)
 
         self.sld_zoom.setValue(self.zoom_values.index(1)+1)
 
@@ -164,7 +170,8 @@ class MyWidget(QWidget):
         self.installEventFilter(self)
 
         self.save_timer = QTimer()
-        self.save_timer.timeout.connect(lambda x = self.appd + "temp_save.board":self.save_map(x))
+        # self.save_timer.timeout.connect(lambda x = self.appd + "temp_save.board":self.save_map(x))
+        self.save_timer.timeout.connect(self.auto_save)
         self.save_timer.start(1000*60)
 
     def save_path(self):
@@ -203,7 +210,9 @@ class MyWidget(QWidget):
         self.editor.tile_set_name = ""
         self.build_ts_combo()
         self.grid.addWidget(self.ts_combo, 4, 1)
-        self.setLayout(self.grid)
+        # self.setLayout(self.grid)
+        self.widget.setLayout(self.grid)
+        self.setCentralWidget(self.widget)
 
         if self.editor.tool == "objects":
             self.editor.build_objects(self.ob_path,self.object_lst)
@@ -246,12 +255,17 @@ class MyWidget(QWidget):
         self.editor.setMinimumHeight(self.editor.board_height*self.editor.tile_size_zoom)
         self.editor.setMaximumHeight(self.editor.board_height*self.editor.tile_size_zoom)
 
+
         self.scroll = self.scroll_area(self.editor)
         self.scroll.verticalScrollBar().valueChanged.connect(self.repaint)
         self.scroll.horizontalScrollBar().valueChanged.connect(self.repaint)
+        # self.scroll.installEventFilter(self)
+
 
         self.grid.addWidget(self.scroll, 0, 0, 11, 1)
-        self.setLayout(self.grid)
+        # self.setLayout(self.grid)
+        self.widget.setLayout(self.grid)
+        self.setCentralWidget(self.widget)
 
         for t in self.editor.tiles.keys():
             self.editor.build_tiles(self.ts_path + t)
@@ -333,7 +347,51 @@ class MyWidget(QWidget):
         self.repaint()
         # self.editor.update()
 
+    def dragEnterEvent( self, event ):
+        data = event.mimeData()
+        urls = data.urls()
+        if urls and urls[0].scheme() == 'file':
+            event.acceptProposedAction()
+
+    def dragMoveEvent( self, event ):
+        data = event.mimeData()
+        urls = data.urls()
+        if urls and urls[0].scheme() == 'file':
+            event.acceptProposedAction()
+
+    def dropEvent( self, event ):
+        data = event.mimeData()
+        urls = data.urls()
+        if urls and urls[0].scheme() == 'file':
+            # for some reason, this doubles up the intro slash
+            filepath = str(urls[0].path())[1:]
+            if filepath.split(".")[-1].lower() in ["board"]:
+                self.load_map(filepath)
+
+
     def eventFilter(self,source,event):
+
+
+        # if source is self.scroll and event.type() == QEvent.DragEnter:
+        #     data = event.mimeData()
+        #     urls = data.urls()
+        #     if urls and urls[0].scheme() == 'file':
+        #         event.acceptProposedAction()
+        # if source is self.scroll and event.type() == QEvent.DragMove:
+        #     data = event.mimeData()
+        #     urls = data.urls()
+        #     if urls and urls[0].scheme() == 'file':
+        #         event.acceptProposedAction()
+        # # if source is self.scroll and event.type() == QEvent.Drag:
+        # #     data = event.mimeData()
+        # #     urls = data.urls()
+        # #     if urls and urls[0].scheme() == 'file':
+        # #         filepath = str(urls[0].path())[1:]
+        # #         if filepath.split(".")[-1].lower() in ["board"]:
+        # #             print(filepath)
+
+
+
 
         if source is self.draw_over_chk:
             self.editor.draw_over = self.draw_over_chk.isChecked()
@@ -407,6 +465,14 @@ class MyWidget(QWidget):
         self.repaint()
         self.editor.update()
 
+    def auto_save(self):
+        try:
+            self.save_map(self.appd + "auto_save.board")
+        except Exception as e:
+            print("Failed to auto save map!\nError:")
+            print(e)
+            
+
     def save_map(self,fname = ""):
 
         if fname == "":
@@ -419,9 +485,17 @@ class MyWidget(QWidget):
             self.board_path = "\\".join(fileName.split("\\")[:-1])
             with open(self.path_path,'w') as f:
                 f.write(self.board_path)
+
+            if os.path.isfile(fileName):
+                appd = self.appd + fileName.split("\\")[-1]
+                if os.path.isdir(appd):
+                    os.remove(appd)
+                from shutil import copy
+                copy(fileName,appd)
         
         else:
             fileName = fname
+
 
         map_string = b""
         tile_set_number = 0
@@ -489,18 +563,29 @@ class MyWidget(QWidget):
             f.write(b"\n:data_end")
 
 
-    def load_map(self):
+    def load_map(self,fname=""):
+
         try:
-            options = QFileDialog.Options()
-            fileName, _ = QFileDialog.getOpenFileName(self,"Save",self.board_path,"Board Files (*.board);;All Files (*)", options=options)
-            if not fileName:
-                return 
+            self.save_map(self.appd + "auto_save_before_open.board")
+        except Exception as e:
+            print("Failed to auto save map!\nError:")
+            print(e)
 
-            fileName = fileName.replace("/","\\")
 
-            self.board_path = "\\".join(fileName.split("\\")[:-1])
-            with open(self.path_path,'w') as f:
-                f.write(self.board_path)
+        try:
+            if fname == "":
+                options = QFileDialog.Options()
+                fileName, _ = QFileDialog.getOpenFileName(self,"Save",self.board_path,"Board Files (*.board);;All Files (*)", options=options)
+                if not fileName:
+                    return 
+
+                fileName = fileName.replace("/","\\")
+
+                self.board_path = "\\".join(fileName.split("\\")[:-1])
+                with open(self.path_path,'w') as f:
+                    f.write(self.board_path)
+            else:
+                fileName = fname
             
 
             with open(fileName,'rb') as f:
@@ -671,7 +756,9 @@ class MyWidget(QWidget):
             self.editor.object_name = "eraser"
 
         self.grid.addWidget(self.qlist, 5, 1, 6, 1)
-        self.setLayout(self.grid)
+        # self.setLayout(self.grid)
+        self.widget.setLayout(self.grid)
+        self.setCentralWidget(self.widget)
 
 
     def eraser(self):
@@ -1011,15 +1098,46 @@ class FindAndReplace(QWidget):
         w.repaint()
 
 
+class EditorArea(QWidget):
+    def __init__( self ):
+        super().__init__()
+        # self.setWidgetResizable(True)
+        # self.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        # self.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded) 
+        # self.setWidget(self._obj)
+
+    def dragEnterEvent( self, event ):
+        data = event.mimeData()
+        urls = data.urls()
+        if urls and urls[0].scheme() == 'file':
+            event.acceptProposedAction()
+
+    def dragMoveEvent( self, event ):
+        data = event.mimeData()
+        urls = data.urls()
+        if urls and urls[0].scheme() == 'file':
+            event.acceptProposedAction()
+
+    def dropEvent( self, event ):
+        data = event.mimeData()
+        urls = data.urls()
+        if urls and urls[0].scheme() == 'file':
+            # for some reason, this doubles up the intro slash
+            filepath = str(urls[0].path())[1:]
+            if filepath.split(".")[-1].lower() in ["board"]:
+                print(filepath)
+                # try:
+                #     with open(filepath,'r') as f:
+                #         contents = f.read()
+                # except:
+                #     contents = ""
+                # self.setText(self.toPlainText()  + contents)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     w = MyWidget()
     w.show()
     w.repaint()
-
     app.setQuitOnLastWindowClosed(False)
-
-
     app.exec_()
 
