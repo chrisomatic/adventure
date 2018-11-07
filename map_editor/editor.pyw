@@ -230,6 +230,18 @@ class Editor(QWidget):
     def mousePressEvent(self, event):
         self.mouse_x = event.pos().x()
         self.mouse_y = event.pos().y()
+        x = int(self.mouse_x / self.tile_size_zoom)
+        y = int(self.mouse_y / self.tile_size_zoom)
+
+        if event.button() == Qt.RightButton:
+            menu = QMenu()
+            ti = self.board[y][x].tile_index
+            tsn = self.board[y][x].tile_set_name
+            a0 = menu.addAction('Tile Set: ' + tsn)
+            a1 = menu.addAction('Tile Index: ' + str(ti))
+            action = menu.exec_(event.globalPos())
+
+
 
         if event.button() == Qt.LeftButton:
 
@@ -237,9 +249,6 @@ class Editor(QWidget):
                 for i in range(0,self.board_width):
                     self.board_prev[j][i].tile_index = self.board[j][i].tile_index
                     self.board_prev[j][i].tile_set_name = self.board[j][i].tile_set_name
-
-            x = int(self.mouse_x / self.tile_size_zoom)
-            y = int(self.mouse_y / self.tile_size_zoom)
 
             if self.tool == "pen":
                 self.pen_tool("press")

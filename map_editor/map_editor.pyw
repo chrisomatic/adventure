@@ -339,9 +339,9 @@ class MyWidget(QWidget):
         # self.editor.update()
 
     def eventFilter(self,source,event):
+
         if source is self.draw_over_chk:
             self.editor.draw_over = self.draw_over_chk.isChecked()
-
 
         elif source is self.draw_objs_chk:
             self.editor.draw_objs = self.draw_objs_chk.isChecked()
@@ -419,9 +419,9 @@ class MyWidget(QWidget):
         with open(self.path_path,'w') as f:
             f.write(self.board_path)
 
-        map_string = ""
+        map_string = b""
         tile_set_number = 0
-        tile_sets = {}
+        tile_sets = {"255":255}
 
         for i in self.editor.board:
 
@@ -429,45 +429,53 @@ class MyWidget(QWidget):
             for j in i:
                 ti = j.tile_index
                 tsn = j.tile_set_name
+                if tsn == "-1":
+                    tsn = "255"
+                if ti == -1:
+                    ti = 255
 
                 if not tsn in tile_sets.keys():
-                    if tsn == "-1":
-                        value = "-1"
-                    else:
-                        value = str(tile_set_number+0)
-                        tile_set_number += 1
+                    # if tsn == "-1":
+                    #     value = "-1"
+                    # else:
+                    #     value = str(tile_set_number+0)
+                    #     tile_set_number += 1
+
+                    value = tile_set_number+0
+                    tile_set_number += 1
 
                     tile_sets[tsn] = value
-                    
 
-                lst.append(tile_sets[tsn] + ":" + str(ti))
-            
+                # lst.append(tile_sets[tsn] + ":" + str(ti))
+                lst.append(bytes([int(tile_sets[tsn])])  + bytes([ti]))
 
-            map_string += ",".join(lst) + "\n"
+            # map_string += ",".join(lst) + "\n"
+            map_string += b"".join(lst) #+ b"\n"
 
-            path = self.ts_path
-            if path[-1] == "\\":
-                path = path[:-1]
+            # path = self.ts_path
+            # if path[-1] == "\\":
+            #     path = path[:-1]
 
-            other = ":/board_info" + "\n"
+            other = ":board_info" + "\n"
             other += "width_in_tiles=" + str(self.editor.board_width) + "\n"
             other += "height_in_tiles=" + str(self.editor.board_height) + "\n"
             other += "\n"
 
-            other += ":/tileset_info" + "\n"
-            other += "tileset_dir=" + path + "\n"
+            other += ":tileset_info" + "\n"
+            # other += "tileset_dir=" + path + "\n"
             for k in tile_sets.keys():
-                if k != "-1":
-                    other += tile_sets[k] + "=" + k + "\n"
+                if k != "255":
+                    other += str(tile_sets[k]) + "=" + k + "\n"
             other += "\n"
             
 
-            other += ":/data" + "\n"
+            other += ":data" + "\n"
 
-        with open(fileName,'w') as f:
-            f.write(other)
+        with open(fileName,'wb') as f:
+            f.write(other.encode())
             f.write(map_string)
-            f.write(":/data_end")
+            f.write(b"\n:data_end")
+
 
     def load_map(self):
 
@@ -482,55 +490,123 @@ class MyWidget(QWidget):
         with open(self.path_path,'w') as f:
             f.write(self.board_path)
         
-        with open(fileName,'r') as f:
-            lines = f.read().split("\n")
+        # with open(fileName,'r') as f:
+        #     lines = f.read().split("\n")
 
-        # [x for x in lines if ":/" in x]
+        # # [x for x in lines if ":/" in x]
+        # lines = [x.strip().lower() for x in lines if x.strip() != ""]
+        # # inds = [lines.index(x) for x in lines if ":/" in x]
+        # dlines = lines[lines.index(":/data")+1:]
+
+        # w = [x.split("width_in_tiles=")[-1] for x in lines if "width_in_tiles=" in x][0]
+        # h = [x.split("height_in_tiles=")[-1] for x in lines if "height_in_tiles=" in x][0]
+        
+        # tdir = [x.split("tileset_dir=")[-1] for x in lines if "tileset_dir=" in x][0]
+        
+        
+        # ti = lines.index(":/tileset_info")
+        # # ind = ti+0
+        # tile_sets = {"-1":"-1"}
+        # for ind in range(ti+1,len(lines)+1):
+        #     l = lines[ind]
+        #     if ":/" in l:
+        #         break
+        #     if "tileset_dir=" in l:
+        #         continue
+        #     v = l.split("=")[0]
+        #     k = l.split("=")[1]
+        #     if not k in tile_sets.keys():
+        #         tile_sets[k] = v
+        #     self.editor.build_tiles(self.ts_path + k)
+        # # print(tile_sets)
+
+        # self.editor.board_width  = int(w)
+        # self.editor.board_height = int(h)
+        # self.editor.board = [[editor.Tile() for i in range(self.editor.board_width)] for j in range(self.editor.board_height)]
+            
+        # for j in range(0,self.editor.board_height):
+        #     jdlines = dlines[j].split(",")
+        #     for i in range(0,self.editor.board_width):
+        #         t = jdlines[i]
+
+        #         ts = t.split(":")[0] # number
+        #         tsn = [x for x in tile_sets.keys() if tile_sets[x] == ts][0] # tile set name
+        #         tile_index = int(t.split(":")[1])
+
+        #         if tile_index == -1:
+        #             tsn = "-1"
+        #         self.editor.board[j][i].tile_index = tile_index
+        #         self.editor.board[j][i].tile_set_name = tsn
+
+        # self.repaint()
+
+        with open(fileName,'rb') as f:
+            l = f.read()
+
+        lines0 = "".join([chr(x) for x in l]).split("\n")
+        d0 = lines0.index(":data")
+        d1 = lines0.index(":data_end")
+
+        data_chars = "\n".join(lines0[d0+1:d1])
+        dvalues = [ord(x) for x in data_chars]
+
+        lines = lines0[:d0] + lines0[d1+1:]
         lines = [x.strip().lower() for x in lines if x.strip() != ""]
-        # inds = [lines.index(x) for x in lines if ":/" in x]
-        dlines = lines[lines.index(":/data")+1:]
 
         w = [x.split("width_in_tiles=")[-1] for x in lines if "width_in_tiles=" in x][0]
         h = [x.split("height_in_tiles=")[-1] for x in lines if "height_in_tiles=" in x][0]
         
-        tdir = [x.split("tileset_dir=")[-1] for x in lines if "tileset_dir=" in x][0]
+        ti = lines.index(":tileset_info")
+        tile_sets = {"255":255}
+        tile_sets_missing = []
         
-        
-        ti = lines.index(":/tileset_info")
-        # ind = ti+0
-        tile_sets = {"-1":"-1"}
-        for ind in range(ti+1,len(lines)+1):
+
+        for ind in range(ti+1,len(lines)):
             l = lines[ind]
-            if ":/" in l:
+            if ":" in l:
                 break
             if "tileset_dir=" in l:
                 continue
-            v = l.split("=")[0]
+            v = int(l.split("=")[0])
             k = l.split("=")[1]
             if not k in tile_sets.keys():
                 tile_sets[k] = v
-            self.editor.build_tiles(self.ts_path + k)
-        # print(tile_sets)
+
+            if os.path.isfile(self.ts_path + k):
+                self.editor.build_tiles(self.ts_path + k)
+            else:
+                tile_sets_missing.append(k)
 
         self.editor.board_width  = int(w)
         self.editor.board_height = int(h)
         self.editor.board = [[editor.Tile() for i in range(self.editor.board_width)] for j in range(self.editor.board_height)]
+
+
+        yind = 0
+        coords = []
+        for i in range(len(dvalues)-1):
+            if i % 2 == 1:
+                continue
             
-        for j in range(0,self.editor.board_height):
-            jdlines = dlines[j].split(",")
-            for i in range(0,self.editor.board_width):
-                t = jdlines[i]
+            xind = int(i/2) % self.editor.board_width
+            if xind == 0 and i != 0:
+                yind += 1
+            coords.append((xind,yind))
+            
+            ts = dvalues[i]
+            tsn = [x for x in tile_sets.keys() if tile_sets[x] == ts][0] # tile set name
+            tile_index = dvalues[i+1]
 
-                ts = t.split(":")[0] # number
-                tsn = [x for x in tile_sets.keys() if tile_sets[x] == ts][0] # tile set name
-                tile_index = int(t.split(":")[1])
+            if tsn == "255" or tsn in tile_sets_missing:
+                tile_index = -1
+                tsn = "-1"
+            
+            self.editor.board[yind][xind].tile_index = tile_index
+            self.editor.board[yind][xind].tile_set_name = tsn
 
-                if tile_index == -1:
-                    tsn = "-1"
-                self.editor.board[j][i].tile_index = tile_index
-                self.editor.board[j][i].tile_set_name = tsn
+        self.repaint()
+ 
 
-                self.repaint()
 
 
 
@@ -541,11 +617,6 @@ class MyWidget(QWidget):
         self.editor.copying = False
 
         if text.lower() == "objects":
-            # self.editor.build_tiles(self.ts_path + text)
-            # self.list_tiles()
-            # self.grid.addWidget(self.qlist, 5, 1, 5, 1)
-            # self.setLayout(self.grid)
-
             self.object_lst = [x for x in os.listdir(self.ob_path) if ".png" in x]
             self.editor.build_objects(self.ob_path,self.object_lst)
             self.load_tileset("objects")
