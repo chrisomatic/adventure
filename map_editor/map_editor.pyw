@@ -407,12 +407,13 @@ class MyWidget(QWidget):
         self.repaint()
         self.editor.update()
 
-    def save_map(self):
+    def save_map(self,fileName = ""):
 
-        options = QFileDialog.Options()
-        fileName, _ = QFileDialog.getSaveFileName(self,"Save",self.board_path,"Board Files (*.board);;All Files (*)", options=options)
-        if not fileName:
-            return 
+        if fileName == "":
+            options = QFileDialog.Options()
+            fileName, _ = QFileDialog.getSaveFileName(self,"Save",self.board_path,"Board Files (*.board);;All Files (*)", options=options)
+            if not fileName:
+                return 
         
         fileName = fileName.replace("/","\\")
 
@@ -782,6 +783,13 @@ class MyWidget(QWidget):
         qr.moveCenter(cp)
         self.move(qr.topLeft())
 
+    def custom_close(self):
+        self.save_map(self.appd + "save_on_close.board")
+        QApplication.instance().quit()
+
+    def closeEvent(self, event):
+        self.custom_close()
+
 
 
 
@@ -971,15 +979,6 @@ class FindAndReplace(QWidget):
     def execute(self):
 
         fti = self.tile_index1
-
-        # if itext == "Eraser":
-        #     ind = -1
-        # else:
-        #     ind = int(itext.split("Tile ")[-1])
-        self.qlist2.setSelection
-
-
-
         if fti == -1:
             ftsn = "-1"
         else:
@@ -990,8 +989,7 @@ class FindAndReplace(QWidget):
             ttsn = "-1"
         else:
             ttsn = self.ts_combo2.currentText()
-
-        print(fti,ftsn,tti,ttsn)
+        # print(fti,ftsn,tti,ttsn)
 
         for j in range(0,w.editor.board_height):
             for i in range(0,w.editor.board_width):
