@@ -253,7 +253,8 @@ class MyWidget(QWidget):
         self.grid.addWidget(self.scroll, 0, 0, 11, 1)
         self.setLayout(self.grid)
 
-        self.editor.build_tiles(self.ts_path + self.editor.tile_set_name)
+        for t in self.editor.tiles.keys():
+            self.editor.build_tiles(self.ts_path + t)
 
         # self.lbl_zoom.setText("Zoom: x" + str(int(self.editor.tile_size*zoom)))
         if zoom == int(zoom):
