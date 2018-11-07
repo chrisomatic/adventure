@@ -433,41 +433,49 @@ class MyWidget(QWidget):
                     tsn = "255"
                 if ti == -1:
                     ti = 255
+                    tsn = "255"
 
                 if not tsn in tile_sets.keys():
-                    # if tsn == "-1":
-                    #     value = "-1"
-                    # else:
-                    #     value = str(tile_set_number+0)
-                    #     tile_set_number += 1
-
                     value = tile_set_number+0
                     tile_set_number += 1
-
                     tile_sets[tsn] = value
 
-                # lst.append(tile_sets[tsn] + ":" + str(ti))
                 lst.append(bytes([int(tile_sets[tsn])])  + bytes([ti]))
 
-            # map_string += ",".join(lst) + "\n"
-            map_string += b"".join(lst) #+ b"\n"
+            map_string += b"".join(lst)
 
-            # path = self.ts_path
-            # if path[-1] == "\\":
-            #     path = path[:-1]
+
 
             other = ":board_info" + "\n"
             other += "width_in_tiles=" + str(self.editor.board_width) + "\n"
             other += "height_in_tiles=" + str(self.editor.board_height) + "\n"
-            other += "\n"
+            # other += "\n"
+
+            objs = {}
+            obj_string = ""
+            obj_number = 0
+            for pa in self.editor.painted_objects:
+                if not pa.png in objs.keys():
+                    value = obj_number+0
+                    obj_number += 1
+                    objs[pa.png] = value
+                obj_string += str(objs[pa.png]) + "," + str(int(pa.x)) + "," + str(int(pa.y)) + "\n"
+
+
+            other += ":object_info" + "\n"
+            for k in objs.keys():
+                other += str(objs[k]) + "=" + k + "\n"
+            # other += "\n"
+
+            other += ":object_data" + "\n"
+            other += obj_string
+            # other += "\n"
 
             other += ":tileset_info" + "\n"
-            # other += "tileset_dir=" + path + "\n"
             for k in tile_sets.keys():
                 if k != "255":
                     other += str(tile_sets[k]) + "=" + k + "\n"
-            other += "\n"
-            
+            # other += "\n"
 
             other += ":data" + "\n"
 
@@ -490,55 +498,6 @@ class MyWidget(QWidget):
         with open(self.path_path,'w') as f:
             f.write(self.board_path)
         
-        # with open(fileName,'r') as f:
-        #     lines = f.read().split("\n")
-
-        # # [x for x in lines if ":/" in x]
-        # lines = [x.strip().lower() for x in lines if x.strip() != ""]
-        # # inds = [lines.index(x) for x in lines if ":/" in x]
-        # dlines = lines[lines.index(":/data")+1:]
-
-        # w = [x.split("width_in_tiles=")[-1] for x in lines if "width_in_tiles=" in x][0]
-        # h = [x.split("height_in_tiles=")[-1] for x in lines if "height_in_tiles=" in x][0]
-        
-        # tdir = [x.split("tileset_dir=")[-1] for x in lines if "tileset_dir=" in x][0]
-        
-        
-        # ti = lines.index(":/tileset_info")
-        # # ind = ti+0
-        # tile_sets = {"-1":"-1"}
-        # for ind in range(ti+1,len(lines)+1):
-        #     l = lines[ind]
-        #     if ":/" in l:
-        #         break
-        #     if "tileset_dir=" in l:
-        #         continue
-        #     v = l.split("=")[0]
-        #     k = l.split("=")[1]
-        #     if not k in tile_sets.keys():
-        #         tile_sets[k] = v
-        #     self.editor.build_tiles(self.ts_path + k)
-        # # print(tile_sets)
-
-        # self.editor.board_width  = int(w)
-        # self.editor.board_height = int(h)
-        # self.editor.board = [[editor.Tile() for i in range(self.editor.board_width)] for j in range(self.editor.board_height)]
-            
-        # for j in range(0,self.editor.board_height):
-        #     jdlines = dlines[j].split(",")
-        #     for i in range(0,self.editor.board_width):
-        #         t = jdlines[i]
-
-        #         ts = t.split(":")[0] # number
-        #         tsn = [x for x in tile_sets.keys() if tile_sets[x] == ts][0] # tile set name
-        #         tile_index = int(t.split(":")[1])
-
-        #         if tile_index == -1:
-        #             tsn = "-1"
-        #         self.editor.board[j][i].tile_index = tile_index
-        #         self.editor.board[j][i].tile_set_name = tsn
-
-        # self.repaint()
 
         with open(fileName,'rb') as f:
             l = f.read()
@@ -603,6 +562,45 @@ class MyWidget(QWidget):
             
             self.editor.board[yind][xind].tile_index = tile_index
             self.editor.board[yind][xind].tile_set_name = tsn
+
+
+        self.editor.painted_objects = []
+
+       
+
+        ti = lines.index(":object_info")
+        objs = {}
+        objs_missing = []
+        for ind in range(ti+1,len(lines)):
+            l = lines[ind]
+            if ":" in l:
+                break
+            v = int(l.split("=")[0])
+            k = l.split("=")[1]
+            if not k in objs.keys():
+                objs[k] = v
+
+            if not os.path.isfile(self.ob_path + k):
+                objs_missing.append(k)
+            # self.editor.build_objects(self.ob_path,[k])
+
+        ti = lines.index(":object_data")
+        for ind in range(ti+1,len(lines)):
+            l = lines[ind]
+            if ":" in l:
+                break
+            ls = l.split(",")
+            if len(ls) != 3:
+                continue
+            v = int(ls[0])
+            x = int(ls[1])
+            y = int(ls[2])
+            png = [x for x in objs.keys() if objs[x] == v][0]
+            obj = editor.Object()
+            obj.x = x
+            obj.y = y
+            obj.png = png
+            self.editor.painted_objects.append(obj)
 
         self.repaint()
  
