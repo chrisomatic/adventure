@@ -88,11 +88,13 @@ class MyWidget(QWidget):
         self.sld.valueChanged.connect(self.change_size)
 
         self.sld_zoom = QSlider(Qt.Horizontal, self)
+        
+        self.zoom_values = [.25,.5,1,2,4,8,16]
         self.sld_zoom.setMinimum(1)
-        self.zoom_values = [1,2,4,8,16]
         self.sld_zoom.setMaximum(len(self.zoom_values))
         self.sld_zoom.setMaximumWidth(100)
         self.sld_zoom.valueChanged.connect(self.change_zoom)
+        # self.sld_zoom.setValue()
 
         self.save_btn = QPushButton('Save', self)
         self.save_btn.clicked.connect(self.save_map)
@@ -177,6 +179,8 @@ class MyWidget(QWidget):
         # self.grid.setAlignment(Qt.AlignTop)
         
         self.setLayout(self.grid)
+
+        self.sld_zoom.setValue(self.zoom_values.index(1)+1)
 
         self.setGeometry(300, 300, 1000, 500)
         
@@ -566,7 +570,6 @@ class MyWidget(QWidget):
 
 
         self.editor.painted_objects = []
-        # self.editor.build_objects(self.ob_path,[x for x in os.listdir(self.ob_path)])
         self.object_lst = [x for x in os.listdir(self.ob_path) if ".png" in x]
         self.editor.build_objects(self.ob_path,self.object_lst)
         if ":object_info" in lines:
