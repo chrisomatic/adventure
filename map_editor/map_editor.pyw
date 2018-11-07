@@ -6,13 +6,9 @@ import ctypes
 import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QKeyEvent, QPainter,QImage, QPen, QIcon, QPixmap, QColor, QBrush, QCursor, QFont
-from PyQt5.QtCore import Qt, QPoint, QPointF, QSize, QEvent
+from PyQt5.QtCore import Qt, QPoint, QPointF, QSize, QEvent, QTimer
 
 import editor
-
-# TODO
-# 1) add align to grid check box for drawing objects
-# 2) add check box for showing/hiding the objects
 
 
 class MyWidget(QWidget):
@@ -72,7 +68,7 @@ class MyWidget(QWidget):
         self.sld_zoom.valueChanged.connect(self.change_zoom)
 
         self.save_btn = QPushButton('Save', self)
-        self.save_btn.clicked.connect(self.save_map)
+        self.save_btn.clicked.connect(lambda x: self.save_map(""))
         self.save_btn.resize(self.save_btn.sizeHint())
         self.save_btn.setToolTip("Ctrl + S")
 
@@ -166,6 +162,10 @@ class MyWidget(QWidget):
         self.center()
 
         self.installEventFilter(self)
+
+        self.save_timer = QTimer()
+        self.save_timer.timeout.connect(lambda x = self.appd + "temp_save.board":self.save_map(x))
+        self.save_timer.start(1000*60)
 
     def save_path(self):
         with open(self.adpath_path,'w') as f:
@@ -407,19 +407,21 @@ class MyWidget(QWidget):
         self.repaint()
         self.editor.update()
 
-    def save_map(self,fileName = ""):
+    def save_map(self,fname = ""):
 
-        if fileName == "":
+        if fname == "":
             options = QFileDialog.Options()
             fileName, _ = QFileDialog.getSaveFileName(self,"Save",self.board_path,"Board Files (*.board);;All Files (*)", options=options)
             if not fileName:
                 return 
-        
-        fileName = fileName.replace("/","\\")
+            fileName = fileName.replace("/","\\")
 
-        self.board_path = "\\".join(fileName.split("\\")[:-1])
-        with open(self.path_path,'w') as f:
-            f.write(self.board_path)
+            self.board_path = "\\".join(fileName.split("\\")[:-1])
+            with open(self.path_path,'w') as f:
+                f.write(self.board_path)
+        
+        else:
+            fileName = fname
 
         map_string = b""
         tile_set_number = 0
@@ -488,122 +490,126 @@ class MyWidget(QWidget):
 
 
     def load_map(self):
+        try:
+            options = QFileDialog.Options()
+            fileName, _ = QFileDialog.getOpenFileName(self,"Save",self.board_path,"Board Files (*.board);;All Files (*)", options=options)
+            if not fileName:
+                return 
 
-        options = QFileDialog.Options()
-        fileName, _ = QFileDialog.getOpenFileName(self,"Save",self.board_path,"Board Files (*.board);;All Files (*)", options=options)
-        if not fileName:
-            return 
+            fileName = fileName.replace("/","\\")
 
-        fileName = fileName.replace("/","\\")
-
-        self.board_path = "\\".join(fileName.split("\\")[:-1])
-        with open(self.path_path,'w') as f:
-            f.write(self.board_path)
-        
-
-        with open(fileName,'rb') as f:
-            l = f.read()
-
-        lines0 = "".join([chr(x) for x in l]).split("\n")
-        d0 = lines0.index(":data")
-        d1 = lines0.index(":data_end")
-
-        data_chars = "\n".join(lines0[d0+1:d1])
-        dvalues = [ord(x) for x in data_chars]
-
-        lines = lines0[:d0] + lines0[d1+1:]
-        lines = [x.strip().lower() for x in lines if x.strip() != ""]
-
-        w = [x.split("width_in_tiles=")[-1] for x in lines if "width_in_tiles=" in x][0]
-        h = [x.split("height_in_tiles=")[-1] for x in lines if "height_in_tiles=" in x][0]
-        
-
-        ti = lines.index(":tileset_info")
-        tile_sets = {"255":255}
-        tile_sets_missing = []
-        
-
-        for ind in range(ti+1,len(lines)):
-            l = lines[ind]
-            if ":" in l:
-                break
-            if "tileset_dir=" in l:
-                continue
-            v = int(l.split("=")[0])
-            k = l.split("=")[1]
-            if not k in tile_sets.keys():
-                tile_sets[k] = v
-
-            if os.path.isfile(self.ts_path + k):
-                self.editor.build_tiles(self.ts_path + k)
-            else:
-                tile_sets_missing.append(k)
-
-        self.editor.board_width  = int(w)
-        self.editor.board_height = int(h)
-        self.editor.board = [[editor.Tile() for i in range(self.editor.board_width)] for j in range(self.editor.board_height)]
-
-
-        yind = 0
-        coords = []
-        for i in range(len(dvalues)-1):
-            if i % 2 == 1:
-                continue
+            self.board_path = "\\".join(fileName.split("\\")[:-1])
+            with open(self.path_path,'w') as f:
+                f.write(self.board_path)
             
-            xind = int(i/2) % self.editor.board_width
-            if xind == 0 and i != 0:
-                yind += 1
-            coords.append((xind,yind))
+
+            with open(fileName,'rb') as f:
+                l = f.read()
+
+            lines0 = "".join([chr(x) for x in l]).split("\n")
+            d0 = lines0.index(":data")
+            d1 = lines0.index(":data_end")
+
+            data_chars = "\n".join(lines0[d0+1:d1])
+            dvalues = [ord(x) for x in data_chars]
+
+            lines = lines0[:d0] + lines0[d1+1:]
+            lines = [x.strip().lower() for x in lines if x.strip() != ""]
+
+            w = [x.split("width_in_tiles=")[-1] for x in lines if "width_in_tiles=" in x][0]
+            h = [x.split("height_in_tiles=")[-1] for x in lines if "height_in_tiles=" in x][0]
             
-            ts = dvalues[i]
-            tsn = [x for x in tile_sets.keys() if tile_sets[x] == ts][0] # tile set name
-            tile_index = dvalues[i+1]
 
-            if tsn == "255" or tsn in tile_sets_missing:
-                tile_index = -1
-                tsn = "-1"
+            ti = lines.index(":tileset_info")
+            tile_sets = {"255":255}
+            tile_sets_missing = []
             
-            self.editor.board[yind][xind].tile_index = tile_index
-            self.editor.board[yind][xind].tile_set_name = tsn
 
-
-        self.editor.painted_objects = []
-        self.object_lst = [x for x in os.listdir(self.ob_path) if ".png" in x]
-        self.editor.build_objects(self.ob_path,self.object_lst)
-        if ":object_info" in lines:
-            ti = lines.index(":object_info")
-            objs = {}
-            objs_missing = []
             for ind in range(ti+1,len(lines)):
                 l = lines[ind]
                 if ":" in l:
                     break
+                if "tileset_dir=" in l:
+                    continue
                 v = int(l.split("=")[0])
                 k = l.split("=")[1]
-                if not k in objs.keys():
-                    objs[k] = v
+                if not k in tile_sets.keys():
+                    tile_sets[k] = v
 
-                if not os.path.isfile(self.ob_path + k):
-                    objs_missing.append(k)
-                
+                if os.path.isfile(self.ts_path + k):
+                    self.editor.build_tiles(self.ts_path + k)
+                else:
+                    tile_sets_missing.append(k)
 
-            ti = lines.index(":object_data")
-            for ind in range(ti+1,len(lines)):
-                l = lines[ind]
-                if ":" in l:
-                    break
-                ls = l.split(",")
-                if len(ls) != 3:
+            self.editor.board_width  = int(w)
+            self.editor.board_height = int(h)
+            self.editor.board = [[editor.Tile() for i in range(self.editor.board_width)] for j in range(self.editor.board_height)]
+
+
+            yind = 0
+            coords = []
+            for i in range(len(dvalues)-1):
+                if i % 2 == 1:
                     continue
-                v = int(ls[0])
-                x = int(ls[1])
-                y = int(ls[2])
-                png = [x for x in objs.keys() if objs[x] == v][0]
-                obj = editor.Object()
-                obj.x = x
-                obj.y = y
-                obj.png = png
-                self.editor.painted_objects.append(obj)
+                
+                xind = int(i/2) % self.editor.board_width
+                if xind == 0 and i != 0:
+                    yind += 1
+                coords.append((xind,yind))
+                
+                ts = dvalues[i]
+                tsn = [x for x in tile_sets.keys() if tile_sets[x] == ts][0] # tile set name
+                tile_index = dvalues[i+1]
+
+                if tsn == "255" or tsn in tile_sets_missing:
+                    tile_index = -1
+                    tsn = "-1"
+                
+                self.editor.board[yind][xind].tile_index = tile_index
+                self.editor.board[yind][xind].tile_set_name = tsn
+
+
+            self.editor.painted_objects = []
+            self.object_lst = [x for x in os.listdir(self.ob_path) if ".png" in x]
+            self.editor.build_objects(self.ob_path,self.object_lst)
+            if ":object_info" in lines:
+                ti = lines.index(":object_info")
+                objs = {}
+                objs_missing = []
+                for ind in range(ti+1,len(lines)):
+                    l = lines[ind]
+                    if ":" in l:
+                        break
+                    v = int(l.split("=")[0])
+                    k = l.split("=")[1]
+                    if not k in objs.keys():
+                        objs[k] = v
+
+                    if not os.path.isfile(self.ob_path + k):
+                        objs_missing.append(k)
+                    
+
+                ti = lines.index(":object_data")
+                for ind in range(ti+1,len(lines)):
+                    l = lines[ind]
+                    if ":" in l:
+                        break
+                    ls = l.split(",")
+                    if len(ls) != 3:
+                        continue
+                    v = int(ls[0])
+                    x = int(ls[1])
+                    y = int(ls[2])
+                    png = [x for x in objs.keys() if objs[x] == v][0]
+                    obj = editor.Object()
+                    obj.x = x
+                    obj.y = y
+                    obj.png = png
+                    self.editor.painted_objects.append(obj)
+        except Exception as e:
+            print("Failed to load board!\nError:")
+            print(e)
+            
 
         self.repaint()
  
@@ -1010,7 +1016,6 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     w = MyWidget()
     w.show()
-    # w.center()
     w.repaint()
 
     app.setQuitOnLastWindowClosed(False)
