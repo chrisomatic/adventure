@@ -467,6 +467,7 @@ class MyWidget(QWidget):
         with open(fileName,'w') as f:
             f.write(other)
             f.write(map_string)
+            f.write(":/data_end")
 
     def load_map(self):
 
