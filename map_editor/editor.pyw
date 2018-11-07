@@ -59,10 +59,10 @@ class Editor(QWidget):
         self.c4_ghost = (0,0)
         self.mouse_x = 0
         self.mouse_y = 0
+        self.ts_path = ""
 
         self.painted_objects = []
         self.objects = {}
-        # self.objects2 = {}
         self.object_name = ""
         self.object_erasing = False
         self.draw_objs = True
@@ -89,10 +89,7 @@ class Editor(QWidget):
                     col = QColor(img.pixel(x,y)).getRgbF()
                     if col == (1.0, 0.0, 1.0, 1.0):
                         img.setPixelColor(x,y,color)
-
             self.objects[l] = img
-            # self.objects.append(img)
-            # self.objects2.append(img.copy(self.tile_size*j,self.tile_size*i,self.tile_size,self.tile_size))
         
 
 
@@ -108,14 +105,14 @@ class Editor(QWidget):
         
         for i in range(0,self.tile_size):
             for j in range(0,self.tile_size):
-                # temp_list.append(img.copy(self.tile_size*j,self.tile_size*i,self.tile_size_zoom,self.tile_size_zoom))
-                # temp_list2.append(img.copy(self.tile_size*j,self.tile_size*i,self.tile_size,self.tile_size))
                 tile_image = img.copy(self.tile_size*j,self.tile_size*i,self.tile_size,self.tile_size)
                 temp_list.append(tile_image.scaledToHeight(self.tile_size_zoom))
                 temp_list2.append(tile_image)
-                # QImage.scaledToHeight (self, int height,
+
         self.tiles[self.tile_set_name] = temp_list
         self.tiles_actual[self.tile_set_name] = temp_list2
+
+
 
     def paintEvent(self, event):
 
@@ -124,7 +121,8 @@ class Editor(QWidget):
             self.draw_objects()
         self.draw_grid()
         self.draw_rect_wh(self.h_lbound,self.v_lbound)
-        self.draw_coords(self.h_lbound,self.v_ubound)
+        self.draw_coords(self.h_lbound+2,self.v_ubound-5,self.mouse_x,self.mouse_y)
+        self.draw_coords(self.h_ubound-55,self.v_ubound-5,int(self.mouse_x / self.tile_size_zoom),int(self.mouse_y / self.tile_size_zoom))
         self.drawGhostRect()
 
     def draw_tiles(self):
@@ -139,6 +137,11 @@ class Editor(QWidget):
                 if(self.board[y][x].tile_index > -1):
                     s = self.board[y][x]
                     if s.tile_set_name != "":
+                        if not s.tile_set_name in self.tiles.keys():
+                            if os.path.isfile(self.ts_path + s.tile_set_name):
+                                self.build_tiles(self.ts_path + s.tile_set_name)
+                            else:
+                                continue
                         painter.drawImage(x*self.tile_size_zoom,y*self.tile_size_zoom,self.tiles[s.tile_set_name][s.tile_index])
 
     def draw_objects(self):
@@ -146,8 +149,6 @@ class Editor(QWidget):
         for i in range(len(self.painted_objects)):
             x = int(self.painted_objects[i].x * self.zoom_ratio)
             y = int(self.painted_objects[i].y * self.zoom_ratio)
-            # x = self.painted_objects[i].x
-            # y = self.painted_objects[i].y
             png = self.painted_objects[i].png
             if png in self.objects.keys():
                 img = self.objects[png]
@@ -220,10 +221,12 @@ class Editor(QWidget):
             qp.end()
             self.rectangle_wh = False
 
-    def draw_coords(self,x,y):
+    def draw_coords(self,x,y,dx,dy):
         qp = QPainter()
         qp.begin(self)
-        qp.drawText(QPointF(x+2,y-5),"(" + str(self.mouse_x) + "," + str(self.mouse_y) + ")")
+        qp.drawText(QPointF(x,y),"(" + str(dx) + "," + str(dy) + ")")
+        # qp.drawText(QPointF(x+2,y-5),"(" + str(self.mouse_x) + "," + str(self.mouse_y) + ")")
+        # qp.drawText(QPointF(x+2,y-5),"(" + str(int(self.mouse_x / self.tile_size_zoom)) + "," + str(int(self.mouse_y / self.tile_size_zoom)) + ")")
         qp.end()
 
 
@@ -603,6 +606,7 @@ class Editor(QWidget):
                     self.board[n[0]+0][n[1]-1].tile_index    = self.tile_index
                     self.board[n[0]+0][n[1]-1].tile_set_name = to_tile_set_name
                     queue.append((n[0]+0,n[1]-1))
+
 
 if __name__ == '__main__':
     pass

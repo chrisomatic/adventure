@@ -19,30 +19,20 @@ class MyWidget(QWidget):
     def __init__(self, parent=None):
         QWidget.__init__(self, parent)
 
-        self.setFont(QFont('Arial', 9))
-        QToolTip.setFont(QFont('Arial', 9))
+
+        self.font = QFont('Arial', 9)
+        self.setFont(self.font)
+        QToolTip.setFont(self.font)
 
         self.setWindowTitle('Excel Grid Editor')
 
-        ico = r"X:\DEPO\SOFTWARE\SUPPORT\excel.ico"
-        if os.path.isfile(ico):
-            self.setWindowIcon(QIcon(ico))
+        self.ico = r"X:\DEPO\SOFTWARE\SUPPORT\excel.ico"
+        if os.path.isfile(self.ico):
+            self.setWindowIcon(QIcon(self.ico))
 
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("adventure_map_editor")
 
-
         self.root = os.path.dirname(os.path.abspath(__file__))  + "\\"
-        # self.ts_path = r"X:\DEPO\SOFTWARE\INHOUSE\GAMES\adventure\data\tilesets" + "\\"
-        # if not os.path.isdir(self.ts_path):
-        #     self.ts_path = r"C:\Users\Kameron\Desktop\map_editor\tilesets" + "\\"
-        # self.tilesets = [x for x in os.listdir(self.ts_path) if ".tileset.png" in x]
-
-        # self.ob_path = r"X:\DEPO\SOFTWARE\INHOUSE\GAMES\adventure\data\objects" + "\\"
-        # if not os.path.isdir(self.ob_path):
-        #     self.ob_path = r"X:\DEPO\SOFTWARE\INHOUSE\GAMES\adventure\data\objects" + "\\"
-        # self.object_lst = [x for x in os.listdir(self.ob_path) if ".png" in x]
-
-        
 
         self.housekeeping()
 
@@ -51,25 +41,13 @@ class MyWidget(QWidget):
         self.editor.setMaximumWidth(self.editor.board_width*self.editor.tile_size_zoom)
         self.editor.setMinimumHeight(self.editor.board_height*self.editor.tile_size_zoom)
         self.editor.setMaximumHeight(self.editor.board_height*self.editor.tile_size_zoom)
+        self.editor.ts_path = self.ts_path
         
-
         self.scroll = self.scroll_area(self.editor)
         self.scroll.verticalScrollBar().valueChanged.connect(self.repaint)
         self.scroll.horizontalScrollBar().valueChanged.connect(self.repaint)
 
         self.build_ts_combo()
-
-        # self.ts_combo = QComboBox(self)
-        # for i in self.tilesets:
-        #     self.ts_combo.addItem(i)
-
-        # if "terrain.tileset.png" in self.tilesets:
-        #     self.editor.build_tiles(self.ts_path + "terrain.tileset.png")
-        #     index = self.ts_combo.findText("terrain.tileset.png", Qt.MatchFixedString)
-        #     self.ts_combo.setCurrentIndex(index)
-
-        # self.ts_combo.activated[str].connect(self.load_tileset)
-        # self.ts_combo.setToolTip("Ctrl + T")
 
         self.tool_combo = QComboBox(self)
         self.tool_list = ['Pen','Rectangle','Rectangle Fill','Fill','Copy Range','Objects']
@@ -77,9 +55,7 @@ class MyWidget(QWidget):
         self.tool_combo.activated[str].connect(self.change_tool)
         self.tool_combo.setToolTip("Ctrl + D")
 
-        # self.size_combo = QComboBox(self)
-        # self.size_combo.addItems(['1','2','4'])
-        # self.size_combo.activated[str].connect(self.change_size)
+        self.ptool = ""
 
         self.sld = QSlider(Qt.Horizontal, self)
         self.sld.setMinimum(1)
@@ -94,7 +70,6 @@ class MyWidget(QWidget):
         self.sld_zoom.setMaximum(len(self.zoom_values))
         self.sld_zoom.setMaximumWidth(100)
         self.sld_zoom.valueChanged.connect(self.change_zoom)
-        # self.sld_zoom.setValue()
 
         self.save_btn = QPushButton('Save', self)
         self.save_btn.clicked.connect(self.save_map)
@@ -140,7 +115,6 @@ class MyWidget(QWidget):
         self.align_grid_chk.setChecked(True)
         self.align_grid_chk.setToolTip("Select this if you wish to draw objects aligned to the grid.")
         self.align_grid_chk.installEventFilter(self)
-        
 
 
         self.lbl_pen_size = QLabel('Pen Size: 1', self)
@@ -182,8 +156,6 @@ class MyWidget(QWidget):
         self.grid.addWidget(self.lbl_zoom, 9, 2)
         self.grid.addWidget(self.sld_zoom, 10, 2)
         
-        # self.grid.addWidget(QLabel("",self), 8, 2)
-        # self.grid.setAlignment(Qt.AlignTop)
         
         self.setLayout(self.grid)
 
@@ -213,6 +185,7 @@ class MyWidget(QWidget):
             self.ts_path = self.ad_path + "data\\tilesets\\"
             if not os.path.isdir(self.ts_path):
                 self.ts_path = self.ad_path + ""
+        self.editor.ts_path = self.ts_path
 
         self.ob_path = self.ad_path + "data\\data\\objects\\"
         if not os.path.isdir(self.ob_path):
@@ -237,7 +210,6 @@ class MyWidget(QWidget):
             self.load_tileset("objects")
         else:
             self.load_tileset("")
-            # self.list_tiles("tiles")
        
         
 
@@ -334,7 +306,7 @@ class MyWidget(QWidget):
             if len(self.ad_path) >= 1:
                 if self.ad_path[-1] != "\\":
                     self.ad_path += "\\"
-        # print(self.ad_path)
+
         
         if not os.path.isdir(self.ad_path):
             self.ad_path = self.root + ""
@@ -415,6 +387,12 @@ class MyWidget(QWidget):
             # ctrl + o
             if modifiers == Qt.ControlModifier and event.key() == Qt.Key_O:
                 self.load_map()
+            
+            # ctrl + f
+            if modifiers == Qt.ControlModifier and event.key() == Qt.Key_F:
+                # self.load_map()
+                x = FindAndReplace()
+                x.show()
     
 
         return 0
@@ -629,10 +607,10 @@ class MyWidget(QWidget):
  
 
 
-
-
     def change_tool(self,text):
+        self.ptool = self.editor.tool + ""
         self.editor.tool = text.lower()
+        
         self.editor.copied_range = False
         self.editor.copy_moved = False
         self.editor.copying = False
@@ -642,7 +620,8 @@ class MyWidget(QWidget):
             self.editor.build_objects(self.ob_path,self.object_lst)
             self.load_tileset("objects")
         else:
-            self.load_tileset("")
+            if self.ptool == "objects":
+                self.load_tileset("")
 
 
 
@@ -669,7 +648,6 @@ class MyWidget(QWidget):
 
         # print("vertical:",self.v_lbound,self.v_ubound)
         # print("horizontal:",self.h_lbound,self.h_ubound)
-
 
         
     def load_tileset(self,text):
@@ -753,7 +731,6 @@ class MyWidget(QWidget):
 
             self.editor.tile_index = -1
             self.editor.object_name = itext
-
         else:
 
             if itext == "Eraser":
@@ -790,7 +767,6 @@ class MyWidget(QWidget):
         # self.editor.update()
 
 
-
     def scroll_area(self,_obj):
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
@@ -805,11 +781,241 @@ class MyWidget(QWidget):
         qr.moveCenter(cp)
         self.move(qr.topLeft())
 
+
+
+
+
+class FindAndReplace(QWidget):
+
+    def __init__(self):
+        super().__init__()
+        self.initUI()        
+        
+    def initUI(self):
+
+        self.setFont(w.font)
+        self.setWindowTitle('Find and Replace Tiles') 
+
+        self.ico = w.ico
+        if os.path.isfile(self.ico):
+            self.setWindowIcon(QIcon(self.ico))
+
+        # self.tiles = {}
+        self.tiles_actual = {}
+        self.tile_set_name = ""
+        self.qlist1_text = []
+        self.tile_index1 = -1
+
+        # self.tiles2 = {}
+        self.tiles_actual2 = {}
+        self.tile_set_name2 = ""
+        self.qlist2_text = []
+        self.tile_index2 = -1
+
+        self.lbl1 = QLabel('Find', self)
+        self.lbl2 = QLabel('Replace', self)
+
+
+        self.ts_combo1 = QComboBox(self)
+        for i in w.tilesets:
+            self.ts_combo1.addItem(i)
+        self.ts_combo1.activated[str].connect(lambda x: self.build_qlist1(self.qlist1,2,0))
+
+
+        self.qlist1 = QListWidget(self)
+        self.qlist1.setMinimumWidth(150)
+        self.qlist1.setMaximumWidth(200)
+        
+
+        self.ts_combo2 = QComboBox(self)
+        for i in w.tilesets:
+            self.ts_combo2.addItem(i)
+        self.ts_combo2.activated[str].connect(lambda x: self.build_qlist1(self.qlist2,2,1))
+
+        self.qlist2 = QListWidget(self)
+        self.qlist2.setMinimumWidth(150)
+        self.qlist2.setMaximumWidth(200)
+
+
+
+        self.btn = QPushButton('Execute', self)
+        self.btn.clicked.connect(self.execute)
+        # self.btn.resize(self.btn.sizeHint())
+        self.btn.setFixedSize(50,23)
+
+        self.grid = QGridLayout()
+        self.grid.setSpacing(10)
+
+        self.grid.addWidget(self.lbl1, 0, 0)
+        self.grid.addWidget(self.ts_combo1, 1, 0)
+        self.grid.addWidget(self.qlist1, 2, 0)
+        
+        
+        self.grid.addWidget(self.lbl2, 0, 1)
+        self.grid.addWidget(self.ts_combo2, 1, 1)
+        self.grid.addWidget(self.qlist2, 2, 1)
+        
+
+        self.grid.addWidget(self.btn, 7, 0)
+
+        self.setLayout(self.grid)
+
+        self.build_qlist1(self.qlist1,2,0)
+        self.build_qlist1(self.qlist2,2,1)
+
+        self.setGeometry(300, 300, 450, 200)
+
+        self.show()
+
+
+
+
+
+
+    def build_qlist1(self,_obj,r,c):
+
+        if c == 0:
+            ta = self.tiles_actual
+            n = self.ts_combo1.currentText()
+            qtext = self.qlist1_text
+            func = self.qlist_clicked1
+        elif c == 1:
+            ta = self.tiles_actual2
+            n = self.ts_combo2.currentText()
+            qtext = self.qlist2_text
+            func = self.qlist_clicked2
+
+        _obj = QListWidget(self)
+        
+        _obj.setMinimumWidth(150)
+        _obj.setMaximumWidth(200)
+
+        _obj.clear()
+        qtext = ["Eraser"]
+
+        def eraser():
+            self.eraser_item = QListWidgetItem()
+            self.eraser_item.setText("Eraser")
+            if os.path.isfile("eraser.png"):
+                self.eraser_item.setIcon(QIcon("eraser.png"))
+
+        eraser()
+        _obj.addItem(self.eraser_item)     
+
+        self.build_tiles(w.ts_path + n,c+1)
+        tiles_actual = ta[n]
+
+        for i in range(len(tiles_actual)):
+
+            item = QListWidgetItem()
+            item.setText('Tile ' + str(i))
+            item.setIcon(QIcon(QPixmap.fromImage(tiles_actual[i])))
+        
+            colors = []
+            for ii in range(tiles_actual[i].width()):
+                for jj in range(tiles_actual[i].height()):
+                    colors.append(QColor(tiles_actual[i].pixel(ii,jj)).getRgbF())
+
+            if list(set(colors)) != [(1.0, 0.0, 1.0, 1.0)]:
+                _obj.addItem(item)
+                qtext += ["Tile " + str(i)]
+
+        _obj.itemClicked.connect(func)
+
+        self.grid.addWidget(_obj, r, c)
+        self.setLayout(self.grid)
+
+    def qlist_clicked1(self,curr):
+        self.qlist1.selectedItems()
+        itext = curr.text()
+        if itext == "Eraser":
+            ind = -1
+        else:
+            ind = int(itext.split("Tile ")[-1])
+        self.tile_index1 = ind
+
+    def qlist_clicked2(self,curr):
+        self.qlist2.selectedItems()
+        itext = curr.text()
+        if itext == "Eraser":
+            ind = -1
+        else:
+            ind = int(itext.split("Tile ")[-1])
+        self.tile_index2 = ind
+
+    def build_tiles(self,path_to_tileset_image,x):
+
+        if x == 1:
+            tsn = self.tile_set_name
+            ta = self.tiles_actual
+        elif x == 2:
+            tsn = self.tile_set_name2
+            ta = self.tiles_actual2
+        # print(x)
+
+
+        tsn = path_to_tileset_image.split("\\")[-1]
+        if tsn in ta.keys():
+            del ta[tsn]
+        temp_list = []
+        temp_list2 = []
+        img = QImage(path_to_tileset_image,"PNG")
+        for i in range(0,w.editor.tile_size):
+            for j in range(0,w.editor.tile_size):
+                tile_image = img.copy(w.editor.tile_size*j,w.editor.tile_size*i,w.editor.tile_size,w.editor.tile_size)
+                temp_list2.append(tile_image)
+        ta[tsn] = temp_list2
+
+
+    def execute(self):
+
+        fti = self.tile_index1
+
+        # if itext == "Eraser":
+        #     ind = -1
+        # else:
+        #     ind = int(itext.split("Tile ")[-1])
+        self.qlist2.setSelection
+
+
+
+        if fti == -1:
+            ftsn = "-1"
+        else:
+            ftsn = self.ts_combo1.currentText()
+
+        tti = self.tile_index2
+        if tti == -1:
+            ttsn = "-1"
+        else:
+            ttsn = self.ts_combo2.currentText()
+
+        print(fti,ftsn,tti,ttsn)
+
+        for j in range(0,w.editor.board_height):
+            for i in range(0,w.editor.board_width):
+                ti = w.editor.board[j][i].tile_index
+                tsn = w.editor.board[j][i].tile_set_name
+                w.editor.board_prev[j][i].tile_index = ti
+                w.editor.board_prev[j][i].tile_set_name = tsn
+
+                if ti == fti and tsn == ftsn:
+                    w.editor.board[j][i].tile_index = tti
+                    w.editor.board[j][i].tile_set_name = ttsn
+
+        w.repaint()
+
+
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     w = MyWidget()
     w.show()
     # w.center()
     w.repaint()
+
+    app.setQuitOnLastWindowClosed(False)
+
+
     app.exec_()
 
