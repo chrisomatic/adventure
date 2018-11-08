@@ -121,7 +121,7 @@ class Editor(QWidget):
             self.draw_objects()
         self.draw_grid()
         self.draw_rect_wh(self.h_lbound,self.v_lbound)
-        self.draw_coords(self.h_lbound+2,self.v_ubound-5,self.mouse_x,self.mouse_y)
+        self.draw_coords(self.h_lbound+2,self.v_ubound-5,int(int(self.mouse_x / self.tile_size_zoom) * self.tile_size_zoom),int(int(self.mouse_x / self.tile_size_zoom) * self.tile_size_zoom))
         self.draw_coords(self.h_ubound-55,self.v_ubound-5,int(self.mouse_x / self.tile_size_zoom),int(self.mouse_y / self.tile_size_zoom))
         self.draw_copy_status(self.h_lbound + (self.h_ubound - self.h_lbound)*.45,self.v_ubound-5)
         self.drawGhostRect()
