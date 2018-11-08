@@ -44,6 +44,7 @@
     <ClInclude Include="item_stand.h" />
     <ClInclude Include="portal.h" />
     <ClInclude Include="hud.h" />
+    <ClInclude Include="weather.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="adventure_V14.rc" />
