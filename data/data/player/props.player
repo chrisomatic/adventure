@@ -1,7 +1,7 @@
 name: Hero
-board_name: sewers
+board_name: Astoria
 tileset_name: characters
-tile_index: 0
+tile_index: 32
 available_stat_points: 0
 lvl: 1
 xp: 0
@@ -10,6 +10,6 @@ max_hp: 10
 mp: 6
 max_mp: 6
 gold: 1000
-x: 144 #pixels
-y: 160 #pixels
+x: 1328 #pixels
+y: 1056 #pixels
 z: 0

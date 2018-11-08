@@ -765,6 +765,8 @@ static void load_board(const char* path_to_board_file, int board_index)
                             case STONE: board_list[board_index].collision[i][j] = 5; break;
                             case WATER_DEEP: board_list[board_index].collision[i][j] = 5; break;
                             case CAVE: board_list[board_index].collision[i][j] = 1; break;
+							case DIRT: board_list[board_index].collision[i][j] = 1; break;
+							case BRICK: board_list[board_index].collision[i][j] = 5; break;
                             default: board_list[board_index].collision[i][j] = 1; break;
                             }
                         }

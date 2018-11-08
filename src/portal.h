@@ -23,23 +23,36 @@ static void init_portals()
     Portal a,b;
 
 	portal_links[num_portal_links].a.board_index = get_board_index_by_name("Astoria");
-	portal_links[num_portal_links].a.x = 203*TILE_WIDTH;
-	portal_links[num_portal_links].a.y = 9*TILE_HEIGHT;
+	portal_links[num_portal_links].a.x = 83 * TILE_WIDTH;
+	portal_links[num_portal_links].a.y = 64 * TILE_HEIGHT;
 
-	portal_links[num_portal_links].b.board_index = get_board_index_by_name("Caverns");
-	portal_links[num_portal_links].b.x = 40*TILE_WIDTH;
-	portal_links[num_portal_links].b.y = 76*TILE_HEIGHT;
+	portal_links[num_portal_links].b.board_index = get_board_index_by_name("Sewers");
+	portal_links[num_portal_links].b.x = 8 * TILE_WIDTH;
+	portal_links[num_portal_links].b.y = 8 * TILE_HEIGHT;
 
-    ++num_portal_links;
+	++num_portal_links;
 
-	portal_links[num_portal_links].a.board_index = get_board_index_by_name("Caverns");
-	portal_links[num_portal_links].a.x = 32*TILE_WIDTH;
-	portal_links[num_portal_links].a.y = 5*TILE_HEIGHT;
 
-	portal_links[num_portal_links].b.board_index = get_board_index_by_name("Caverns");
-	portal_links[num_portal_links].b.x = 100*TILE_WIDTH;
-	portal_links[num_portal_links].b.y = 36*TILE_HEIGHT;
+	portal_links[num_portal_links].a.board_index = get_board_index_by_name("Sewers");
+	portal_links[num_portal_links].a.x = 60 * TILE_WIDTH;
+	portal_links[num_portal_links].a.y = 63 * TILE_HEIGHT;
 
-    ++num_portal_links;
+	portal_links[num_portal_links].b.board_index = get_board_index_by_name("Sewers");
+	portal_links[num_portal_links].b.x = 96 * TILE_WIDTH;
+	portal_links[num_portal_links].b.y = 16 * TILE_HEIGHT;
+
+	++num_portal_links;
+
+
+
+	portal_links[num_portal_links].b.board_index = get_board_index_by_name("Sewers");
+	portal_links[num_portal_links].b.x = 157 * TILE_WIDTH;
+	portal_links[num_portal_links].b.y = 20 * TILE_HEIGHT;
+
+	portal_links[num_portal_links].a.board_index = get_board_index_by_name("Sewers");
+	portal_links[num_portal_links].a.x = 183 * TILE_WIDTH;
+	portal_links[num_portal_links].a.y = 4 * TILE_HEIGHT;
+
+	++num_portal_links;
 
 }
