@@ -749,7 +749,7 @@ class MyWidget(QMainWindow):
         # print("vertical:",self.v_lbound,self.v_ubound)
         # print("horizontal:",self.h_lbound,self.h_ubound)
 
-        
+
     def load_tileset(self,text):
 
         if self.editor.tool != "objects":

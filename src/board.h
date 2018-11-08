@@ -25,6 +25,8 @@
 #define WATER_DEEP  12
 #define WATER_DEEP2 13
 #define CAVE        14
+#define DIRT        15
+#define BRICK       16
 
 #define ARROW 4
 #define FIREBALL 6
@@ -747,10 +749,15 @@ static void load_board(const char* path_to_board_file, int board_index)
                         if(r == EOF || c == EOF)
                             break;
 
-                        if(tile_index == -1) {
-                            board_list[board_index].data[j][i] = 255;
+						//when we change to the new format, we'll need to see if tileset_index == 255, rather than tile_index b/c the tile_index can be 255 on a tile set
+						//if (strcmp(tileset_index, "-1") == 0) {
+						//	board_list[board_index].data[j][i] = 255;
+						//	board_list[board_index].tileset_data[j][i] = 0;
+						//}
+						if(tile_index == -1) {
+						    board_list[board_index].data[j][i] = 255;
 							board_list[board_index].tileset_data[j][i] = 0;
-                        }
+						}
                         else {
 
                             board_list[board_index].data[j][i] = tile_index;
@@ -770,6 +777,8 @@ static void load_board(const char* path_to_board_file, int board_index)
 								case STONE: board_list[board_index].collision[i][j] = 5; break;
 								case WATER_DEEP: board_list[board_index].collision[i][j] = 5; break;
 								case CAVE: board_list[board_index].collision[i][j] = 1; break;
+								case DIRT: board_list[board_index].collision[i][j] = 1; break;
+								case BRICK: board_list[board_index].collision[i][j] = 5; break;
 								default: board_list[board_index].collision[i][j] = 1; break;
 								}
 							}
