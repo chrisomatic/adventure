@@ -102,7 +102,7 @@ class Editor(QWidget):
         temp_list = []
         temp_list2 = []
         img = QImage(path_to_tileset_image,"PNG")
-        
+        # print(path_to_tileset_image)
         for i in range(0,self.tile_size):
             for j in range(0,self.tile_size):
                 tile_image = img.copy(self.tile_size*j,self.tile_size*i,self.tile_size,self.tile_size)
