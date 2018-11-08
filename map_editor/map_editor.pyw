@@ -349,51 +349,56 @@ class MyWidget(QMainWindow):
         self.repaint()
         # self.editor.update()
 
-    def dragEnterEvent( self, event ):
-        data = event.mimeData()
-        urls = data.urls()
-        if urls and urls[0].scheme() == 'file':
-            event.acceptProposedAction()
 
-    def dragMoveEvent( self, event ):
+    def drag_check(self, event):
         data = event.mimeData()
         urls = data.urls()
         if urls and urls[0].scheme() == 'file':
-            event.acceptProposedAction()
-
-    def dropEvent( self, event ):
-        data = event.mimeData()
-        urls = data.urls()
-        if urls and urls[0].scheme() == 'file':
-            # for some reason, this doubles up the intro slash
             filepath = str(urls[0].path())[1:]
             if filepath.split(".")[-1].lower() in ["board"]:
-                self.load_map(filepath)
+                return True
+        return False
+
+    def dragEnterEvent(self, event):
+        if self.drag_check(event):
+            event.acceptProposedAction()
+
+    def dragMoveEvent(self, event):
+        if self.drag_check(event):
+            event.acceptProposedAction()
+
+    def dropEvent(self, event):
+        if self.drag_check(event):
+            urls = event.mimeData().urls()
+            filepath = str(urls[0].path())[1:]
+            self.load_map(filepath)
+
+    # def dragEnterEvent(self, event):
+    #     data = event.mimeData()
+    #     urls = data.urls()
+    #     if urls and urls[0].scheme() == 'file':
+    #         filepath = str(urls[0].path())[1:]
+    #         if filepath.split(".")[-1].lower() in ["board"]:
+    #             event.acceptProposedAction()
+
+    # def dragMoveEvent(self, event):
+    #     data = event.mimeData()
+    #     urls = data.urls()
+    #     if urls and urls[0].scheme() == 'file':
+    #         filepath = str(urls[0].path())[1:]
+    #         if filepath.split(".")[-1].lower() in ["board"]:
+    #             event.acceptProposedAction()
+
+    # def dropEvent(self, event):
+    #     data = event.mimeData()
+    #     urls = data.urls()
+    #     if urls and urls[0].scheme() == 'file':
+    #         filepath = str(urls[0].path())[1:]
+    #         if filepath.split(".")[-1].lower() in ["board"]:
+    #             self.load_map(filepath)
 
 
     def eventFilter(self,source,event):
-
-
-        # if source is self.scroll and event.type() == QEvent.DragEnter:
-        #     data = event.mimeData()
-        #     urls = data.urls()
-        #     if urls and urls[0].scheme() == 'file':
-        #         event.acceptProposedAction()
-        # if source is self.scroll and event.type() == QEvent.DragMove:
-        #     data = event.mimeData()
-        #     urls = data.urls()
-        #     if urls and urls[0].scheme() == 'file':
-        #         event.acceptProposedAction()
-        # # if source is self.scroll and event.type() == QEvent.Drag:
-        # #     data = event.mimeData()
-        # #     urls = data.urls()
-        # #     if urls and urls[0].scheme() == 'file':
-        # #         filepath = str(urls[0].path())[1:]
-        # #         if filepath.split(".")[-1].lower() in ["board"]:
-        # #             print(filepath)
-
-
-
 
         if source is self.draw_over_chk:
             self.editor.draw_over = self.draw_over_chk.isChecked()
@@ -1109,41 +1114,6 @@ class FindAndReplace(QWidget):
 
         w.repaint()
 
-
-class EditorArea(QWidget):
-    def __init__( self ):
-        super().__init__()
-        # self.setWidgetResizable(True)
-        # self.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-        # self.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded) 
-        # self.setWidget(self._obj)
-
-    def dragEnterEvent( self, event ):
-        data = event.mimeData()
-        urls = data.urls()
-        if urls and urls[0].scheme() == 'file':
-            event.acceptProposedAction()
-
-    def dragMoveEvent( self, event ):
-        data = event.mimeData()
-        urls = data.urls()
-        if urls and urls[0].scheme() == 'file':
-            event.acceptProposedAction()
-
-    def dropEvent( self, event ):
-        data = event.mimeData()
-        urls = data.urls()
-        if urls and urls[0].scheme() == 'file':
-            # for some reason, this doubles up the intro slash
-            filepath = str(urls[0].path())[1:]
-            if filepath.split(".")[-1].lower() in ["board"]:
-                print(filepath)
-                # try:
-                #     with open(filepath,'r') as f:
-                #         contents = f.read()
-                # except:
-                #     contents = ""
-                # self.setText(self.toPlainText()  + contents)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
