@@ -6,11 +6,11 @@ KeyPress keypress_attack = 0x0000;
 static void init_player()
 {
     player.name = "Hero";
-    player.board_name = "test2";
+    player.board_name = "Astoria";
     player.tileset_name = "characters";
     player.tile_index = 0;
     player.available_stat_points = 0;
-    player.lvl = 1;
+    player.lvl = 0;
     player.xp  = 0;
     player.phys.hp  = 10;
     player.phys.max_hp = 10;

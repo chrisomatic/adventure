@@ -1,0 +1,9 @@
+name: Astoria_Darryl
+board_name: Astoria
+num_creatures: 1
+num_creature_types: 1
+creature_type_name0: Darryl
+x: 1152 #pixels
+y: 864 #pixels
+w: 96 #pixels
+h: 96 #pixels

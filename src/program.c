@@ -423,7 +423,9 @@ static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM 
             else if(wparam == VK_SHIFT)
             {
                 shift_down = TRUE;
-                player.phys.base_speed = 2.0f;
+                //player.phys.base_speed = 2.0f;
+				//for testing purposes
+				player.phys.base_speed = 10.0f;
             }
             else if(wparam == 'U')
             {

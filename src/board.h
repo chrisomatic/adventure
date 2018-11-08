@@ -27,6 +27,8 @@
 #define WATER_DEEP  12
 #define WATER_DEEP2 13
 #define CAVE        14
+#define DIRT        15
+#define BRICK       16
 
 #define ARROW 4
 #define FIREBALL 6
