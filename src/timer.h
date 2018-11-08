@@ -1,3 +1,5 @@
+#pragma once
+
 static LARGE_INTEGER freq;
 static LARGE_INTEGER t0,t1;
 

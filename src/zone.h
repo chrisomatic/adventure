@@ -1,3 +1,5 @@
+#pragma once
+
 #define MAX_ZONES 100
 
 typedef struct

@@ -1,3 +1,5 @@
+#pragma once
+
 static void remove_file_extension(const char* path, char return_path[MAX_PATH])
 {
     int length = length_of(path);

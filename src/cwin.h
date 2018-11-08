@@ -1,4 +1,6 @@
-  /* multimedia functions (such as MIDI) for Windows */
+#pragma once
+
+/* multimedia functions (such as MIDI) for Windows */
 
 // Plays a specified MIDI file by using MCI_OPEN and MCI_PLAY. Returns 
 // as soon as playback begins. The window procedure function for the 

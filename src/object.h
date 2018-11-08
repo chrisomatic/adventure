@@ -1,3 +1,5 @@
+#pragma once
+
 #define MAX_OBJECTS     1000
 #define MAX_OBJECT_LIST 100
 

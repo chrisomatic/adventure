@@ -1,3 +1,5 @@
+#pragma once
+
 #define MAX_ANIMATION_FRAMES 16
 
 typedef struct

@@ -1,3 +1,5 @@
+#pragma once
+
 #define DISPLAY_SCREEN_WIDTH buffer_width/3
 #define INVENTORY_SELECTION_MAX 5 
 

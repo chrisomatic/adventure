@@ -1,3 +1,5 @@
+#pragma once
+
 #define MAX_ITEM_STANDS 100
 
 typedef struct

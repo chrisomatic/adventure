@@ -1,3 +1,4 @@
+#pragma once
 
 // @TEMP:
 int num_pregs = 0;

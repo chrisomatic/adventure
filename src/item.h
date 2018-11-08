@@ -1,3 +1,5 @@
+#pragma once
+
 #define MAX_ITEMS     10000
 #define MAX_ITEM_LIST 100
 

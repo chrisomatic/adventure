@@ -1,3 +1,5 @@
+#pragma once
+
 #define MAX_PARTICLES 100000
 
 typedef struct

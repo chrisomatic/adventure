@@ -1,3 +1,5 @@
+#pragma once
+
 KeyPress keypress = 0x0000;
 KeyPress keypress_attack = 0x0000;
 

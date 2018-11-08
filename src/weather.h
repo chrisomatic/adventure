@@ -1,3 +1,5 @@
+#pragma once
+
 BOOL is_raining = FALSE;
 
 int weather_spawn_counter = 0;

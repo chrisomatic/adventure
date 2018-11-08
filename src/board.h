@@ -1,3 +1,5 @@
+#pragma once
+
 #define BOARD_TILE_WIDTH  256
 #define BOARD_TILE_HEIGHT 256
 #define GRAVITY 0.2f;
@@ -690,15 +692,15 @@ static void load_board(const char* path_to_board_file, int board_index)
         if(fgets(s,1000,fp_board) == NULL)
             break;
 
-		if (str_contains(s, ":/board_info")) {
+		if (str_contains(s, ":board_info")) {
 			current_section = 1;
             continue;
         }
-		else if (str_contains(s, ":/tileset_info")) {
+		else if (str_contains(s, ":tileset_info")) {
 			current_section = 2;
             continue;
         }
-		else if (str_contains(s, ":/data")) {
+		else if (str_contains(s, ":data")) {
 			current_section = 3;
         }
 
@@ -738,44 +740,34 @@ static void load_board(const char* path_to_board_file, int board_index)
                 {
                     for(int i = 0; i < BOARD_TILE_WIDTH; ++i)
                     {
-                        int tileset_index = 0;
-                        int tile_index = 0;
-
-                        int r = fscanf(fp_board,"%d:%d",&tileset_index,&tile_index);
-                        int c = fgetc(fp_board); // eat comma
-
-                        if(r == EOF || c == EOF)
+						int tileset_index = fgetc(fp_board);
+                        int tile_index    = fgetc(fp_board);
+                        
+                        if(tile_index == EOF || tileset_index == EOF)
                             break;
 
-                        if(tile_index == -1) {
-                            board_list[board_index].data[j][i] = 255;
-							board_list[board_index].tileset_data[j][i] = 0;
-                        }
-                        else {
+                        board_list[board_index].data[j][i] = tile_index;
+                        board_list[board_index].tileset_data[j][i] = tileset_index;
 
-                            board_list[board_index].data[j][i] = tile_index;
-							board_list[board_index].tileset_data[j][i] = tileset_index;
-
-							if (strcmp(tileset_map[tileset_index], "terrain") == 0) {
-								switch (tile_index)
-								{
-								case GRASS: board_list[board_index].collision[i][j] = 1; break;
-								case MARSH: board_list[board_index].collision[i][j] = 1; break;
-								case WOOD:  board_list[board_index].collision[i][j] = 1; break;
-								case SAND:  board_list[board_index].collision[i][j] = 2; break;
-								case MUD:   board_list[board_index].collision[i][j] = 3; break;
-								case WATER: board_list[board_index].collision[i][j] = 4; break;
-								case LAVA:  board_list[board_index].collision[i][j] = 6; break;
-								case MOUNTAIN: board_list[board_index].collision[i][j] = 5; break;
-								case STONE: board_list[board_index].collision[i][j] = 5; break;
-								case WATER_DEEP: board_list[board_index].collision[i][j] = 5; break;
-								case CAVE: board_list[board_index].collision[i][j] = 1; break;
-								default: board_list[board_index].collision[i][j] = 1; break;
-								}
-							}
-							else
-								board_list[board_index].collision[i][j] = 1;
+                        if (strcmp(tileset_map[tileset_index], "terrain") == 0) {
+                            switch (tile_index)
+                            {
+                            case GRASS: board_list[board_index].collision[i][j] = 1; break;
+                            case MARSH: board_list[board_index].collision[i][j] = 1; break;
+                            case WOOD:  board_list[board_index].collision[i][j] = 1; break;
+                            case SAND:  board_list[board_index].collision[i][j] = 2; break;
+                            case MUD:   board_list[board_index].collision[i][j] = 3; break;
+                            case WATER: board_list[board_index].collision[i][j] = 4; break;
+                            case LAVA:  board_list[board_index].collision[i][j] = 6; break;
+                            case MOUNTAIN: board_list[board_index].collision[i][j] = 5; break;
+                            case STONE: board_list[board_index].collision[i][j] = 5; break;
+                            case WATER_DEEP: board_list[board_index].collision[i][j] = 5; break;
+                            case CAVE: board_list[board_index].collision[i][j] = 1; break;
+                            default: board_list[board_index].collision[i][j] = 1; break;
+                            }
                         }
+                        else
+                            board_list[board_index].collision[i][j] = 1;
                     }
                 }
             } break;

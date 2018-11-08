@@ -1,3 +1,5 @@
+#pragma once
+
 #define MAX_PORTAL_LINKS 100
 
 typedef struct

@@ -1,3 +1,5 @@
+#pragma once
+
 #define TILE_WIDTH  16
 #define TILE_HEIGHT 16
 #define TILES_PER_ROW 16

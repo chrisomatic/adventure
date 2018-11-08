@@ -1,3 +1,5 @@
+#pragma once
+
 #define TARGET_FPS 60.0f
 
 #include <stdint.h>

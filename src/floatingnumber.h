@@ -1,3 +1,5 @@
+#pragma once
+
 #define MAX_FLOATING_NUMBERS 10000
 
 typedef struct

@@ -1,3 +1,5 @@
+#pragma once
+
 #define MAX_COINS 10000
 
 const char* coin_tileset_name = "items";

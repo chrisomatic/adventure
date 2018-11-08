@@ -1,3 +1,5 @@
+#pragma once
+
 #define MAX_ONSCREEN_ENTITIES 10000
 
 typedef struct

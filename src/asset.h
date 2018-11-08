@@ -1,3 +1,5 @@
+#pragma once
+
 typedef enum
 {
 	ASSET_TYPE_CREATURE,

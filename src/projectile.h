@@ -1,3 +1,5 @@
+#pragma once
+
 #define MAX_PROJECTILES 1000
 
 

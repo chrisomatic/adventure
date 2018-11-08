@@ -1,3 +1,5 @@
+#pragma once
+
 #define FONTDATA_WIDTH    96 
 #define FONTDATA_HEIGHT   49 
 #define GLYPH_WIDTH       5

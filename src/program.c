@@ -76,11 +76,10 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
     init_creatures();
     init_items();
     init_player();
+	load_player_props();
     init_boards();
     init_item_stands();
     init_portals();
-
-    load_player_props();
 
     // test
     //playMIDIFile(main_window,"data\\music\\village.mid");
