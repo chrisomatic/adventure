@@ -281,6 +281,8 @@ class MyWidget(QMainWindow):
             l = "1/8"
         elif zoom == 1/16:
             l = "1/16"
+        elif zoom == 1/32:
+            l = "1/32"
         self.lbl_zoom.setText("Zoom: x" + l)
 
         self.repaint()
@@ -842,6 +844,7 @@ class MyWidget(QMainWindow):
             return 
 
         self.image = QImage(self.editor.board_width * self.editor.tile_size_zoom, self.editor.board_height * self.editor.tile_size_zoom, QImage.Format_RGB32)
+        # self.image = QImage(self.editor.board_width * self.editor.tile_size, self.editor.board_height * self.editor.tile_size, QImage.Format_RGB32)
         painter = QPainter(self)
         painter.begin(self.image)
         for i in range(0,self.editor.board_width):
@@ -849,6 +852,15 @@ class MyWidget(QMainWindow):
                 if(self.editor.board[j][i].tile_index > -1):
                     s = self.editor.board[j][i]
                     painter.drawImage(i*self.editor.tile_size_zoom,j*self.editor.tile_size_zoom,self.editor.tiles[s.tile_set_name][s.tile_index])
+                    # painter.drawImage(i*self.editor.tile_size,j*self.editor.tile_size,self.editor.tiles_actual[s.tile_set_name][s.tile_index])
+        for i in range(len(self.editor.painted_objects)):
+            x = int(self.editor.painted_objects[i].x * self.editor.zoom_ratio)
+            y = int(self.editor.painted_objects[i].y * self.editor.zoom_ratio)
+            png = self.editor.painted_objects[i].png
+            if png in self.editor.objects.keys():
+                img = self.editor.objects[png]
+                img = img.scaledToHeight(int(img.height() * self.editor.zoom_ratio))
+                painter.drawImage(x,y,img)
 
         painter.end()
         self.image.save(fileName)
@@ -1059,7 +1071,7 @@ class FindAndReplace(QWidget):
         tsn = path_to_tileset_image.split("\\")[-1]
         if tsn in ta.keys():
             del ta[tsn]
-        temp_list = []
+        # temp_list = []
         temp_list2 = []
         img = QImage(path_to_tileset_image,"PNG")
         for i in range(0,w.editor.tile_size):

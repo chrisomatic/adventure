@@ -123,7 +123,9 @@ class Editor(QWidget):
         self.draw_rect_wh(self.h_lbound,self.v_lbound)
         self.draw_coords(self.h_lbound+2,self.v_ubound-5,self.mouse_x,self.mouse_y)
         self.draw_coords(self.h_ubound-55,self.v_ubound-5,int(self.mouse_x / self.tile_size_zoom),int(self.mouse_y / self.tile_size_zoom))
+        self.draw_copy_status(self.h_lbound + (self.h_ubound - self.h_lbound)*.45,self.v_ubound-5)
         self.drawGhostRect()
+        
 
     def draw_tiles(self):
         painter = QPainter(self)
@@ -154,6 +156,24 @@ class Editor(QWidget):
                 img = self.objects[png]
                 img = img.scaledToHeight(int(img.height() * self.zoom_ratio))
                 painter.drawImage(x,y,img)
+
+
+    def draw_copy_status(self,x,y):
+        if self.tool != "copy range":
+            return
+        
+        text = ""
+        if not self.copied_range and not self.copying:
+            text = "select a range to copy"
+        elif self.copied_range and not self.copying:
+            text = "click to paste copied range"
+        elif self.copying:
+            text = ""
+
+        qp = QPainter()
+        qp.begin(self)
+        qp.drawText(QPointF(x,y),text)
+        qp.end()
 
 
     def draw_grid(self):
@@ -492,14 +512,17 @@ class Editor(QWidget):
                             xc = Xcrange[Xrange.index(x)]
                             yc = Ycrange[Yrange.index(y)]
 
-                            tile_index = board_temp[yc][xc].tile_index
-                            tile_set_name = board_temp[yc][xc].tile_set_name
+                            if xc >= 0 and xc < self.board_width and yc >= 0 and y < self.board_height:
 
-                            self.board[y][x].tile_index = tile_index
-                            if tile_index == -1:
-                                self.board[y][x].tile_set_name = "-1"
-                            else:
-                                self.board[y][x].tile_set_name = tile_set_name
+                                tile_index = board_temp[yc][xc].tile_index
+                                tile_set_name = board_temp[yc][xc].tile_set_name
+
+                                self.board[y][x].tile_index = tile_index
+                                if tile_index == -1:
+                                    self.board[y][x].tile_set_name = "-1"
+                                else:
+                                    self.board[y][x].tile_set_name = tile_set_name
+
                 self.copied_range = False
                 self.copying = False
 
