@@ -3,6 +3,7 @@
 #define TILE_WIDTH  16
 #define TILE_HEIGHT 16
 #define TILES_PER_ROW 16
+#define MAX_TILESETS 16
 #define MAX_INDEX   256
 #define MAX_TILESET_LENGTH 65536
 
@@ -10,9 +11,10 @@ typedef struct
 {
     char name[MAX_PATH];
     unsigned char data[MAX_TILESET_LENGTH];
+    int collision[MAX_INDEX];
 } Tileset;
 
-Tileset tileset_list[16];
+Tileset tileset_list[MAX_TILESETS];
 int num_tilesets = 0;
 
 static int get_tileset_index_by_name(const char* name)
@@ -111,6 +113,61 @@ static void load_tileset(const char* tile_map_path, int tileset_index)
     fclose(fp_tileset);
 }
 
+
+static void load_tileset_collisions(const char* path_to_collision_file, int tileset_index)
+{
+    // set default value of 1
+	for (int i = 0; i < 256; ++i)
+        tileset_list[tileset_index].collision[i] = 1;
+
+	FILE* fp_collisions = fopen(path_to_collision_file, "r");
+
+	if (fp_collisions == NULL)
+		return;
+
+	int c;
+	char collisions_number[100] = { 0 };
+	int collision_str_iterator = 0;
+	int i = 0;
+	BOOL gteol = FALSE;
+
+	do
+	{
+		c = fgetc(fp_collisions);
+
+		if (c == '#')
+		{
+			// go to end of line or end of file
+			gteol = TRUE;
+			continue;
+
+		}
+		else if (c == ',' || c == '\n' || c == EOF)
+		{
+			if (c == '\n' && gteol)
+			{
+				gteol = FALSE;
+				memset(collisions_number, 0, 100);
+				continue;
+			}
+
+			//make sure collisions_number is not nothing
+			if (collisions_number[0] != '\0')
+			{
+				int x = atoi(collisions_number);
+				tileset_list[tileset_index].collision[i++] = x;
+				memset(collisions_number, 0, 100);
+				collision_str_iterator = 0;
+			}
+		}
+		else
+			if(!gteol) collisions_number[collision_str_iterator++] = c;
+
+	} while (c != EOF);
+
+	fclose(fp_collisions);
+}
+
 static void load_all_tilesets()
 {
 	char paths[100][MAX_PATH] = { 0 };
@@ -125,7 +182,14 @@ static void load_all_tilesets()
         get_file_name(path_without_ext,tileset_name);
 
         C_strcpy(tileset_name, tileset_list[num_tilesets].name);
+
         load_tileset(paths[i],num_tilesets);
+
+        char path_to_collision_file[MAX_PATH] = {0};
+        strncpy(path_to_collision_file,paths[i],MAX_PATH);
+        strncat(path_to_collision_file,".collision", MAX_PATH);
+
+        load_tileset_collisions(path_to_collision_file,num_tilesets);
 
         num_tilesets++;
     }

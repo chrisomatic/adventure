@@ -174,7 +174,6 @@ typedef struct
 
 char tileset_map[16][100] = { 0 };
 int tileset_num = 0;
-int tileset_collisions[16][256] = { 1 };
 
 typedef struct
 {
@@ -678,8 +677,6 @@ static void generate_all_boards()
 	}
 }
 
-
-
 static void load_board(const char* path_to_board_file, int board_index)
 {
 	FILE* fp_board = fopen(path_to_board_file, "rb");
@@ -691,7 +688,6 @@ static void load_board(const char* path_to_board_file, int board_index)
 	char s[1000] = { 0 };
 	int key = 0;
 	char value[100] = { 0 };
-
 
 	int current_section = 0;
 
@@ -721,51 +717,9 @@ static void load_board(const char* path_to_board_file, int board_index)
 			int matches = sscanf(s, "%d=%s\n", &key, value);
 			str_replace(value, 100, ".tileset.png", "", value);
 
-			char path_to_collision[100];
-			strncpy(path_to_collision, "data\\tilesets\\", 100);
-			strcat(path_to_collision, value, 100);
-			strcat(path_to_collision, ".tileset.collision");
+			if (matches == 2)
+				strncpy(tileset_map[key], value, 100);
 
-
-			//some stuff I tried
-			//parse the collision file to get the array of values
-			if (matches == 2) {
-				//tileset_collisions[key] = load_tile_collisions(path_to_collision);
-				//int collisions[256] = load_tile_collisions(path_to_collision);
-				//int i;
-				//for (i = 0; i < 256; i++) {
-				//	tileset_collisions[key][i] = collisions[i];
-				//}
-
-			}
-
-			//load_tile_collisions(path_to_collision);
-
-
-
-
-
-
-			if (matches == 2) {
-				switch (key) {
-				case 0:  strncpy(tileset_map[0], value, 100);  break;
-				case 1:  strncpy(tileset_map[1], value, 100);  break;
-				case 2:  strncpy(tileset_map[2], value, 100);  break;
-				case 3:  strncpy(tileset_map[3], value, 100);  break;
-				case 4:  strncpy(tileset_map[4], value, 100);  break;
-				case 5:  strncpy(tileset_map[5], value, 100);  break;
-				case 6:  strncpy(tileset_map[6], value, 100);  break;
-				case 7:  strncpy(tileset_map[7], value, 100);  break;
-				case 8:  strncpy(tileset_map[8], value, 100);  break;
-				case 9:  strncpy(tileset_map[9], value, 100);  break;
-				case 10: strncpy(tileset_map[10], value, 100); break;
-				case 11: strncpy(tileset_map[11], value, 100); break;
-				case 12: strncpy(tileset_map[12], value, 100); break;
-				case 13: strncpy(tileset_map[13], value, 100); break;
-				case 14: strncpy(tileset_map[14], value, 100); break;
-				case 15: strncpy(tileset_map[15], value, 100); break;
-				}
-			}
 		} break;
 		case 3: {
 			// data
@@ -782,10 +736,10 @@ static void load_board(const char* path_to_board_file, int board_index)
 					board_list[board_index].data[j][i] = tile_index;
 					board_list[board_index].tileset_data[j][i] = tileset_index;
 
+                    int index = get_tileset_index_by_name(tileset_map[tileset_index]);
+					board_list[board_index].collision[i][j] = tileset_list[index].collision[tile_index];
 
-					board_list[board_index].collision[i][j] = tileset_collisions[tileset_index][tile_index];
-
-					if (FALSE) {
+#if (FALSE)
 						if (strcmp(tileset_map[tileset_index], "terrain") == 0) {
 							switch (tile_index)
 							{
@@ -808,7 +762,7 @@ static void load_board(const char* path_to_board_file, int board_index)
 
 						else
 							board_list[board_index].collision[i][j] = 1;
-					}
+#endif
 				}
 			}
 		} break;
@@ -821,64 +775,6 @@ static void load_board(const char* path_to_board_file, int board_index)
 
 	fclose(fp_board);
 }
-
-// can't return arrays
-static void load_tile_collisions(const char* path_to_collision_file)
-{
-	// default
-	int collisions[256] = { 1 };
-
-	FILE* fp_collisions = fopen(path_to_collision_file, "r");
-
-	if (fp_collisions == NULL)
-		return collisions;
-
-
-	int c;
-	char collisions_number[100] = { 0 };
-	int i = 0;
-	BOOL gteol = FALSE;
-
-	do
-	{
-		c = fgetc(fp_collisions);
-
-		if (c == '#')
-		{
-			// go to end of line or end of file
-			gteol = TRUE;
-			continue;
-
-		}
-		else if (c == ',' || c == '\n' || c == EOF)
-		{
-			if (c == '\n' & gteol)
-			{
-				gteol = FALSE;
-				continue;
-				memset(collisions_number, 0, 100);
-			}
-
-			//make sure collisions_number is not nothing
-			if (collisions_number[0] != '\0')
-			{
-				int x = collisions_number;
-				collisions[i] = x;
-				++i;
-				memset(collisions_number, 0, 100);
-			}
-		}
-
-
-
-
-	} while (c != EOF);
-
-	fclose(fp_collisions);
-	return collisions;
-
-}
-
 
 static void load_all_boards()
 {
