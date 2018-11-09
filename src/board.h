@@ -174,6 +174,7 @@ typedef struct
 
 char tileset_map[16][100] = { 0 };
 int tileset_num = 0;
+int tileset_collisions[16][256] = { 1 };
 
 typedef struct
 {
@@ -599,6 +600,8 @@ static void load_board_map()
 	fclose(fp_map);
 }
 
+
+//not used anymore
 static void generate_indexed_board(const char* rgb_image_path,const char* indexed_path)
 {
     int w,h,n;
@@ -675,6 +678,8 @@ static void generate_all_boards()
     }
 }
 
+
+
 static void load_board(const char* path_to_board_file, int board_index)
 {
     FILE* fp_board = fopen(path_to_board_file,"rb");
@@ -682,10 +687,11 @@ static void load_board(const char* path_to_board_file, int board_index)
 	if (fp_board == NULL)
 		return;
 
-    // find :/data section
+    // find :data section
     char s[1000] = {0};
 	int key = 0;
     char value[100] = {0};
+	
 
     int current_section = 0;
 
@@ -714,6 +720,31 @@ static void load_board(const char* path_to_board_file, int board_index)
                 // tileset info
 				int matches = sscanf(s, "%d=%s\n", &key, value);
                 str_replace(value,100,".tileset.png","",value);
+
+				char path_to_collision[100];
+				strncpy(path_to_collision, "data\\tilesets\\", 100);
+				strcat(path_to_collision, value, 100);
+				strcat(path_to_collision, ".tileset.collision");
+
+				
+				//some stuff I tried
+				//parse the collision file to get the array of values
+				if (matches == 2) {
+					//tileset_collisions[key] = load_tile_collisions(path_to_collision);
+					//int collisions[256] = load_tile_collisions(path_to_collision);
+					//int i;
+					//for (i = 0; i < 256; i++) {
+					//	tileset_collisions[key][i] = collisions[i];
+					//}
+
+				}
+				
+				//load_tile_collisions(path_to_collision);
+
+
+			
+				
+
 
 				if(matches == 2) {
 					switch (key) {
@@ -751,27 +782,33 @@ static void load_board(const char* path_to_board_file, int board_index)
                         board_list[board_index].data[j][i] = tile_index;
                         board_list[board_index].tileset_data[j][i] = tileset_index;
 
-                        if (strcmp(tileset_map[tileset_index], "terrain") == 0) {
-                            switch (tile_index)
-                            {
-                            case GRASS: board_list[board_index].collision[i][j] = 1; break;
-                            case MARSH: board_list[board_index].collision[i][j] = 1; break;
-                            case WOOD:  board_list[board_index].collision[i][j] = 1; break;
-                            case SAND:  board_list[board_index].collision[i][j] = 2; break;
-                            case MUD:   board_list[board_index].collision[i][j] = 3; break;
-                            case WATER: board_list[board_index].collision[i][j] = 4; break;
-                            case LAVA:  board_list[board_index].collision[i][j] = 6; break;
-                            case MOUNTAIN: board_list[board_index].collision[i][j] = 5; break;
-                            case STONE: board_list[board_index].collision[i][j] = 5; break;
-                            case WATER_DEEP: board_list[board_index].collision[i][j] = 5; break;
-                            case CAVE: board_list[board_index].collision[i][j] = 1; break;
-							case DIRT: board_list[board_index].collision[i][j] = 1; break;
-							case BRICK: board_list[board_index].collision[i][j] = 5; break;
-                            default: board_list[board_index].collision[i][j] = 1; break;
-                            }
-                        }
-                        else
-                            board_list[board_index].collision[i][j] = 1;
+						
+						board_list[board_index].collision[i][j] = tileset_collisions[tileset_index][tile_index];
+
+						if (FALSE) {
+							if (strcmp(tileset_map[tileset_index], "terrain") == 0) {
+								switch (tile_index)
+								{
+								case GRASS: board_list[board_index].collision[i][j] = 1; break;
+								case MARSH: board_list[board_index].collision[i][j] = 1; break;
+								case WOOD:  board_list[board_index].collision[i][j] = 1; break;
+								case SAND:  board_list[board_index].collision[i][j] = 2; break;
+								case MUD:   board_list[board_index].collision[i][j] = 3; break;
+								case WATER: board_list[board_index].collision[i][j] = 4; break;
+								case LAVA:  board_list[board_index].collision[i][j] = 6; break;
+								case MOUNTAIN: board_list[board_index].collision[i][j] = 5; break;
+								case STONE: board_list[board_index].collision[i][j] = 5; break;
+								case WATER_DEEP: board_list[board_index].collision[i][j] = 5; break;
+								case CAVE: board_list[board_index].collision[i][j] = 1; break;
+								case DIRT: board_list[board_index].collision[i][j] = 1; break;
+								case BRICK: board_list[board_index].collision[i][j] = 5; break;
+								default: board_list[board_index].collision[i][j] = 1; break;
+								}
+							}
+
+							else
+								board_list[board_index].collision[i][j] = 1;
+						}
                     }
                 }
             } break;
@@ -784,6 +821,64 @@ static void load_board(const char* path_to_board_file, int board_index)
 
     fclose(fp_board);
 }
+
+// can't return arrays
+static void load_tile_collisions(const char* path_to_collision_file)
+{
+	// default
+	int collisions[256] = { 1 };
+
+	FILE* fp_collisions = fopen(path_to_collision_file, "r");
+
+	if (fp_collisions == NULL)
+		return collisions;
+
+
+	int c;
+	char collisions_number[100] = { 0 };
+	int i = 0;
+	BOOL gteol = FALSE;
+
+	do
+	{
+		c = fgetc(fp_collisions);
+
+		if (c == '#')
+		{
+			// go to end of line or end of file
+			gteol = TRUE;
+			continue;
+			
+		}
+		else if (c == ',' || c == '\n' || c == EOF)
+		{
+			if (c == '\n' & gteol) 
+			{
+				gteol = FALSE;
+				continue;
+				memset(collisions_number, 0, 100);
+			}
+
+			//make sure collisions_number is not nothing
+			if (collisions_number[0] != '\0')
+			{
+				int x = collisions_number;
+				collisions[i] = x;
+				++i;
+				memset(collisions_number, 0, 100);
+			}
+		}
+
+
+
+
+	} while (c != EOF);
+
+	fclose(fp_collisions);
+	return collisions;
+
+}
+
 
 static void load_all_boards()
 {

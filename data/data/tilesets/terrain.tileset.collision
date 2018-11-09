@@ -1,0 +1,14 @@
+#1 = normal
+#2 = normal?	(sand)
+#3 = speed/2	(mud)
+#4 = speed/3	(water)
+#5 = no collision
+#6 = speed/3 and take damage	(lava)
+
+
+#grass,marsh,water,water,sand,mud,mountain,ice,lava,lava,stone,wood,water_deep,water_deep,portal,dirt
+#brick
+
+1,1,4,4,2,3,5,1,6,6,5,1,5,5,1,1
+5
+
