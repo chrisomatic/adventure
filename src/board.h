@@ -600,69 +600,6 @@ static void load_board_map()
 }
 
 
-//not used anymore
-static void generate_indexed_board(const char* rgb_image_path, const char* indexed_path)
-{
-	int w, h, n;
-	unsigned char *imgdata = stbi_load(rgb_image_path, &w, &h, &n, 0);
-
-	if (imgdata == NULL)
-		return;
-
-	unsigned char *p = imgdata;
-
-	FILE * fp_board;
-	fp_board = fopen(indexed_path, "wb");
-
-	unsigned char r, g, b;
-	int val;
-
-	for (int j = 0; j < h; ++j)
-	{
-		for (int i = 0; i < w; ++i)
-		{
-			r = *(p + 0);
-			g = *(p + 1);
-			b = *(p + 2);
-
-			val = 0xFF;
-
-			if (r == 0 && g == 175 && b == 0) // grass
-				val = GRASS;
-			else if (r == 0 && g == 100 && b == 0) // marsh
-				val = MARSH;
-			else if (r == 0 && g == 150 && b == 175) // water 
-				val = WATER;
-			else if (r == 0 && g == 50 && b == 150) // deep water 
-				val = WATER_DEEP;
-			else if (r == 255 && g == 200 && b == 0) // sand
-				val = SAND;
-			else if (r == 100 && g == 75 && b == 50) // mud
-				val = MUD;
-			else if (r == 100 && g == 100 && b == 100) // mountain
-				val = MOUNTAIN;
-			else if (r == 255 && g == 255 && b == 255) // snow
-				val = SNOW;
-			else if (r == 255 && g == 0 && b == 0)    // lava
-				val = LAVA;
-			else if (r == 175 && g == 175 && b == 175)   // stone 
-				val = STONE;
-			else if (r == 200 && g == 150 && b == 64)   // wood 
-				val = WOOD;
-			else if (r == 0 && g == 0 && b == 0)   // cave
-				val = CAVE;
-
-			if (fputc(val, fp_board) == EOF)
-				return;
-
-			p += n;
-		}
-	}
-
-	fclose(fp_board);
-	stbi_image_free(imgdata);
-}
-
 static void generate_all_boards()
 {
 	char paths[100][MAX_PATH] = { 0 };
@@ -738,33 +675,9 @@ static void load_board(const char* path_to_board_file, int board_index)
 
                     int index = get_tileset_index_by_name(tileset_map[tileset_index]);
 					board_list[board_index].collision[i][j] = tileset_list[index].collision[tile_index];
-
-#if (FALSE)
-						if (strcmp(tileset_map[tileset_index], "terrain") == 0) {
-							switch (tile_index)
-							{
-							case GRASS: board_list[board_index].collision[i][j] = 1; break;
-							case MARSH: board_list[board_index].collision[i][j] = 1; break;
-							case WOOD:  board_list[board_index].collision[i][j] = 1; break;
-							case SAND:  board_list[board_index].collision[i][j] = 2; break;
-							case MUD:   board_list[board_index].collision[i][j] = 3; break;
-							case WATER: board_list[board_index].collision[i][j] = 4; break;
-							case LAVA:  board_list[board_index].collision[i][j] = 6; break;
-							case MOUNTAIN: board_list[board_index].collision[i][j] = 5; break;
-							case STONE: board_list[board_index].collision[i][j] = 5; break;
-							case WATER_DEEP: board_list[board_index].collision[i][j] = 5; break;
-							case CAVE: board_list[board_index].collision[i][j] = 1; break;
-							case DIRT: board_list[board_index].collision[i][j] = 1; break;
-							case BRICK: board_list[board_index].collision[i][j] = 5; break;
-							default: board_list[board_index].collision[i][j] = 1; break;
-							}
-						}
-
-						else
-							board_list[board_index].collision[i][j] = 1;
-#endif
 				}
 			}
+			current_section = -1;
 		} break;
 		}
 	}
