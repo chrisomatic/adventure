@@ -191,6 +191,44 @@ static void player_die()
     board_title_display_counter = 0;
 }
 
+static BOOL is_player_on_portal(Portal *portal)
+{
+    for(int i = 0; i < num_portal_links; ++i)
+    {
+        if(portal_links[i].a.board_index == current_board_index)
+        {
+            // check if player is colliding with portal
+            if(player.phys.x + player.phys.x_offset >= portal_links[i].a.x && player.phys.x + player.phys.x_offset + player.phys.width <= portal_links[i].a.x + TILE_WIDTH)
+            {
+				if (player.phys.y + player.phys.y_offset >= portal_links[i].a.y && player.phys.y + player.phys.y_offset + player.phys.length <= portal_links[i].a.y + TILE_HEIGHT)
+                {
+					portal->board_index = portal_links[i].b.board_index;
+					portal->x = portal_links[i].b.x;
+					portal->y = portal_links[i].b.y;
+
+                    return TRUE;
+                }
+            }
+        }
+
+        if(portal_links[i].b.board_index == current_board_index)
+        {
+            // check if player is colliding with portal
+            if(player.phys.x + player.phys.x_offset >= portal_links[i].b.x && player.phys.x + player.phys.x_offset + player.phys.width <= portal_links[i].b.x + TILE_WIDTH)
+            {
+				if (player.phys.y + player.phys.y_offset >= portal_links[i].b.y && player.phys.y + player.phys.y_offset + player.phys.length <= portal_links[i].b.y + TILE_HEIGHT)
+                {
+					portal->board_index = portal_links[i].a.board_index;
+					portal->x = portal_links[i].a.x;
+					portal->y = portal_links[i].a.y;
+
+                    return TRUE;
+                }
+            }
+        }
+    }
+    return FALSE;
+}
 static void update_player()
 {
     if((player.state & PLAYER_STATE_DEAD) == PLAYER_STATE_DEAD)
@@ -328,48 +366,21 @@ static void update_player()
     }
 
     // check portals
-    for(int i = 0; i < num_portal_links; ++i)
-    {
-        if(portal_links[i].a.board_index == current_board_index)
-        {
-            // check if player is colliding with portal
-            if(player.phys.x + player.phys.x_offset >= portal_links[i].a.x && player.phys.x + player.phys.x_offset + player.phys.width <= portal_links[i].a.x + TILE_WIDTH)
-            {
-				if (player.phys.y + player.phys.y_offset >= portal_links[i].a.y && player.phys.y + player.phys.y_offset + player.phys.length <= portal_links[i].a.y + TILE_HEIGHT)
-                {
-                    current_board_index = portal_links[i].b.board_index;
-                    player.phys.x = portal_links[i].b.x;
-                    player.phys.y = portal_links[i].b.y;
-                    display_board_title = TRUE;
-                    board_title_display_counter = 0;
+	Portal portal;
+    if(is_player_on_portal(&portal)) {
+        message.name = board_list[portal.board_index].name;
+        message.message = "Press E to enter";
+        message.value = -1;
+        message.color = 6;
+        message.active = TRUE;
 
-                    if(player.phys.x_vel > 0) player.phys.x += TILE_WIDTH;
-                    else if(player.phys.x_vel < 0) player.phys.x -= TILE_WIDTH;
-
-                    if(player.phys.y_vel > 0) player.phys.y += TILE_HEIGHT;
-                    else if(player.phys.y_vel < 0) player.phys.y -= TILE_HEIGHT;
-                }
-
-            }
-        }
-
-        if(portal_links[i].b.board_index == current_board_index)
-        {
-            // check if player is colliding with portal
-            if(player.phys.x + player.phys.x_offset >= portal_links[i].b.x && player.phys.x + player.phys.x_offset + player.phys.width <= portal_links[i].b.x + TILE_WIDTH)
-            {
-                if(player.phys.y + player.phys.y_offset >= portal_links[i].b.y && player.phys.y + player.phys.y_offset + player.phys.length <= portal_links[i].b.y + TILE_HEIGHT)
-                {
-                    current_board_index = portal_links[i].a.board_index;
-                    player.phys.x = portal_links[i].a.x;
-                    player.phys.y = portal_links[i].a.y;
-                    display_board_title = TRUE;
-                    board_title_display_counter = 0;
-
-                    player.phys.x += player.phys.x_vel*player.phys.speed*16;
-                    player.phys.y += player.phys.y_vel*player.phys.speed*16;
-                }
-            }
+        if(player.pickup) {
+            player.pickup = FALSE;
+            current_board_index = portal.board_index;
+            player.phys.x = portal.x;
+            player.phys.y = portal.y;
+            display_board_title = TRUE;
+            board_title_display_counter = 0;
         }
     }
     

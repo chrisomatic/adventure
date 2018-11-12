@@ -406,6 +406,7 @@ static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM 
             else if(wparam == 'E')
             {
                 player.pickup = TRUE;
+
             }
             else if(wparam == 'R')
             {
