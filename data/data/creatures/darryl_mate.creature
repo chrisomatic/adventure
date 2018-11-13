@@ -1,10 +1,10 @@
-name: Darryl
+name: Darryl_Mate
 is_npc: 1 #TRUE
 hp: 100
 max_hp: 100
 xp: 1
 num_dialogue: 1
-dialogue0: "I don't procreate."
+dialogue0: "I like to mate."
 speed: 0.5
 gold_drop_max: 12
 behavior: 0 # Passive
@@ -13,10 +13,15 @@ tileset_name: characters
 is_vendor: 0 #TRUE
 tile_index: 32
 species: Human
-reproductive: 0 #FALSE
+reproductive: 1 #FALSE
 adult_age: 5040
 width: 16
 length: 8
 height: 16
 x_offset: 2
 y_offset: 8
+mating_radius: 8 #pixels
+birth_recovery_time: 60 #seconds
+gestation_period: 20 #seconds
+litter_max: 7
+max_age: 28800
