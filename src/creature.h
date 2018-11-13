@@ -420,6 +420,31 @@ static void update_creatures()
                 }
             }
         }
+		else if (creatures[i].behavior == CREATURE_BEHAVIOR_QUAKER)
+		{
+			// check distance from player
+			if (creatures[i].mode == CREATURE_MODE_FLEE && creatures[i].board_index == current_board_index && (player.state & PLAYER_STATE_DEAD) != PLAYER_STATE_DEAD && get_distance(player.phys.x + TILE_WIDTH / 2, player.phys.y + TILE_HEIGHT / 2, creatures[i].phys.x + TILE_WIDTH / 2, creatures[i].phys.y + TILE_HEIGHT / 2) <= creatures[i].aggro_radius)
+			{
+				//uncomment this to see a funny bug
+				//creatures[i].state = CREATURE_STATE_NEUTRAL;
+			}
+			else
+			{
+				creatures[i].mode = CREATURE_MODE_WANDER;
+
+				if (creatures[i].deaggress)
+				{
+					++creatures[i].deaggression_counter;
+					if (creatures[i].deaggression_counter == creatures[i].deaggression_duration)
+					{
+						creatures[i].deaggression_counter = 0;
+						creatures[i].deaggress = FALSE;
+						creatures[i].phys.speed = creatures[i].phys.speed/1.5;
+						//creatures[i].behavior = CREATURE_BEHAVIOR_QUAKER;
+					}
+				}
+			}
+		}
         else
         {
             creatures[i].mode = CREATURE_MODE_WANDER;
@@ -435,7 +460,7 @@ static void update_creatures()
                     creatures[i].action_duration_counter = 0;
                     creatures[i].state = CREATURE_STATE_NEUTRAL; // return to neutral state
 
-                    if(creatures[i].mode != CREATURE_MODE_PURSUE)
+                    if(creatures[i].mode != CREATURE_MODE_PURSUE && creatures[i].mode != CREATURE_MODE_FLEE)
                     {
                         creatures[i].phys.x_vel = +0;
                         creatures[i].phys.y_vel = +0;
@@ -512,6 +537,23 @@ static void update_creatures()
                         }
                     }
                 }
+				else if (creatures[i].mode == CREATURE_MODE_FLEE)
+				{
+					// update particles
+					creatures[i].particle_spawn_counter++;
+					if (creatures[i].particle_spawn_counter >= 30)
+					{
+						creatures[i].particle_spawn_counter = 0;
+
+						int num_puncts = rand() % 5 + 3;
+						int punctuation;
+						for (int j = 0; j < num_puncts; ++j)
+						{
+							punctuation = 33;
+							spawn_particle(rand() % TILE_WIDTH + creatures[i].phys.x, creatures[i].phys.y, 1, 1, punctuation, 9, creatures[i].board_index);
+						}
+					}
+				}
             }
 
             if(creatures[i].attacking)
@@ -719,6 +761,70 @@ static void update_creatures()
                         }
 
                         break;
+
+					case CREATURE_MODE_FLEE:
+
+						creatures[i].action_counter_max = 60;
+						creatures[i].action_duration_counter_max = rand() % 15 + 15 + 1;
+
+						float unit = 1.5;
+						int dd = (rand() % 8) + 1;
+						creatures[i].phys.speed = creatures[i].phys.speed * unit;
+						
+						// might use
+						//float diff_x = (creatures[i].phys.x - player.phys.x);
+						//float diff_y = (creatures[i].phys.y - player.phys.y);
+
+						switch (dd)
+						{
+						// should never hit this case
+						case 0:
+							creatures[i].phys.x_vel = +1;
+							creatures[i].phys.y_vel = +1;
+							break;
+						case 1:
+							creatures[i].dir = DIR_UP;
+							creatures[i].phys.x_vel = +0;
+							creatures[i].phys.y_vel = -1;
+							break;
+						case 2:
+							creatures[i].dir = DIR_DOWN;
+							creatures[i].phys.x_vel = +0;
+							creatures[i].phys.y_vel = +1;
+							break;
+						case 3:
+							creatures[i].dir = DIR_LEFT;
+							creatures[i].phys.x_vel = -1;
+							creatures[i].phys.y_vel = +0;
+							break;
+						case 4:
+							creatures[i].dir = DIR_RIGHT;
+							creatures[i].phys.x_vel = +1;
+							creatures[i].phys.y_vel = +0;
+							break;
+						case 5:
+							creatures[i].dir = DIR_UP;
+							creatures[i].phys.x_vel = -1;
+							creatures[i].phys.y_vel = -1;
+							break;
+						case 6:
+							creatures[i].dir = DIR_UP;
+							creatures[i].phys.x_vel = +1;
+							creatures[i].phys.y_vel = -1;
+							break;
+						case 7:
+							creatures[i].dir = DIR_DOWN;
+							creatures[i].phys.x_vel = -1;
+							creatures[i].phys.y_vel = +1;
+							break;
+						case 8:
+							creatures[i].dir = DIR_DOWN;
+							creatures[i].phys.x_vel = +1;
+							creatures[i].phys.y_vel = +1;
+							break;
+						}
+
+						break;
 
                     case CREATURE_MODE_PURSUE:
                         

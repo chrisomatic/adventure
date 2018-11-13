@@ -4,7 +4,7 @@ max_hp: 15
 xp: 3
 speed: 0.5
 gold_drop_max: 2
-behavior: 0 # Passive
+behavior: 2 # Passive and flee when hurt
 untargetable: 0 #FALSE
 tileset_name: creatures
 tile_index: 96

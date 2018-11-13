@@ -500,6 +500,11 @@ static void update_player()
                                                 creatures[i].behavior = CREATURE_BEHAVIOR_AGGRESSIVE;
                                                 creatures[i].deaggress = TRUE;
                                             }
+											else if (creatures[i].behavior == CREATURE_BEHAVIOR_QUAKER)
+											{
+												creatures[i].mode = CREATURE_MODE_FLEE;
+												creatures[i].deaggress = TRUE;
+											}
                                         }
                                         break;
                                     }
