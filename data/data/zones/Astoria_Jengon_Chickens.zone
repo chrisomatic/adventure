@@ -1,0 +1,9 @@
+name: Astoria_Jengon_Chickens
+board_name: Astoria
+num_creatures: 20
+num_creature_types: 1
+creature_type_name0: Chicken
+x: 1664
+y: 224
+w: 448
+h: 256

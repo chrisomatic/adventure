@@ -1,7 +1,7 @@
 name: Hero
 board_name: Astoria
 tileset_name: characters
-tile_index: 32
+tile_index: 0
 available_stat_points: 0
 lvl: 1
 xp: 0

@@ -1,0 +1,9 @@
+name: Astoria_Jengon
+board_name: Astoria
+num_creatures: 1
+num_creature_types: 1
+creature_type_name0: Jengon
+x: 1664
+y: 224
+w: 448
+h: 256

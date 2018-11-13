@@ -1,0 +1,23 @@
+name: Chicken
+hp: 15
+max_hp: 15
+xp: 3
+speed: 0.5
+gold_drop_max: 2
+behavior: 0 # Passive
+untargetable: 0 #FALSE
+tileset_name: creatures
+tile_index: 96
+species: Chicken
+reproductive: 0 #FALSE
+mating_radius: 8 #pixels
+birth_recovery_time: 432 #seconds
+adult_age: 5040 #seconds
+gestation_period: 2880 #seconds
+litter_max: 7
+max_age: 28800
+width: 12
+length: 14
+height: 8
+x_offset: 2
+y_offset: 8
