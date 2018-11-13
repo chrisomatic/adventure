@@ -51,7 +51,7 @@ class MyWidget(QMainWindow):
         self.build_ts_combo()
 
         self.tool_combo = QComboBox(self)
-        self.tool_list = ['Pen','Rectangle','Rectangle Fill','Fill','Copy Range','Objects']
+        self.tool_list = ['Pen','Rectangle','Rectangle Fill','Fill','Copy Range','Objects','Get Zone']
         self.tool_combo.addItems(self.tool_list)
         self.tool_combo.activated[str].connect(self.change_tool)
         self.tool_combo.setToolTip("Ctrl + D")
@@ -470,7 +470,7 @@ class MyWidget(QMainWindow):
                 self.editor.board[j][i].tile_index = -1
                 self.editor.board[j][i].tile_set_name = "-1"
         self.repaint()
-        self.editor.update()
+        # self.editor.update()
 
     def auto_save(self):
         try:
@@ -714,6 +714,7 @@ class MyWidget(QMainWindow):
         self.editor.copied_range = False
         self.editor.copy_moved = False
         self.editor.copying = False
+        self.editor.zoning = False
 
         if text.lower() == "objects":
             self.object_lst = [x for x in os.listdir(self.ob_path) if ".png" in x]
@@ -738,6 +739,8 @@ class MyWidget(QMainWindow):
 
         self.h_lbound = self.scroll.horizontalScrollBar().value()
         self.h_ubound = self.h_lbound + self.scroll.viewport().width()
+
+        # print(self.scroll.viewport().width(),self.scroll.viewport().height())
 
         self.editor.v_lbound = self.v_lbound
         self.editor.v_ubound = self.v_ubound

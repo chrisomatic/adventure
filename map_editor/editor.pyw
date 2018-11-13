@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import os
+import win32clipboard
 
 import sys
 from PyQt5.QtWidgets import *
@@ -54,6 +55,8 @@ class Editor(QWidget):
         self.rect_moved = False
         self.rectangling = False
         self.rectangle_wh = False
+        self.zoning = False
+        self.got_zone = False
         self.grid = True
         self.c1_ghost = (0,0)
         self.c4_ghost = (0,0)
@@ -124,6 +127,7 @@ class Editor(QWidget):
         self.draw_coords(self.h_lbound+2,self.v_ubound-5,int(int(self.mouse_x / self.tile_size_zoom) * self.tile_size),int(int(self.mouse_y / self.tile_size_zoom) * self.tile_size))
         self.draw_coords(self.h_ubound-55,self.v_ubound-5,int(self.mouse_x / self.tile_size_zoom),int(self.mouse_y / self.tile_size_zoom))
         self.draw_copy_status(self.h_lbound + (self.h_ubound - self.h_lbound)*.45,self.v_ubound-5)
+        self.draw_get_zone(self.h_lbound + (self.h_ubound - self.h_lbound)*.45,self.v_ubound-5)
         self.drawGhostRect()
         
 
@@ -133,6 +137,8 @@ class Editor(QWidget):
         vu = min(int(self.v_ubound / self.tile_size_zoom)+1,self.board_height)
         hl = max(int(self.h_lbound / self.tile_size_zoom),0)
         hu = min(int(self.h_ubound / self.tile_size_zoom)+1,self.board_width)
+        # print(vl,vu)
+        # print(hl,hu)
 
         for x in range(hl,hu):
             for y in range(vl,vu):
@@ -175,6 +181,22 @@ class Editor(QWidget):
         qp.drawText(QPointF(x,y),text)
         qp.end()
 
+    def draw_get_zone(self,x,y):
+        if self.tool != "get zone":
+            return
+        
+        text = ""
+        if not self.got_zone and not self.copying:
+            text = "select a range"
+        elif self.got_zone and not self.zoning:
+            text = "zone copied to clipboard"
+        elif self.zoning:
+            text = ""
+
+        qp = QPainter()
+        qp.begin(self)
+        qp.drawText(QPointF(x,y),text)
+        qp.end()
 
     def draw_grid(self):
         if self.tile_size_zoom >= 4 and self.grid:
@@ -191,7 +213,7 @@ class Editor(QWidget):
     def drawGhostRect(self):
         qp = QPainter()
 
-        if self.tool in ["pen","rectangle","rectangle fill","copy range"]:
+        if self.tool in ["pen","rectangle","rectangle fill","copy range","get zone"]:
             qp.begin(self)
 
             Xrange = range(min([self.c1_ghost[0],self.c4_ghost[0]]),max([self.c1_ghost[0],self.c4_ghost[0]])+1)
@@ -290,6 +312,9 @@ class Editor(QWidget):
             
             elif self.tool == "objects":
                 self.objects_tool("press")
+
+            elif self.tool == "get zone":
+                self.zone_tool("press")
                         
         self.update()
 
@@ -312,6 +337,9 @@ class Editor(QWidget):
         elif self.tool == "objects":
             self.objects_tool("move")
 
+        elif self.tool == "get zone":
+            self.zone_tool("move")
+
         self.update()
 
     def mouseReleaseEvent(self, event):
@@ -332,6 +360,9 @@ class Editor(QWidget):
 
         elif self.tool == "objects":
             self.objects_tool("release")
+
+        elif self.tool == "get zone":
+            self.zone_tool("release")
 
         self.update()
 
@@ -565,7 +596,61 @@ class Editor(QWidget):
                 self.c4_ghost = (self.c4_copy[0],self.c4_copy[1])
                 self.copy_moved = False
 
+    def zone_tool(self,mouse):
+        x = int(self.mouse_x / self.tile_size_zoom)
+        y = int(self.mouse_y / self.tile_size_zoom)
 
+        if mouse == "press":
+            self.c1 = (x,y)
+            self.c1_ghost = (x,y)
+            self.c4_ghost = (x,y)
+            self.zoning = True
+
+
+        elif mouse == "move":
+            if self.zoning:
+                self.c4 = (x,y)
+                self.rect_moved = True
+                self.c4_ghost = (self.c4[0],self.c4[1])
+
+                # self.rectangle_wh = True
+
+            elif not self.zoning:
+                self.c1_ghost = (int(self.mouse_x / self.tile_size_zoom),int(self.mouse_y / self.tile_size_zoom))
+                self.c4_ghost = (int(self.mouse_x / self.tile_size_zoom),int(self.mouse_y / self.tile_size_zoom))
+
+            
+
+        elif mouse == "release":
+            if not self.rect_moved:
+                self.c4 = (self.c1[0],self.c1[1])
+            self.c1_ghost = (int(self.mouse_x / self.tile_size_zoom),int(self.mouse_y / self.tile_size_zoom))
+            self.c4_ghost = (int(self.mouse_x / self.tile_size_zoom),int(self.mouse_y / self.tile_size_zoom))
+            self.zoning = False
+            
+            min_x = min(self.c1[0],self.c4[0])
+            max_x = max(self.c1[0],self.c4[0])
+            min_y = min(self.c1[1],self.c4[1])
+            max_y = max(self.c1[1],self.c4[1])
+            px = "x: " + str(int(min_x * self.tile_size))
+            py = "y: " + str(int(min_y * self.tile_size))
+            pw = "w:" + str(int((max_x - min_x + 1) * self.tile_size))
+            ph = "h:" + str(int((max_y - min_y + 1) * self.tile_size))
+            # print(px)
+            # print(py)
+            # print(pw)
+            # print(ph)
+
+            win32clipboard.OpenClipboard()
+            win32clipboard.EmptyClipboard()
+            win32clipboard.SetClipboardText("\r\n".join([px,py,pw,ph]))
+            win32clipboard.CloseClipboard()
+
+            self.rect_moved = False
+            self.got_zone = True
+
+
+          
 
     def draw_area(self,x1,x2,y1,y2):
         Xrange = range(min([x1,x2]),max([x1,x2])+1)
