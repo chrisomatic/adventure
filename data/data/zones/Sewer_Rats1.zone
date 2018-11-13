@@ -4,7 +4,7 @@ num_creatures: 50
 num_creature_types: 2
 creature_type_name0: Rat
 creature_type_name1: "White Rat"
-x: 304 #pixels
-y: 880 #pixels
-w: 430 #pixels
-h: 200 #pixels
+x: 288
+y: 864
+w: 320
+h: 224
