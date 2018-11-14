@@ -163,6 +163,12 @@ static BOOL spawn_creature(const char* creature_name,const char* board_name,floa
     creatures[num_creatures].dir = DIR_DOWN;
     creatures[num_creatures].state = CREATURE_STATE_NEUTRAL;
     creatures[num_creatures].mode  = CREATURE_MODE_WANDER;
+	creatures[num_creatures].state2 = CREATURE_NORMAL;
+	creatures[num_creatures].mode0 = CREATURE_WANDER;
+	creatures[num_creatures].mode1 = CREATURE_WANDER;
+	creatures[num_creatures].mode2 = CREATURE_FLEE;
+	creatures[num_creatures].mode_current = CREATURE_WANDER;
+	creatures[num_creatures].is_acting = FALSE;
     creatures[num_creatures].name = creature.name;
     creatures[num_creatures].board_name = board_name;
     creatures[num_creatures].board_index = get_board_index_by_name(creatures[num_creatures].board_name);
@@ -353,7 +359,178 @@ static void creature_death(int i)
     remove_creature(i);
 
     ++num_deaths;
+
+
 }
+
+static void update_creatures2()
+{
+	// init creature grid
+	for (int i = 0; i < CREATURE_GRID_X_MAX; ++i)
+	{
+		for (int j = 0; j < CREATURE_GRID_Y_MAX; ++j)
+		{
+			creature_grid[i][j].num_creatures = 0;
+		}
+	}
+
+	float min_distance = 1000.0f;
+	int min_index = -1;
+
+	for (int i = num_creatures - 1; i >= 0; --i)
+	{
+		// assign creatures to creature grids for optimizing creature-creature interactions
+		int grid_x = floor(CREATURE_GRID_X_MAX*(creatures[i].phys.x / (BOARD_TILE_WIDTH*TILE_WIDTH)));
+		int grid_y = floor(CREATURE_GRID_Y_MAX*(creatures[i].phys.y / (BOARD_TILE_HEIGHT*TILE_HEIGHT)));
+
+		creature_grid[grid_x][grid_y].creatures[creature_grid[grid_x][grid_y].num_creatures++] = &creatures[i];
+
+		creatures[i].grid_index_x = grid_x;
+		creatures[i].grid_index_y = grid_y;
+
+		if (creatures[i].stunned)
+		{
+			creatures[i].stun_counter++;
+			if (creatures[i].stun_counter >= creatures[i].stun_duration)
+			{
+				creatures[i].stun_counter = 0;
+				creatures[i].stunned = FALSE;
+			}
+		}
+
+
+
+		BOOL in_range_of_player = creatures[i].board_index == current_board_index && (player.state & PLAYER_STATE_DEAD) != PLAYER_STATE_DEAD && get_distance(player.phys.x + TILE_WIDTH / 2, player.phys.y + TILE_HEIGHT / 2, creatures[i].phys.x + TILE_WIDTH / 2, creatures[i].phys.y + TILE_HEIGHT / 2) <= creatures[i].aggro_radius;
+
+
+
+		//continue acting
+		//could be attacking, fleeing, etc...
+		if (creatures[i].is_acting) {
+
+			creatures[i].action_duration_counter++;
+
+			BOOL action_complete = creatures[i].action_duration_counter >= creatures[i].action_duration_counter_max;
+
+			//if the action duration is met, then set their acting equal to FALSE
+			//however, for some actions you might want them to keep acting if in range of the player
+			if (action_complete) {
+				creatures[i].is_acting = FALSE;
+			}
+
+
+			//change some settings
+			//might want to reset the action_duration_counter in some of these cases
+			if (creatures[i].mode_current == CREATURE_ATTACK) {
+				if (in_range_of_player) {
+					creatures[i].is_acting = TRUE;
+				}
+				else if (creatures[i].is_acting == FALSE) {
+					//need to reset their state2 so it can be re-determined below
+					creatures[i].state2 = CREATURE_NORMAL;
+				}
+			}
+
+			else if (creatures[i].mode_current == CREATURE_FLEE) {
+				if (in_range_of_player) {
+					creatures[i].is_acting = TRUE;
+				}
+			}
+
+			else if (creatures[i].mode_current == CREATURE_FOLLOW) {
+				if (in_range_of_player) {
+					creatures[i].is_acting = TRUE;
+				}
+			}
+
+			else if (creatures[i].mode_current == CREATURE_CONVERSE) {
+				if (in_range_of_player) {
+					creatures[i].is_acting = TRUE;
+				}
+				//note: may need to only have them talk to you once and then change their mode indefinitely
+			}
+
+
+		}
+
+		if (creatures[i].is_acting == FALSE) {
+
+
+			//determine the creature state
+			if (creatures[i].state2 == CREATURE_ATTACKED) {
+				//CREATURE_ATTACKED will be set in the player file
+			}
+			else if (in_range_of_player) {
+				creatures[i].state2 = CREATURE_NEAR_PLAYER;
+			}
+			else {
+				creatures[i].state2 = CREATURE_NORMAL;
+			}
+
+
+			//determine their mode based off their state
+			if (creatures[i].state2 == CREATURE_ATTACKED) {
+				creatures[i].mode_current = creatures[i].mode2;
+			}
+			else if (creatures[i].state2 == CREATURE_NEAR_PLAYER) {
+				creatures[i].mode_current = creatures[i].mode1;
+			}
+			else if (creatures[i].state2 == CREATURE_NORMAL) {
+				creatures[i].mode_current = creatures[i].mode0;
+			}
+
+
+		}
+
+
+
+		// need to put this somewhere or change it
+		if (creatures[i].deaggress && in_range_of_player == FALSE)
+		{
+			++creatures[i].deaggression_counter;
+			if (creatures[i].deaggression_counter == creatures[i].deaggression_duration)
+			{
+				creatures[i].deaggression_counter = 0;
+				creatures[i].deaggress = FALSE;
+			}
+		}
+
+
+
+		//execute the mode/action
+		if (creatures[i].mode_current == CREATURE_WANDER) {
+			//move randomly
+		}
+		else if (creatures[i].mode_current == CREATURE_PATROL) {
+			//do some patrolling
+		}
+		else if (creatures[i].mode_current == CREATURE_RPATROL) {
+			//do some random patrolling
+		}
+		else if (creatures[i].mode_current == CREATURE_ATTACK) {
+			//do some attacking
+		}
+		else if (creatures[i].mode_current == CREATURE_FLEE) {
+			//do some fleeing
+		}
+		else if (creatures[i].mode_current == CREATURE_FOLLOW) {
+			//do some following
+		}
+		else if (creatures[i].mode_current == CREATURE_CONVERSE) {
+			//do some conversing
+		}
+
+
+
+
+
+
+	} // end of loop through creatures
+
+
+
+}
+
 
 static void update_creatures()
 {

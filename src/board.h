@@ -245,6 +245,27 @@ typedef enum
 	CREATURE_BEHAVIOR_QUAKER
 } CreatureBehavior;
 
+
+typedef enum
+{
+	CREATURE_NORMAL,
+	CREATURE_NEAR_PLAYER,
+	CREATURE_ATTACKED
+} CreatureState2;
+
+typedef enum
+{
+	CREATURE_WANDER,
+	CREATURE_PATROL,
+	CREATURE_RPATROL,
+	CREATURE_ATTACK,
+	CREATURE_FLEE,
+	CREATURE_FOLLOW,
+	CREATURE_CONVERSE
+} CreatureMode2;
+
+
+
 typedef enum
 {
 	MALE,
@@ -297,8 +318,14 @@ typedef struct
 	int particle_spawn_counter;
 	BOOL untargetable;
 	CreatureState state;
-	CreatureMode  mode;
 	CreatureBehavior behavior;
+	CreatureMode  mode;
+	CreatureState2 state2;
+	CreatureMode2  mode0;
+	CreatureMode2  mode1;
+	CreatureMode2  mode2;
+	CreatureMode2 mode_current;
+	BOOL is_acting;
 	Direction dir;
 	Animation anim;
 	Gender gender;

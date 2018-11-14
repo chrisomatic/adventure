@@ -125,6 +125,7 @@ static void update_scene()
     update_coins();
     update_floating_numbers();
     update_creatures();
+	//update_creatures2();
     update_weather();
     update_particles();
     update_projectiles();
