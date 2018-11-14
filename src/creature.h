@@ -427,6 +427,7 @@ static void update_creatures()
 			{
 				//uncomment this to see a funny bug
 				//creatures[i].state = CREATURE_STATE_NEUTRAL;
+
 			}
 			else
 			{
@@ -440,7 +441,6 @@ static void update_creatures()
 						creatures[i].deaggression_counter = 0;
 						creatures[i].deaggress = FALSE;
 						creatures[i].phys.speed = creatures[i].phys.speed/1.5;
-						//creatures[i].behavior = CREATURE_BEHAVIOR_QUAKER;
 					}
 				}
 			}
@@ -764,12 +764,15 @@ static void update_creatures()
 
 					case CREATURE_MODE_FLEE:
 
-						creatures[i].action_counter_max = 60;
-						creatures[i].action_duration_counter_max = rand() % 15 + 15 + 1;
+						//creatures[i].action_counter_max = 60;
+						//creatures[i].action_duration_counter_max = rand() % 15 + 15 + 1;
 
-						float unit = 1.5;
+						creatures[i].action_counter_max = 0;
+						creatures[i].action_duration_counter_max = 10;
+
+						//float unit = 1.5;
 						int dd = (rand() % 8) + 1;
-						creatures[i].phys.speed = creatures[i].phys.speed * unit;
+						creatures[i].phys.speed = creatures[i].phys.speed * 1.5;
 						
 						// might use
 						//float diff_x = (creatures[i].phys.x - player.phys.x);
