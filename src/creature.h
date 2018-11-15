@@ -500,6 +500,64 @@ static void update_creatures2()
 		//execute the mode/action
 		if (creatures[i].mode_current == CREATURE_WANDER) {
 			//move randomly
+			//creatures[i].phys.x_vel = +1;
+			//creatures[i].phys.y_vel = +1;
+
+			creatures[i].action_counter_max = 60;
+			creatures[i].action_duration_counter_max = rand() % 60 + 1;
+
+			int d = rand() % 9;
+
+			switch (d)
+			{
+			case 0:
+				creatures[i].phys.x_vel = +0;
+				creatures[i].phys.y_vel = +0;
+				break;
+			case 1:
+				creatures[i].dir = DIR_UP;
+				creatures[i].phys.x_vel = +0;
+				creatures[i].phys.y_vel = -1;
+				break;
+			case 2:
+				creatures[i].dir = DIR_DOWN;
+				creatures[i].phys.x_vel = +0;
+				creatures[i].phys.y_vel = +1;
+				break;
+			case 3:
+				creatures[i].dir = DIR_LEFT;
+				creatures[i].phys.x_vel = -1;
+				creatures[i].phys.y_vel = +0;
+				break;
+			case 4:
+				creatures[i].dir = DIR_RIGHT;
+				creatures[i].phys.x_vel = +1;
+				creatures[i].phys.y_vel = +0;
+				break;
+			case 5:
+				creatures[i].dir = DIR_UP;
+				creatures[i].phys.x_vel = -1;
+				creatures[i].phys.y_vel = -1;
+				break;
+			case 6:
+				creatures[i].dir = DIR_UP;
+				creatures[i].phys.x_vel = +1;
+				creatures[i].phys.y_vel = -1;
+				break;
+			case 7:
+				creatures[i].dir = DIR_DOWN;
+				creatures[i].phys.x_vel = -1;
+				creatures[i].phys.y_vel = +1;
+				break;
+			case 8:
+				creatures[i].dir = DIR_DOWN;
+				creatures[i].phys.x_vel = +1;
+				creatures[i].phys.y_vel = +1;
+				break;
+			}
+			//break;
+
+
 		}
 		else if (creatures[i].mode_current == CREATURE_PATROL) {
 			//do some patrolling
@@ -519,6 +577,311 @@ static void update_creatures2()
 		else if (creatures[i].mode_current == CREATURE_CONVERSE) {
 			//do some conversing
 		}
+
+		creatures[i].phys.x += creatures[i].phys.x_vel*creatures[i].phys.speed;
+		creatures[i].phys.y += creatures[i].phys.y_vel*creatures[i].phys.speed;
+
+		if (creatures[i].phys.x_vel != 0 || creatures[i].phys.y_vel != 0)
+		{
+			handle_terrain_collision(creatures[i].board_index, &creatures[i].phys);
+
+			if (creatures[i].stunned)
+				creatures[i].phys.speed /= 2.0f;
+
+			// keep creature in zone boundaries
+			if (creatures[i].phys.x < creatures[i].zone.x)
+			{
+				creatures[i].phys.x = creatures[i].zone.x;
+				creatures[i].phys.x_vel *= -1; // flip creature in other direction
+				if (creatures[i].dir == DIR_LEFT) creatures[i].dir = DIR_RIGHT;
+				if (creatures[i].dir == DIR_RIGHT) creatures[i].dir = DIR_LEFT;
+			}
+			if (creatures[i].phys.y < creatures[i].zone.y)
+			{
+				creatures[i].phys.y = creatures[i].zone.y;
+				creatures[i].phys.y_vel *= -1; // flip creature in other direction
+				if (creatures[i].dir == DIR_UP) creatures[i].dir = DIR_DOWN;
+				if (creatures[i].dir == DIR_DOWN) creatures[i].dir = DIR_UP;
+			}
+			if (creatures[i].phys.x > creatures[i].zone.x + creatures[i].zone.w)
+			{
+				creatures[i].phys.x = creatures[i].zone.x + creatures[i].zone.w;
+				creatures[i].phys.x_vel *= -1; // flip creature in other direction
+				if (creatures[i].dir == DIR_LEFT) creatures[i].dir = DIR_RIGHT;
+				if (creatures[i].dir == DIR_RIGHT) creatures[i].dir = DIR_LEFT;
+			}
+			if (creatures[i].phys.y > creatures[i].zone.y + creatures[i].zone.h)
+			{
+				creatures[i].phys.y = creatures[i].zone.y + creatures[i].zone.h;
+				creatures[i].phys.y_vel *= -1; // flip creature in other direction
+				if (creatures[i].dir == DIR_UP) creatures[i].dir = DIR_DOWN;
+				if (creatures[i].dir == DIR_DOWN) creatures[i].dir = DIR_UP;
+			}
+
+			// keep creature in board boundaries
+			if (creatures[i].phys.x < 0) creatures[i].phys.x = 0;
+			if (creatures[i].phys.y < 0) creatures[i].phys.y = 0;
+			if (creatures[i].phys.x >TILE_WIDTH*(BOARD_TILE_WIDTH - 1)) creatures[i].phys.x = TILE_WIDTH*(BOARD_TILE_WIDTH - 1);
+			if (creatures[i].phys.y >TILE_HEIGHT*(BOARD_TILE_HEIGHT - 1)) creatures[i].phys.y = TILE_HEIGHT*(BOARD_TILE_HEIGHT - 1);
+
+			if (creatures[i].mode == CREATURE_MODE_PURSUE)
+			{
+				// update particles
+				creatures[i].particle_spawn_counter++;
+				if (creatures[i].particle_spawn_counter >= 30)
+				{
+					creatures[i].particle_spawn_counter = 0;
+
+					int num_puncts = rand() % 5 + 3;
+					int punctuation;
+					for (int j = 0; j < num_puncts; ++j)
+					{
+						punctuation = rand() % 6 + 33;
+						spawn_particle(rand() % TILE_WIDTH + creatures[i].phys.x, creatures[i].phys.y, 1, 1, punctuation, 9, creatures[i].board_index);
+					}
+				}
+			}
+			else if (creatures[i].mode == CREATURE_MODE_FLEE)
+			{
+				// update particles
+				creatures[i].particle_spawn_counter++;
+				if (creatures[i].particle_spawn_counter >= 30)
+				{
+					creatures[i].particle_spawn_counter = 0;
+
+					int num_puncts = rand() % 5 + 3;
+					int punctuation;
+					for (int j = 0; j < num_puncts; ++j)
+					{
+						punctuation = 33;
+						spawn_particle(rand() % TILE_WIDTH + creatures[i].phys.x, creatures[i].phys.y, 1, 1, punctuation, 9, creatures[i].board_index);
+					}
+				}
+			}
+		}
+
+
+		// handle creature animation
+		if (creatures[i].phys.x_vel != 0 || creatures[i].phys.y_vel != 0)
+		{
+			creatures[i].anim.counter++;
+
+			if (creatures[i].anim.counter >= 10 / creatures[i].phys.speed)
+			{
+				// cycle_animation
+				creatures[i].anim.counter = 0;
+				creatures[i].anim.frame += 1;
+				if (creatures[i].anim.frame >= creatures[i].anim.num_frames)
+					creatures[i].anim.frame = 0;
+			}
+		}
+		else
+		{
+			// clear animation frame
+			creatures[i].anim.counter = 0;
+			creatures[i].anim.frame = 0;
+		}
+
+		// handle npc stuff
+		if (creatures[i].npc_props.is_npc)
+		{
+			// check if player is near
+			float distance = get_distance(player.phys.x, player.phys.y, creatures[i].phys.x, creatures[i].phys.y);
+
+			if (distance <= creatures[i].npc_props.talk_radius)
+			{
+				BOOL prev_talking = creatures[i].npc_props.talking;
+
+				if (prev_talking == FALSE)
+				{
+					// randomly select new dialogue
+					creatures[i].npc_props.selected_dialogue_num = rand() % creatures[i].npc_props.num_dialogue;
+				}
+
+				creatures[i].npc_props.talking = TRUE;
+				creatures[i].npc_props.distance_from_player = distance;
+				creatures[i].state = CREATURE_STATE_NEUTRAL; // return to neutral state
+				creatures[i].phys.x_vel = +0;
+				creatures[i].phys.y_vel = +0;
+			}
+			else
+			{
+				creatures[i].npc_props.talking = FALSE;
+				creatures[i].npc_props.distance_from_player = -1.0f;
+			}
+
+			// update min index
+			if (creatures[i].npc_props.talking)
+			{
+				if (creatures[i].npc_props.distance_from_player < min_distance)
+				{
+					min_distance = creatures[i].npc_props.distance_from_player;
+					min_index = i;
+				}
+			}
+		}
+
+		// handle aging
+		++creatures[i].age_counter;
+		if (creatures[i].age_counter >= 60)
+		{
+			// creature is one second older
+			creatures[i].age_counter = 0;
+
+			++creatures[i].age;
+			if (creatures[i].age == creatures[i].adult_age)
+			{
+				// throw a party
+				int c[5] = { 6,9,11,13,14 };
+
+				for (int j = 0; j < 50; ++j)
+					spawn_particle(creatures[i].phys.x + (rand() % TILE_WIDTH), creatures[i].phys.y + (rand() % (TILE_HEIGHT / 2)), rand() % 2 + 1, 3, 0, c[rand() % 5], creatures[i].board_index);
+			}
+
+			if (creatures[i].reproductive)
+			{
+				// @TEMP: Indicate male reproductive creatures
+				if (creatures[i].gender == MALE)
+				{
+					spawn_particle(creatures[i].phys.x + (rand() % TILE_WIDTH), creatures[i].phys.y + (rand() % (TILE_HEIGHT / 2)), 1, 2, CHAR_MALE_SYMBOL, 8, creatures[i].board_index);
+				}
+
+				// handle death
+				++creatures[i].death_check_counter;
+				if (creatures[i].death_check_counter >= SECONDS_PER_DAY)
+				{
+					// one day since last death check.
+					creatures[i].death_check_counter = 0;
+
+					int death_num = rand() % 10000;
+					int life_in_days = min(60, floor(creatures[i].age / SECONDS_PER_DAY));
+
+					// min(max((rats/200)^2,1),maxq_mult) * base_rate
+					float num_rat_rate = num_creatures / 200.0f;
+					float chance_of_death = min(max(num_rat_rate*num_rat_rate, 1), 25) * mortality_table[life_in_days];
+
+					if (death_num >= (10000 - (10000.0f*chance_of_death)))
+					{
+						// creature dies.
+						creature_death(i);
+					}
+				}
+			}
+
+			// handle creature mating
+			if (creatures[i].reproductive && creatures[i].gender == MALE && creatures[i].age >= creatures[i].adult_age)
+			{
+				for (int grid_offset_x = -1; grid_offset_x <= +1; ++grid_offset_x)
+				{
+					int x_bound = creatures[i].grid_index_x + grid_offset_x;
+					if (x_bound < 0 || x_bound >= CREATURE_GRID_X_MAX) continue;
+
+					for (int grid_offset_y = -1; grid_offset_y <= +1; ++grid_offset_y)
+					{
+						int y_bound = creatures[i].grid_index_y + grid_offset_y;
+						if (y_bound < 0 || y_bound >= CREATURE_GRID_X_MAX) continue;
+
+						for (int j = 0; j < creature_grid[x_bound][y_bound].num_creatures; ++j)
+						{
+							Creature* creature_j = creature_grid[x_bound][y_bound].creatures[j];
+
+							// are creatures opposite gender?
+							if (creature_j->gender == !creatures[i].gender)
+							{
+								// is creature reproductive and an adult and not currently pregnant?
+								if (creature_j->reproductive && creature_j->age >= creature_j->adult_age && !creature_j->pregnant)
+								{
+									// is creature not recoverying from a pregnancy?
+									if (!creature_j->birth_recovery)
+									{
+										// are creatures in same zone?
+										if (strcmp(creature_j->zone.name, creatures[i].zone.name) == 0)
+										{
+											// are creatures the same species?
+											if (strcmp(creature_j->species, creatures[i].species) == 0)
+											{
+												// look at x distance
+												if (abs(creatures[i].phys.x - creature_j->phys.x) <= creatures[i].mating_radius)
+												{
+													// look at y distance
+													if (abs(creatures[i].phys.y - creature_j->phys.y) <= creatures[i].mating_radius)
+													{
+														// get direct distance
+														double distance = get_distance(creatures[i].phys.x, creatures[i].phys.y, creature_j->phys.x, creature_j->phys.y);
+
+														if (distance <= creatures[i].mating_radius)
+														{
+															// spawn flames
+															for (int k = 0; k < 10; ++k)
+																spawn_particle(creature_j->phys.x + (rand() % TILE_WIDTH), creature_j->phys.y + (rand() % (TILE_HEIGHT / 2)), 1, 3, CHAR_FLAME, 9, creature_j->board_index);
+
+															// calculate chance of pregnancy
+															int chance_of_preg = rand() % 100;
+
+															if (chance_of_preg < 100) // 100% chance of pregnancy
+															{
+																creature_j->pregnant = TRUE;
+																creature_j->phys.base_speed /= 2.0f; // reduce speed of pregnant creature
+																++num_pregs;
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
+			// handle pregnancies
+			if (creatures[i].pregnant)
+			{
+				spawn_particle(creatures[i].phys.x + (rand() % TILE_WIDTH), creatures[i].phys.y + (rand() % (TILE_HEIGHT / 2)), 1, 3, CHAR_HEART, 6, creatures[i].board_index);
+
+				++creatures[i].gestation_counter;
+				if (creatures[i].gestation_counter >= creatures[i].gestation_period)
+				{
+					creatures[i].gestation_counter = 0;
+
+					// have a baby
+					int num_babies = (rand() % creatures[i].litter_max) + 1;
+
+					for (int j = 0; j < num_babies; ++j)
+					{
+						spawn_creature(creatures[i].name, creatures[i].board_name, creatures[i].phys.x, creatures[i].phys.y);
+						creatures[num_creatures - 1].age = 0; // set age to zero (newborn)
+						get_zone_by_name(creatures[i].zone.name, &creatures[num_creatures - 1].zone); // set zone
+						++num_births;
+					}
+
+					// have a party
+					int c[5] = { 6,9,11,13,14 };
+
+					for (int j = 0; j < 50; ++j)
+						spawn_particle(creatures[i].phys.x + (rand() % TILE_WIDTH), creatures[i].phys.y + (rand() % (TILE_HEIGHT / 2)), rand() % 2 + 1, 3, 0, c[rand() % 5], creatures[i].board_index);
+
+					creatures[i].pregnant = FALSE;
+					creatures[i].phys.base_speed *= 2.0f; // return creature back to normal speed
+					creatures[i].birth_recovery = TRUE;
+					--num_pregs;
+				}
+			}
+			else if (creatures[i].birth_recovery)
+			{
+				++creatures[i].birth_recovery_counter;
+				if (creatures[i].birth_recovery_counter >= creatures[i].birth_recovery_time)
+				{
+					creatures[i].birth_recovery_counter = 0;
+					creatures[i].birth_recovery = FALSE;
+				}
+			}
+
+		}
+
 
 
 
@@ -829,6 +1192,7 @@ static void update_creatures()
                 }
             }
         }
+
         else if (creatures[i].npc_props.is_npc && creatures[i].npc_props.talking)
         {
             // update direction to face player
