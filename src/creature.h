@@ -189,7 +189,13 @@ static BOOL spawn_creature(const char* creature_name,const char* board_name,floa
     creatures[num_creatures].gender = rand() % 2;
     creatures[num_creatures].action_counter_max = 60;
     creatures[num_creatures].action_counter = rand() % creatures[num_creatures].action_counter_max;
+
     creatures[num_creatures].action_duration_counter = 0;
+	creatures[num_creatures].action_duration_counter_max = 0;
+	creatures[num_creatures].behavior_duration_counter = 0;
+	creatures[num_creatures].behavior_duration_counter_max = 0;
+	creatures[num_creatures].break_state = TRUE;
+
     creatures[num_creatures].anim.counter = 0;
     creatures[num_creatures].anim.max_count = 10;
     creatures[num_creatures].anim.frame = 0;
@@ -388,73 +394,47 @@ static void update_creatures2()
 		creatures[i].grid_index_x = grid_x;
 		creatures[i].grid_index_y = grid_y;
 
-		if (creatures[i].stunned)
-		{
-			creatures[i].stun_counter++;
-			if (creatures[i].stun_counter >= creatures[i].stun_duration)
-			{
-				creatures[i].stun_counter = 0;
-				creatures[i].stunned = FALSE;
-			}
-		}
-
-
+		creatures[i].action_duration_counter++;
+		creatures[i].behavior_duration_counter++;
 
 		BOOL in_range_of_player = creatures[i].board_index == current_board_index && (player.state & PLAYER_STATE_DEAD) != PLAYER_STATE_DEAD && get_distance(player.phys.x + TILE_WIDTH / 2, player.phys.y + TILE_HEIGHT / 2, creatures[i].phys.x + TILE_WIDTH / 2, creatures[i].phys.y + TILE_HEIGHT / 2) <= creatures[i].aggro_radius;
 
+		BOOL low_health = FALSE;
+		if (creatures[i].phys.hp <= 1)
+			low_health = TRUE;
+
+		BOOL action_complete = creatures[i].action_duration_counter >= creatures[i].action_duration_counter_max;
+		BOOL behavior_complete = creatures[i].behavior_duration_counter >= creatures[i].behavior_duration_counter_max;
+		BOOL action_max_complete = creatures[i].behavior_duration_counter >= creatures[i].action_counter_max;
 
 
-		//continue acting
-		//could be attacking, fleeing, etc...
-		if (creatures[i].is_acting) {
+		if (behavior_complete) {
+			action_complete = TRUE;
+			action_max_complete = TRUE;
 
-			creatures[i].action_duration_counter++;
-
-			BOOL action_complete = creatures[i].action_duration_counter >= creatures[i].action_duration_counter_max;
-
-			//if the action duration is met, then set their acting equal to FALSE
-			//however, for some actions you might want them to keep acting if in range of the player
-			if (action_complete) {
-				creatures[i].is_acting = FALSE;
-			}
+			if (creatures[i].break_state)
+				creatures[i].state2 = CREATURE_NORMAL;
 
 
-			//change some settings
-			//might want to reset the action_duration_counter in some of these cases
-			if (creatures[i].mode_current == CREATURE_ATTACK) {
-				if (in_range_of_player) {
-					creatures[i].is_acting = TRUE;
-				}
-				else if (creatures[i].is_acting == FALSE) {
-					//need to reset their state2 so it can be re-determined below
-					creatures[i].state2 = CREATURE_NORMAL;
-				}
-			}
 
-			else if (creatures[i].mode_current == CREATURE_FLEE) {
-				if (in_range_of_player) {
-					creatures[i].is_acting = TRUE;
-				}
-			}
-
-			else if (creatures[i].mode_current == CREATURE_FOLLOW) {
-				if (in_range_of_player) {
-					creatures[i].is_acting = TRUE;
-				}
-			}
-
-			else if (creatures[i].mode_current == CREATURE_CONVERSE) {
-				if (in_range_of_player) {
-					creatures[i].is_acting = TRUE;
-				}
-				//note: may need to only have them talk to you once and then change their mode indefinitely
-			}
-
-
-		}
-
-		if (creatures[i].is_acting == FALSE) {
-
+			//determine the creature state
+			//if (creatures[i].state2 == CREATURE_DEAD) {
+			//}
+			//else if (hit by player) {
+			//	creatures[i].state2 = CREATURE_HIT;
+			//}
+			//else if (in_range_of_player && low_health) {
+			//	creatures[i].state2 = CREATURE_NEAR_LOW;
+			//}
+			//else if (in_range_of_player) {
+			//	creatures[i].state2 = CREATURE_NEAR;
+			//}
+			//else if (low_health) {
+			//	creatures[i].state2 = CREATURE_LOW;
+			//}
+			//else {
+			//	creatures[i].state2 = CREATURE_NORMAL;
+			//}
 
 			//determine the creature state
 			if (creatures[i].state2 == CREATURE_ATTACKED) {
@@ -479,103 +459,111 @@ static void update_creatures2()
 				creatures[i].mode_current = creatures[i].mode0;
 			}
 
+			//reset the behavior counter
+			creatures[i].behavior_duration_counter = 0;
 
 		}
 
 
 
-		// need to put this somewhere or change it
-		if (creatures[i].deaggress && in_range_of_player == FALSE)
-		{
-			++creatures[i].deaggression_counter;
-			if (creatures[i].deaggression_counter == creatures[i].deaggression_duration)
-			{
-				creatures[i].deaggression_counter = 0;
-				creatures[i].deaggress = FALSE;
+
+		if (action_complete && action_max_complete == FALSE) {
+			creatures[i].phys.x_vel = +0;
+			creatures[i].phys.y_vel = +0;
+
+		}
+		if (action_complete && action_max_complete) {
+			if (creatures[i].mode_current == CREATURE_WANDER) {
+				//move randomly
+
+				creatures[i].behavior_duration_counter_max = 60;
+				creatures[i].action_duration_counter = 0;
+				creatures[i].action_duration_counter_max = rand() % 30 + 30 + 1;
+				//creatures[i].action_counter_max = 60;
+				creatures[i].action_counter_max = min(90, creatures[i].action_duration_counter_max + rand () % 30);
+
+				int d = rand() % 9;
+
+				switch (d)
+				{
+				case 0:
+					creatures[i].phys.x_vel = +0;
+					creatures[i].phys.y_vel = +0;
+					break;
+				case 1:
+					creatures[i].dir = DIR_UP;
+					creatures[i].phys.x_vel = +0;
+					creatures[i].phys.y_vel = -1;
+					break;
+				case 2:
+					creatures[i].dir = DIR_DOWN;
+					creatures[i].phys.x_vel = +0;
+					creatures[i].phys.y_vel = +1;
+					break;
+				case 3:
+					creatures[i].dir = DIR_LEFT;
+					creatures[i].phys.x_vel = -1;
+					creatures[i].phys.y_vel = +0;
+					break;
+				case 4:
+					creatures[i].dir = DIR_RIGHT;
+					creatures[i].phys.x_vel = +1;
+					creatures[i].phys.y_vel = +0;
+					break;
+				case 5:
+					creatures[i].dir = DIR_UP;
+					creatures[i].phys.x_vel = -1;
+					creatures[i].phys.y_vel = -1;
+					break;
+				case 6:
+					creatures[i].dir = DIR_UP;
+					creatures[i].phys.x_vel = +1;
+					creatures[i].phys.y_vel = -1;
+					break;
+				case 7:
+					creatures[i].dir = DIR_DOWN;
+					creatures[i].phys.x_vel = -1;
+					creatures[i].phys.y_vel = +1;
+					break;
+				case 8:
+					creatures[i].dir = DIR_DOWN;
+					creatures[i].phys.x_vel = +1;
+					creatures[i].phys.y_vel = +1;
+					break;
+				}
+				//break;
+
+
 			}
-		}
-
-
-
-		//execute the mode/action
-		if (creatures[i].mode_current == CREATURE_WANDER) {
-			//move randomly
-			//creatures[i].phys.x_vel = +1;
-			//creatures[i].phys.y_vel = +1;
-
-			creatures[i].action_counter_max = 60;
-			creatures[i].action_duration_counter_max = rand() % 60 + 1;
-
-			int d = rand() % 9;
-
-			switch (d)
-			{
-			case 0:
-				creatures[i].phys.x_vel = +0;
-				creatures[i].phys.y_vel = +0;
-				break;
-			case 1:
-				creatures[i].dir = DIR_UP;
-				creatures[i].phys.x_vel = +0;
-				creatures[i].phys.y_vel = -1;
-				break;
-			case 2:
-				creatures[i].dir = DIR_DOWN;
-				creatures[i].phys.x_vel = +0;
-				creatures[i].phys.y_vel = +1;
-				break;
-			case 3:
-				creatures[i].dir = DIR_LEFT;
-				creatures[i].phys.x_vel = -1;
-				creatures[i].phys.y_vel = +0;
-				break;
-			case 4:
-				creatures[i].dir = DIR_RIGHT;
-				creatures[i].phys.x_vel = +1;
-				creatures[i].phys.y_vel = +0;
-				break;
-			case 5:
-				creatures[i].dir = DIR_UP;
-				creatures[i].phys.x_vel = -1;
-				creatures[i].phys.y_vel = -1;
-				break;
-			case 6:
-				creatures[i].dir = DIR_UP;
-				creatures[i].phys.x_vel = +1;
-				creatures[i].phys.y_vel = -1;
-				break;
-			case 7:
-				creatures[i].dir = DIR_DOWN;
-				creatures[i].phys.x_vel = -1;
-				creatures[i].phys.y_vel = +1;
-				break;
-			case 8:
-				creatures[i].dir = DIR_DOWN;
-				creatures[i].phys.x_vel = +1;
-				creatures[i].phys.y_vel = +1;
-				break;
+			else if (creatures[i].mode_current == CREATURE_PATROL) {
+				//do some patrolling
 			}
-			//break;
+			else if (creatures[i].mode_current == CREATURE_RPATROL) {
+				//do some random patrolling
+			}
+			else if (creatures[i].mode_current == CREATURE_ATTACK) {
+				//do some attacking
 
+			}
+			else if (creatures[i].mode_current == CREATURE_FLEE) {
+				//do some fleeing
+				creatures[i].break_state = TRUE;
 
-		}
-		else if (creatures[i].mode_current == CREATURE_PATROL) {
-			//do some patrolling
-		}
-		else if (creatures[i].mode_current == CREATURE_RPATROL) {
-			//do some random patrolling
-		}
-		else if (creatures[i].mode_current == CREATURE_ATTACK) {
-			//do some attacking
-		}
-		else if (creatures[i].mode_current == CREATURE_FLEE) {
-			//do some fleeing
-		}
-		else if (creatures[i].mode_current == CREATURE_FOLLOW) {
-			//do some following
-		}
-		else if (creatures[i].mode_current == CREATURE_CONVERSE) {
-			//do some conversing
+				creatures[i].behavior_duration_counter_max = 60*5;
+				creatures[i].action_duration_counter = 0;
+				creatures[i].action_duration_counter_max = rand() % 30 + 30 + 1;
+				//creatures[i].action_counter_max = 120;
+				creatures[i].action_counter_max = min(90, creatures[i].action_duration_counter_max + rand() % 30);
+
+				creatures[i].phys.x_vel = +1;
+				creatures[i].phys.y_vel = +1;
+			}
+			else if (creatures[i].mode_current == CREATURE_FOLLOW) {
+				//do some following
+			}
+			else if (creatures[i].mode_current == CREATURE_CONVERSE) {
+				//do some conversing
+			}
 		}
 
 		creatures[i].phys.x += creatures[i].phys.x_vel*creatures[i].phys.speed;

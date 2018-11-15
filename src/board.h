@@ -315,6 +315,9 @@ typedef struct
 	int action_counter_max;
 	int action_duration_counter;
 	int action_duration_counter_max;
+	int behavior_duration_counter;
+	int behavior_duration_counter_max;
+	BOOL break_state;
 	int particle_spawn_counter;
 	BOOL untargetable;
 	CreatureState state;

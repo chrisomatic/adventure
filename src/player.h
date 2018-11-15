@@ -495,6 +495,12 @@ static void update_player()
                                         else
                                         {
                                             creatures[i].stunned = TRUE;
+											//creatures[i].action_duration_counter = creatures[i].action_duration_counter_max;
+											creatures[i].behavior_duration_counter = creatures[i].behavior_duration_counter_max;
+											creatures[i].state2 = CREATURE_ATTACKED;
+											creatures[i].break_state = FALSE;
+											//creatures[i].behavior_duration_counter = creatures[i].action_counter_max;
+
                                             if(creatures[i].behavior == CREATURE_BEHAVIOR_PASSIVE)
                                             {
                                                 creatures[i].behavior = CREATURE_BEHAVIOR_AGGRESSIVE;
