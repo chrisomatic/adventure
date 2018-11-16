@@ -7,8 +7,8 @@
 
 
 #grass,marsh,water,water,sand,mud,mountain,ice,lava,lava,stone,wood,water_deep,water_deep,portal,dirt
-#brick
+#brick,blue_brick
 
 1,1,4,4,2,3,5,1,6,6,5,1,5,5,1,1
-5
+5,1
 
