@@ -150,6 +150,9 @@ static void update_projectiles()
                             else
                             {
                                 creatures[j].stunned = TRUE;
+								creatures[j].behavior_duration_counter = creatures[i].behavior_duration_counter_max;
+								creatures[j].state = CREATURE_STATE_HIT;
+								creatures[j].break_state = FALSE;
 
                             }
                             remove_projectile(i);

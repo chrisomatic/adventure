@@ -1,8 +1,8 @@
-name: Astoria_Jengon
+name: Astoria_Jenger
 board_name: Astoria
 num_creatures: 1
 num_creature_types: 1
-creature_type_name0: Jengon
+creature_type_name0: Jenger
 x: 1664
 y: 224
 w: 448
