@@ -48,7 +48,33 @@ static void load_assets(ASSET_TYPE type)
 
 	int num_files = get_files_in_directory_with_extension(directory, file_extension, paths);
 
+
+
+	//assign some default values that might not be included in the creatiure file
 	int asset_counter = 0;
+	for (int i = 0; i < num_files; ++i)
+	{
+		switch (type)
+		{
+		case ASSET_TYPE_CREATURE:
+			creature_list[asset_counter].behaviors[CREATURE_STATE_NORMAL] = CREATURE_BEHAVIOR_WANDER;
+			creature_list[asset_counter].behaviors[CREATURE_STATE_HIT] = CREATURE_BEHAVIOR_NOTHING;
+			creature_list[asset_counter].behaviors[CREATURE_STATE_ANTAGONIZED] = CREATURE_BEHAVIOR_FLEE;
+			creature_list[asset_counter].behaviors[CREATURE_STATE_NEAR_PLAYER] = CREATURE_BEHAVIOR_WANDER;
+			creature_list[asset_counter].behaviors[CREATURE_STATE_LOW_HEALTH_NEAR] = CREATURE_BEHAVIOR_FLEE;
+			creature_list[asset_counter].behaviors[CREATURE_STATE_DEAD] = CREATURE_BEHAVIOR_NOTHING;
+			break;
+		case ASSET_TYPE_ITEM:
+			break;
+		case ASSET_TYPE_ZONE:
+			break;
+		}
+		++asset_counter;
+	}
+
+
+
+	asset_counter = 0;
 
     for(int i = 0; i < num_files; ++i)
     {
@@ -99,6 +125,16 @@ static void load_assets(ASSET_TYPE type)
                 switch(type)
                 {
                     case ASSET_TYPE_CREATURE:
+						
+						
+						// set some default values first
+						//creature_list[asset_counter].behaviors[CREATURE_STATE_NORMAL] = CREATURE_BEHAVIOR_WANDER;
+						//creature_list[asset_counter].behaviors[CREATURE_STATE_HIT] = CREATURE_BEHAVIOR_NOTHING;
+						//creature_list[asset_counter].behaviors[CREATURE_STATE_ANTAGONIZED] = CREATURE_BEHAVIOR_FLEE;
+						//creature_list[asset_counter].behaviors[CREATURE_STATE_NEAR_PLAYER] = CREATURE_BEHAVIOR_WANDER;
+						//creature_list[asset_counter].behaviors[CREATURE_STATE_LOW_HEALTH_NEAR] = CREATURE_BEHAVIOR_FLEE;
+						//creature_list[asset_counter].behaviors[CREATURE_STATE_DEAD] = CREATURE_BEHAVIOR_NOTHING;
+
 						if (strcmp(key, "name") == 0) creature_list[asset_counter].name = _strdup(value);
                         else if (strcmp(key, "x_offset") == 0) C_atoi(value, &creature_list[asset_counter].phys.x_offset);
                         else if (strcmp(key, "y_offset") == 0) C_atoi(value, &creature_list[asset_counter].phys.y_offset);
@@ -108,7 +144,12 @@ static void load_assets(ASSET_TYPE type)
                         else if (strcmp(key, "xp") == 0) C_atoi(value, &creature_list[asset_counter].xp);
                         else if (strcmp(key, "speed") == 0) creature_list[asset_counter].phys.speed = atof(value);
                         else if (strcmp(key, "gold_drop_max") == 0) C_atoi(value, &creature_list[asset_counter].gold_drop_max);
-                        else if (strcmp(key, "behavior") == 0) C_atoi(value, &creature_list[asset_counter].behavior);
+
+						else if (strcmp(key, "behavior_normal") == 0) C_atoi(value, &creature_list[asset_counter].behaviors[CREATURE_STATE_NORMAL]);
+						else if (strcmp(key, "behavior_antagonized") == 0) C_atoi(value, &creature_list[asset_counter].behaviors[CREATURE_STATE_ANTAGONIZED]);
+						else if (strcmp(key, "behavior_near_player") == 0) C_atoi(value, &creature_list[asset_counter].behaviors[CREATURE_STATE_NEAR_PLAYER]);
+						else if (strcmp(key, "behavior_low_health_near") == 0) C_atoi(value, &creature_list[asset_counter].behaviors[CREATURE_STATE_LOW_HEALTH_NEAR]);
+
                         else if (strcmp(key, "untargetable") == 0) C_atoi(value, &creature_list[asset_counter].untargetable);
 						else if (strcmp(key, "tileset_name") == 0) creature_list[asset_counter].tileset_name = _strdup(value);
                         else if (strcmp(key, "tile_index") == 0) C_atoi(value, &creature_list[asset_counter].tile_index);

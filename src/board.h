@@ -229,7 +229,7 @@ typedef enum
 {
 	CREATURE_STATE_NEUTRAL,
 	CREATURE_STATE_ACTING
-} CreatureState;
+} CreatureState0;
 
 typedef enum
 {
@@ -243,7 +243,7 @@ typedef enum
 	CREATURE_BEHAVIOR_PASSIVE,
 	CREATURE_BEHAVIOR_AGGRESSIVE,
 	CREATURE_BEHAVIOR_QUAKER
-} CreatureBehavior;
+} CreatureBehavior0;
 
 
 typedef enum
@@ -252,6 +252,7 @@ typedef enum
 	CREATURE_NEAR_PLAYER,
 	CREATURE_ATTACKED
 } CreatureState2;
+
 
 typedef enum
 {
@@ -263,6 +264,32 @@ typedef enum
 	CREATURE_FOLLOW,
 	CREATURE_CONVERSE
 } CreatureMode2;
+
+
+
+typedef enum
+{
+	CREATURE_BEHAVIOR_NOTHING,
+	CREATURE_BEHAVIOR_WANDER,
+	CREATURE_BEHAVIOR_FLEE,
+	CREATURE_BEHAVIOR_ATTACK,
+	CREATURE_BEHAVIOR_FOLLOW,
+	CREATURE_BEHAVIOR_PATROL,
+	CREATURE_BEHAVIOR_RPATROL,
+	CREATURE_BEHAVIOR_CONVERSE
+} CreatureBehavior;
+
+
+typedef enum
+{
+	CREATURE_STATE_NORMAL,
+	CREATURE_STATE_HIT,
+	CREATURE_STATE_ANTAGONIZED,
+	CREATURE_STATE_NEAR_PLAYER,
+	CREATURE_STATE_LOW_HEALTH_NEAR,
+	CREATURE_STATE_DEAD
+} CreatureState;
+#define NUM_STATES 6
 
 
 
@@ -310,25 +337,22 @@ typedef struct
 	int stun_counter;
 	int stun_duration;
 	int gold_drop_max;
+	int particle_spawn_counter;
+	BOOL untargetable;
+
 	int aggro_radius;
-	int action_counter;
+	//int action_counter;
 	int action_counter_max;
 	int action_duration_counter;
 	int action_duration_counter_max;
 	int behavior_duration_counter;
 	int behavior_duration_counter_max;
 	BOOL break_state;
-	int particle_spawn_counter;
-	BOOL untargetable;
+
 	CreatureState state;
-	CreatureBehavior behavior;
-	CreatureMode  mode;
-	CreatureState2 state2;
-	CreatureMode2  mode0;
-	CreatureMode2  mode1;
-	CreatureMode2  mode2;
-	CreatureMode2 mode_current;
-	BOOL is_acting;
+	CreatureBehavior behaviors[NUM_STATES];
+	BOOL hit;
+
 	Direction dir;
 	Animation anim;
 	Gender gender;

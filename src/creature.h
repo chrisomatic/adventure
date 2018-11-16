@@ -107,7 +107,19 @@ static BOOL get_creature_by_name(const char* name,Creature* creature)
             creature->phys.length = creature_list[i].phys.length;
             creature->phys.height = creature_list[i].phys.height;
             creature->gold_drop_max = creature_list[i].gold_drop_max;
-            creature->behavior = creature_list[i].behavior;
+            //creature->behavior = creature_list[i].behavior;
+
+			//for (int cs = 0; cs < NUM_STATES; ++cs) {
+			//	creature->behaviors[cs] = creature_list[i].behaviors[cs];
+			//}
+			creature->behaviors[CREATURE_STATE_NORMAL] = creature_list[i].behaviors[CREATURE_STATE_NORMAL];
+			creature->behaviors[CREATURE_STATE_HIT] = creature_list[i].behaviors[CREATURE_STATE_HIT];
+			creature->behaviors[CREATURE_STATE_ANTAGONIZED] = creature_list[i].behaviors[CREATURE_STATE_ANTAGONIZED];
+			creature->behaviors[CREATURE_STATE_NEAR_PLAYER] = creature_list[i].behaviors[CREATURE_STATE_NEAR_PLAYER];
+			creature->behaviors[CREATURE_STATE_LOW_HEALTH_NEAR] = creature_list[i].behaviors[CREATURE_STATE_LOW_HEALTH_NEAR];
+			creature->behaviors[CREATURE_STATE_DEAD] = creature_list[i].behaviors[CREATURE_STATE_DEAD];
+
+
             creature->untargetable = creature_list[i].untargetable;
             creature->tileset_name = creature_list[i].tileset_name;
             creature->tile_index = creature_list[i].tile_index;
@@ -161,14 +173,21 @@ static BOOL spawn_creature(const char* creature_name,const char* board_name,floa
     creatures[num_creatures].phys.length = creature.phys.length;
     creatures[num_creatures].phys.height = creature.phys.height;
     creatures[num_creatures].dir = DIR_DOWN;
-    creatures[num_creatures].state = CREATURE_STATE_NEUTRAL;
-    creatures[num_creatures].mode  = CREATURE_MODE_WANDER;
-	creatures[num_creatures].state2 = CREATURE_NORMAL;
-	creatures[num_creatures].mode0 = CREATURE_WANDER;
-	creatures[num_creatures].mode1 = CREATURE_WANDER;
-	creatures[num_creatures].mode2 = CREATURE_FLEE;
-	creatures[num_creatures].mode_current = CREATURE_WANDER;
-	creatures[num_creatures].is_acting = FALSE;
+
+    creatures[num_creatures].state = CREATURE_STATE_NORMAL;
+	creatures[num_creatures].behaviors[CREATURE_STATE_NORMAL] = creature.behaviors[CREATURE_STATE_NORMAL];
+	creatures[num_creatures].behaviors[CREATURE_STATE_HIT] = creature.behaviors[CREATURE_STATE_HIT];
+	creatures[num_creatures].behaviors[CREATURE_STATE_ANTAGONIZED] = creature.behaviors[CREATURE_STATE_ANTAGONIZED];
+	creatures[num_creatures].behaviors[CREATURE_STATE_NEAR_PLAYER] = creature.behaviors[CREATURE_STATE_NEAR_PLAYER];
+	creatures[num_creatures].behaviors[CREATURE_STATE_LOW_HEALTH_NEAR] = creature.behaviors[CREATURE_STATE_LOW_HEALTH_NEAR];
+	creatures[num_creatures].behaviors[CREATURE_STATE_DEAD] = creature.behaviors[CREATURE_STATE_DEAD];
+	creatures[num_creatures].action_duration_counter = 0;
+	creatures[num_creatures].action_duration_counter_max = 0;
+	creatures[num_creatures].behavior_duration_counter = 0;
+	creatures[num_creatures].behavior_duration_counter_max = 0;
+	creatures[num_creatures].break_state = TRUE;
+	creatures[num_creatures].hit = FALSE;
+
     creatures[num_creatures].name = creature.name;
     creatures[num_creatures].board_name = board_name;
     creatures[num_creatures].board_index = get_board_index_by_name(creatures[num_creatures].board_name);
@@ -185,17 +204,9 @@ static BOOL spawn_creature(const char* creature_name,const char* board_name,floa
     creatures[num_creatures].stun_counter = 0;
     creatures[num_creatures].stun_duration = 20;
     creatures[num_creatures].untargetable = creature.untargetable;
-    creatures[num_creatures].behavior = creature.behavior;
     creatures[num_creatures].gender = rand() % 2;
     creatures[num_creatures].action_counter_max = 60;
-    creatures[num_creatures].action_counter = rand() % creatures[num_creatures].action_counter_max;
-
-    creatures[num_creatures].action_duration_counter = 0;
-	creatures[num_creatures].action_duration_counter_max = 0;
-	creatures[num_creatures].behavior_duration_counter = 0;
-	creatures[num_creatures].behavior_duration_counter_max = 0;
-	creatures[num_creatures].break_state = TRUE;
-
+    //creatures[num_creatures].action_counter = rand() % creatures[num_creatures].action_counter_max;
     creatures[num_creatures].anim.counter = 0;
     creatures[num_creatures].anim.max_count = 10;
     creatures[num_creatures].anim.frame = 0;
@@ -369,10 +380,11 @@ static void creature_death(int i)
 
 }
 
-static void action_pursue_flee(int creature_index, BOOL flee)
+static void action_pursue_flee(int creature_index, int x, int y ,BOOL flee)
 {
-    float diff_x = (creatures[creature_index].phys.x - player.phys.x);
-    float diff_y = (creatures[creature_index].phys.y - player.phys.y);
+
+    float diff_x = (creatures[creature_index].phys.x - x);
+    float diff_y = (creatures[creature_index].phys.y - y);
 
     if(flee) {
         diff_x *= -1;
@@ -567,51 +579,44 @@ static void update_creatures2()
 			action_complete = TRUE;
 			action_max_complete = TRUE;
 
-			if (creatures[i].break_state)
-				creatures[i].state2 = CREATURE_NORMAL;
+	
+			if (creatures[i].break_state) {
+				if (creatures[i].state == CREATURE_STATE_HIT) {
+					creatures[i].state = CREATURE_STATE_ANTAGONIZED;
+				}
+				else if (creatures[i].state == CREATURE_STATE_ANTAGONIZED) {
+					creatures[i].state = CREATURE_STATE_NORMAL;
+				}
+				else {
+					creatures[i].state = CREATURE_STATE_NORMAL;
+				}
+
+				creatures[i].break_state = FALSE;
+			}
 
 			//determine the creature state
-			//if (creatures[i].state2 == CREATURE_DEAD) {
-			//}
-			//else if (hit by player) {
-			//	creatures[i].state2 = CREATURE_HIT;
-			//}
-			//else if (in_range_of_player && low_health) {
-			//	creatures[i].state2 = CREATURE_NEAR_LOW;
-			//}
-			//else if (in_range_of_player) {
-			//	creatures[i].state2 = CREATURE_NEAR;
-			//}
-			//else if (low_health) {
-			//	creatures[i].state2 = CREATURE_LOW;
-			//}
-			//else {
-			//	creatures[i].state2 = CREATURE_NORMAL;
-			//}
-
-			//determine the creature state
-			if (creatures[i].state2 == CREATURE_ATTACKED) {
-				//CREATURE_ATTACKED will be set in the player file
+			//you want to set break_state = TRUE if you are checking based off current state
+			if (creatures[i].state == CREATURE_STATE_DEAD) {
+			}
+			else if (creatures[i].state == CREATURE_STATE_HIT) {
 				creatures[i].break_state = TRUE;
+				//when a creature is hit, they should get stunned and then they will be switched to the antagonized state
+				//we might want to create a stunned behavior
+			}
+			else if (creatures[i].state == CREATURE_STATE_ANTAGONIZED) {
+				creatures[i].break_state = TRUE;
+				//once the creature is in the antagonization state it will act on its associate behavior, and then it will break the antagonization state once it's done with the behavior
+			}
+			else if (in_range_of_player && low_health) {
+				creatures[i].state = CREATURE_STATE_LOW_HEALTH_NEAR;
 			}
 			else if (in_range_of_player) {
-				creatures[i].state2 = CREATURE_NEAR_PLAYER;
+				creatures[i].state = CREATURE_STATE_NEAR_PLAYER;
 			}
 			else {
-				creatures[i].state2 = CREATURE_NORMAL;
+				creatures[i].state = CREATURE_STATE_NORMAL;
 			}
 
-
-			//determine their mode based off their state
-			if (creatures[i].state2 == CREATURE_ATTACKED) {
-				creatures[i].mode_current = creatures[i].mode2;
-			}
-			else if (creatures[i].state2 == CREATURE_NEAR_PLAYER) {
-				creatures[i].mode_current = creatures[i].mode1;
-			}
-			else if (creatures[i].state2 == CREATURE_NORMAL) {
-				creatures[i].mode_current = creatures[i].mode0;
-			}
 
 			//reset the behavior counter
 			creatures[i].behavior_duration_counter = 0;
@@ -624,47 +629,87 @@ static void update_creatures2()
 
 		}
 
-		if (action_max_complete) {
-			if (creatures[i].mode_current == CREATURE_WANDER) {
-				//move randomly
 
-				creatures[i].behavior_duration_counter_max = 60;
+		if (action_max_complete) {
+
+			CreatureBehavior b = creatures[i].behaviors[creatures[i].state];
+
+			if (strcmp(creatures[i].name, "Gumby") == 0)
+				printf("help");
+
+			switch(b)
+			{
+			case CREATURE_BEHAVIOR_NOTHING:
+				creatures[i].behavior_duration_counter_max = 0;
+				creatures[i].action_duration_counter = 0;
+				creatures[i].action_duration_counter_max = 0;
+				creatures[i].action_counter_max = 0;
+				break;
+			case CREATURE_BEHAVIOR_WANDER:
+				creatures[i].behavior_duration_counter_max = TARGET_FPS;
 				creatures[i].action_duration_counter = 0;
 				creatures[i].action_duration_counter_max = rand() % 30 + 30 + 1;
-				//creatures[i].action_counter_max = 60;
-				creatures[i].action_counter_max = min(90, creatures[i].action_duration_counter_max + rand () % 30);
+				creatures[i].action_counter_max = min(TARGET_FPS, creatures[i].action_duration_counter_max + rand() % 30);
+				action_wander(i);
+				break;
+			case CREATURE_BEHAVIOR_FLEE:
+				creatures[i].behavior_duration_counter_max = TARGET_FPS * 15; //set the duration of the behavior (seconds) -- flee for 15 seconds
+				creatures[i].action_duration_counter = 0; //reset their action counter
+				creatures[i].action_duration_counter_max = TARGET_FPS; //set how long their action is
+				creatures[i].action_counter_max = TARGET_FPS; //set how long it will be until their next action
 
-                action_wander(i);
+				if (in_range_of_player) {
+					action_pursue_flee(i, player.phys.x, player.phys.y, TRUE);
+				}
+				else {
+					action_wander(i);
+				}
+				break;
+
+			case CREATURE_BEHAVIOR_ATTACK:
+				creatures[i].behavior_duration_counter_max = TARGET_FPS * 15; //set the duration of the behavior (seconds) -- attack for 15 seconds
+				creatures[i].action_duration_counter = 0; //reset their action counter
+				creatures[i].action_duration_counter_max = TARGET_FPS; //set how long their action is
+				creatures[i].action_counter_max = TARGET_FPS; //set how long it will be until their next action
+
+				if (low_health) {
+					creatures[i].break_state = TRUE;
+				}
+
+				if (in_range_of_player) {
+					action_pursue_flee(i, player.phys.x, player.phys.y, FALSE);
+					if (creatures[i].behavior_duration_counter >= creatures[i].behavior_duration_counter_max - (TARGET_FPS + 1))
+						creatures[i].behavior_duration_counter = creatures[i].behavior_duration_counter - TARGET_FPS;
+				}
+				else {
+					action_wander(i);
+				}
+				break;
+
+			case CREATURE_BEHAVIOR_FOLLOW:
+				creatures[i].behavior_duration_counter_max = TARGET_FPS * 1; //set the duration of the behavior (seconds)
+				creatures[i].action_duration_counter = 0; //reset their action counter
+				creatures[i].action_duration_counter_max = TARGET_FPS; //set how long their action is
+				creatures[i].action_counter_max = TARGET_FPS; //set how long it will be until their next action
+
+				if (in_range_of_player) {
+					action_pursue_flee(i, player.phys.x, player.phys.y, FALSE);
+				}
+				else {
+					action_wander(i);
+				}
+				break;
+
+			case CREATURE_BEHAVIOR_PATROL:
+				break;
+			case CREATURE_BEHAVIOR_RPATROL:
+				break;
+			case CREATURE_BEHAVIOR_CONVERSE:
+				break;
 
 			}
-			else if (creatures[i].mode_current == CREATURE_PATROL) {
-				//do some patrolling
-			}
-			else if (creatures[i].mode_current == CREATURE_RPATROL) {
-				//do some random patrolling
-			}
-			else if (creatures[i].mode_current == CREATURE_ATTACK) {
-				//do some attacking
 
-			}
-			else if (creatures[i].mode_current == CREATURE_FLEE) {
-				//do some fleeing
 
-				creatures[i].behavior_duration_counter_max = 60*5;
-				creatures[i].action_duration_counter = 0;
-				creatures[i].action_duration_counter_max = 60;//rand() % 30 + 30 + 1;
-				//creatures[i].action_counter_max = 120;
-				creatures[i].action_counter_max = 60;//min(60, creatures[i].action_duration_counter_max + rand() % 30);
-
-                action_pursue_flee(i,TRUE);
-
-			}
-			else if (creatures[i].mode_current == CREATURE_FOLLOW) {
-				//do some following
-			}
-			else if (creatures[i].mode_current == CREATURE_CONVERSE) {
-				//do some conversing
-			}
 		}
 
 		creatures[i].phys.x += creatures[i].phys.x_vel*creatures[i].phys.speed;
@@ -713,7 +758,7 @@ static void update_creatures2()
 			if (creatures[i].phys.x >TILE_WIDTH*(BOARD_TILE_WIDTH - 1)) creatures[i].phys.x = TILE_WIDTH*(BOARD_TILE_WIDTH - 1);
 			if (creatures[i].phys.y >TILE_HEIGHT*(BOARD_TILE_HEIGHT - 1)) creatures[i].phys.y = TILE_HEIGHT*(BOARD_TILE_HEIGHT - 1);
 
-			if (creatures[i].mode == CREATURE_MODE_PURSUE)
+			if (creatures[i].behaviors[creatures[i].state] == CREATURE_BEHAVIOR_ATTACK)
 			{
 				// update particles
 				creatures[i].particle_spawn_counter++;
@@ -730,7 +775,7 @@ static void update_creatures2()
 					}
 				}
 			}
-			else if (creatures[i].mode == CREATURE_MODE_FLEE)
+			else if (creatures[i].behaviors[creatures[i].state] == CREATURE_BEHAVIOR_FLEE)
 			{
 				// update particles
 				creatures[i].particle_spawn_counter++;
@@ -983,72 +1028,72 @@ static void update_creatures2()
 
 }
 
-
+/*
 static void update_creatures()
 {
-    // init creature grid
-    for(int i = 0; i < CREATURE_GRID_X_MAX; ++i)
-    {
-        for(int j = 0; j < CREATURE_GRID_Y_MAX; ++j)
-        {
-            creature_grid[i][j].num_creatures = 0;
-        }
-    }
-    
-    float min_distance = 1000.0f;
-    int min_index = -1;
+	// init creature grid
+	for (int i = 0; i < CREATURE_GRID_X_MAX; ++i)
+	{
+		for (int j = 0; j < CREATURE_GRID_Y_MAX; ++j)
+		{
+			creature_grid[i][j].num_creatures = 0;
+		}
+	}
 
-    for(int i = num_creatures -1; i >= 0;--i)
-    {
-        // assign creatures to creature grids for optimizing creature-creature interactions
-        int grid_x = floor(CREATURE_GRID_X_MAX*(creatures[i].phys.x/(BOARD_TILE_WIDTH*TILE_WIDTH)));
-        int grid_y = floor(CREATURE_GRID_Y_MAX*(creatures[i].phys.y/(BOARD_TILE_HEIGHT*TILE_HEIGHT)));
-        
-        creature_grid[grid_x][grid_y].creatures[creature_grid[grid_x][grid_y].num_creatures++] = &creatures[i];
-        
-        creatures[i].grid_index_x = grid_x;
-        creatures[i].grid_index_y = grid_y;
-        //
+	float min_distance = 1000.0f;
+	int min_index = -1;
 
-        if(creatures[i].stunned)
-        {
-            creatures[i].stun_counter++;
-            if(creatures[i].stun_counter >= creatures[i].stun_duration)
-            {
-                creatures[i].stun_counter = 0;
-                creatures[i].stunned = FALSE;
-            }
-        }
+	for (int i = num_creatures - 1; i >= 0; --i)
+	{
+		// assign creatures to creature grids for optimizing creature-creature interactions
+		int grid_x = floor(CREATURE_GRID_X_MAX*(creatures[i].phys.x / (BOARD_TILE_WIDTH*TILE_WIDTH)));
+		int grid_y = floor(CREATURE_GRID_Y_MAX*(creatures[i].phys.y / (BOARD_TILE_HEIGHT*TILE_HEIGHT)));
 
-        if(creatures[i].behavior == CREATURE_BEHAVIOR_AGGRESSIVE)
-        {  
-            // check distance from player
-			if(creatures[i].board_index == current_board_index && (player.state & PLAYER_STATE_DEAD) != PLAYER_STATE_DEAD && get_distance(player.phys.x + TILE_WIDTH/2,player.phys.y + TILE_HEIGHT/2,creatures[i].phys.x + TILE_WIDTH/2,creatures[i].phys.y+TILE_HEIGHT/2) <= creatures[i].aggro_radius)
-            {
-                if(creatures[i].mode == CREATURE_MODE_WANDER)
-                {
-                    creatures[i].state = CREATURE_STATE_NEUTRAL;
-                    creatures[i].action_counter = creatures[i].action_counter_max;
-                }
+		creature_grid[grid_x][grid_y].creatures[creature_grid[grid_x][grid_y].num_creatures++] = &creatures[i];
 
-                creatures[i].mode = CREATURE_MODE_PURSUE;
-            }
-            else
-            {
-                creatures[i].mode = CREATURE_MODE_WANDER;
+		creatures[i].grid_index_x = grid_x;
+		creatures[i].grid_index_y = grid_y;
+		//
 
-                if(creatures[i].deaggress)
-                {
-                    ++creatures[i].deaggression_counter;
-                    if(creatures[i].deaggression_counter == creatures[i].deaggression_duration)
-                    {
-                        creatures[i].deaggression_counter = 0;
-                        creatures[i].deaggress = FALSE;
-                        creatures[i].behavior = CREATURE_BEHAVIOR_PASSIVE;
-                    }
-                }
-            }
-        }
+		if (creatures[i].stunned)
+		{
+			creatures[i].stun_counter++;
+			if (creatures[i].stun_counter >= creatures[i].stun_duration)
+			{
+				creatures[i].stun_counter = 0;
+				creatures[i].stunned = FALSE;
+			}
+		}
+
+		if (creatures[i].behavior == CREATURE_BEHAVIOR_AGGRESSIVE)
+		{
+			// check distance from player
+			if (creatures[i].board_index == current_board_index && (player.state & PLAYER_STATE_DEAD) != PLAYER_STATE_DEAD && get_distance(player.phys.x + TILE_WIDTH / 2, player.phys.y + TILE_HEIGHT / 2, creatures[i].phys.x + TILE_WIDTH / 2, creatures[i].phys.y + TILE_HEIGHT / 2) <= creatures[i].aggro_radius)
+			{
+				if (creatures[i].mode == CREATURE_MODE_WANDER)
+				{
+					creatures[i].state = CREATURE_STATE_NEUTRAL;
+					creatures[i].action_counter = creatures[i].action_counter_max;
+				}
+
+				creatures[i].mode = CREATURE_MODE_PURSUE;
+			}
+			else
+			{
+				creatures[i].mode = CREATURE_MODE_WANDER;
+
+				if (creatures[i].deaggress)
+				{
+					++creatures[i].deaggression_counter;
+					if (creatures[i].deaggression_counter == creatures[i].deaggression_duration)
+					{
+						creatures[i].deaggression_counter = 0;
+						creatures[i].deaggress = FALSE;
+						creatures[i].behavior = CREATURE_BEHAVIOR_PASSIVE;
+					}
+				}
+			}
+		}
 		else if (creatures[i].behavior == CREATURE_BEHAVIOR_QUAKER)
 		{
 			// check distance from player
@@ -1069,103 +1114,103 @@ static void update_creatures()
 					{
 						creatures[i].deaggression_counter = 0;
 						creatures[i].deaggress = FALSE;
-						creatures[i].phys.speed = creatures[i].phys.speed/1.5;
+						creatures[i].phys.speed = creatures[i].phys.speed / 1.5;
 					}
 				}
 			}
 		}
-        else
-        {
-            creatures[i].mode = CREATURE_MODE_WANDER;
-        }
-        
-        // if creature is performing an action, let it play out
-        if(creatures[i].state == CREATURE_STATE_ACTING)
-        {
-            creatures[i].action_duration_counter++;
+		else
+		{
+			creatures[i].mode = CREATURE_MODE_WANDER;
+		}
 
-            if(creatures[i].action_duration_counter >= creatures[i].action_duration_counter_max)
-            {
-                    creatures[i].action_duration_counter = 0;
-                    creatures[i].state = CREATURE_STATE_NEUTRAL; // return to neutral state
+		// if creature is performing an action, let it play out
+		if (creatures[i].state == CREATURE_STATE_ACTING)
+		{
+			creatures[i].action_duration_counter++;
 
-                    if(creatures[i].mode != CREATURE_MODE_PURSUE && creatures[i].mode != CREATURE_MODE_FLEE)
-                    {
-                        creatures[i].phys.x_vel = +0;
-                        creatures[i].phys.y_vel = +0;
-                    }
+			if (creatures[i].action_duration_counter >= creatures[i].action_duration_counter_max)
+			{
+				creatures[i].action_duration_counter = 0;
+				creatures[i].state = CREATURE_STATE_NEUTRAL; // return to neutral state
 
-                    if(creatures[i].attacking)
-                    {
-                        creatures[i].attacking = FALSE;
-                        creatures[i].attack_recovery = FALSE;
-                    }
-            }
-            
-            // update creature position
-            creatures[i].phys.x += creatures[i].phys.x_vel*creatures[i].phys.speed;
-            creatures[i].phys.y += creatures[i].phys.y_vel*creatures[i].phys.speed;
+				if (creatures[i].mode != CREATURE_MODE_PURSUE && creatures[i].mode != CREATURE_MODE_FLEE)
+				{
+					creatures[i].phys.x_vel = +0;
+					creatures[i].phys.y_vel = +0;
+				}
 
-            if(creatures[i].phys.x_vel != 0 || creatures[i].phys.y_vel != 0)
-            {
-                handle_terrain_collision(creatures[i].board_index, &creatures[i].phys);
+				if (creatures[i].attacking)
+				{
+					creatures[i].attacking = FALSE;
+					creatures[i].attack_recovery = FALSE;
+				}
+			}
 
-                if(creatures[i].stunned)
-                    creatures[i].phys.speed /= 2.0f;
-                
-                // keep creature in zone boundaries
-                if(creatures[i].phys.x < creatures[i].zone.x)
-                {
-                    creatures[i].phys.x = creatures[i].zone.x;
-                    creatures[i].phys.x_vel *= -1; // flip creature in other direction
-                    if(creatures[i].dir == DIR_LEFT) creatures[i].dir = DIR_RIGHT;
-                    if(creatures[i].dir == DIR_RIGHT) creatures[i].dir = DIR_LEFT;
-                }
-                if(creatures[i].phys.y < creatures[i].zone.y)
-                {
-                    creatures[i].phys.y = creatures[i].zone.y;
-                    creatures[i].phys.y_vel *= -1; // flip creature in other direction
-                    if(creatures[i].dir == DIR_UP) creatures[i].dir = DIR_DOWN;
-                    if(creatures[i].dir == DIR_DOWN) creatures[i].dir = DIR_UP;
-                }
-                if(creatures[i].phys.x > creatures[i].zone.x + creatures[i].zone.w)
-                {
-                    creatures[i].phys.x = creatures[i].zone.x + creatures[i].zone.w;
-                    creatures[i].phys.x_vel *= -1; // flip creature in other direction
-                    if(creatures[i].dir == DIR_LEFT) creatures[i].dir = DIR_RIGHT;
-                    if(creatures[i].dir == DIR_RIGHT) creatures[i].dir = DIR_LEFT;
-                }
-                if(creatures[i].phys.y > creatures[i].zone.y + creatures[i].zone.h)
-                {
-                    creatures[i].phys.y = creatures[i].zone.y + creatures[i].zone.h;
-                    creatures[i].phys.y_vel *= -1; // flip creature in other direction
-                    if(creatures[i].dir == DIR_UP) creatures[i].dir = DIR_DOWN;
-                    if(creatures[i].dir == DIR_DOWN) creatures[i].dir = DIR_UP;
-                }
-                
-                // keep creature in board boundaries
-                if(creatures[i].phys.x < 0) creatures[i].phys.x = 0;
-                if(creatures[i].phys.y < 0) creatures[i].phys.y = 0;
-                if(creatures[i].phys.x >TILE_WIDTH*(BOARD_TILE_WIDTH-1)) creatures[i].phys.x = TILE_WIDTH*(BOARD_TILE_WIDTH-1);
-                if(creatures[i].phys.y >TILE_HEIGHT*(BOARD_TILE_HEIGHT-1)) creatures[i].phys.y = TILE_HEIGHT*(BOARD_TILE_HEIGHT-1);
+			// update creature position
+			creatures[i].phys.x += creatures[i].phys.x_vel*creatures[i].phys.speed;
+			creatures[i].phys.y += creatures[i].phys.y_vel*creatures[i].phys.speed;
 
-                if(creatures[i].mode == CREATURE_MODE_PURSUE)
-                {
-                    // update particles
-                    creatures[i].particle_spawn_counter++;
-                    if(creatures[i].particle_spawn_counter >= 30)
-                    {
-                        creatures[i].particle_spawn_counter = 0;
+			if (creatures[i].phys.x_vel != 0 || creatures[i].phys.y_vel != 0)
+			{
+				handle_terrain_collision(creatures[i].board_index, &creatures[i].phys);
 
-                        int num_puncts  = rand() % 5 + 3;
-                        int punctuation;
-                        for(int j = 0; j < num_puncts; ++j)
-                        {
-                            punctuation = rand() % 6 + 33;
-                            spawn_particle(rand() % TILE_WIDTH + creatures[i].phys.x,creatures[i].phys.y,1,1,punctuation,9,creatures[i].board_index);
-                        }
-                    }
-                }
+				if (creatures[i].stunned)
+					creatures[i].phys.speed /= 2.0f;
+
+				// keep creature in zone boundaries
+				if (creatures[i].phys.x < creatures[i].zone.x)
+				{
+					creatures[i].phys.x = creatures[i].zone.x;
+					creatures[i].phys.x_vel *= -1; // flip creature in other direction
+					if (creatures[i].dir == DIR_LEFT) creatures[i].dir = DIR_RIGHT;
+					if (creatures[i].dir == DIR_RIGHT) creatures[i].dir = DIR_LEFT;
+				}
+				if (creatures[i].phys.y < creatures[i].zone.y)
+				{
+					creatures[i].phys.y = creatures[i].zone.y;
+					creatures[i].phys.y_vel *= -1; // flip creature in other direction
+					if (creatures[i].dir == DIR_UP) creatures[i].dir = DIR_DOWN;
+					if (creatures[i].dir == DIR_DOWN) creatures[i].dir = DIR_UP;
+				}
+				if (creatures[i].phys.x > creatures[i].zone.x + creatures[i].zone.w)
+				{
+					creatures[i].phys.x = creatures[i].zone.x + creatures[i].zone.w;
+					creatures[i].phys.x_vel *= -1; // flip creature in other direction
+					if (creatures[i].dir == DIR_LEFT) creatures[i].dir = DIR_RIGHT;
+					if (creatures[i].dir == DIR_RIGHT) creatures[i].dir = DIR_LEFT;
+				}
+				if (creatures[i].phys.y > creatures[i].zone.y + creatures[i].zone.h)
+				{
+					creatures[i].phys.y = creatures[i].zone.y + creatures[i].zone.h;
+					creatures[i].phys.y_vel *= -1; // flip creature in other direction
+					if (creatures[i].dir == DIR_UP) creatures[i].dir = DIR_DOWN;
+					if (creatures[i].dir == DIR_DOWN) creatures[i].dir = DIR_UP;
+				}
+
+				// keep creature in board boundaries
+				if (creatures[i].phys.x < 0) creatures[i].phys.x = 0;
+				if (creatures[i].phys.y < 0) creatures[i].phys.y = 0;
+				if (creatures[i].phys.x >TILE_WIDTH*(BOARD_TILE_WIDTH - 1)) creatures[i].phys.x = TILE_WIDTH*(BOARD_TILE_WIDTH - 1);
+				if (creatures[i].phys.y >TILE_HEIGHT*(BOARD_TILE_HEIGHT - 1)) creatures[i].phys.y = TILE_HEIGHT*(BOARD_TILE_HEIGHT - 1);
+
+				if (creatures[i].mode == CREATURE_MODE_PURSUE)
+				{
+					// update particles
+					creatures[i].particle_spawn_counter++;
+					if (creatures[i].particle_spawn_counter >= 30)
+					{
+						creatures[i].particle_spawn_counter = 0;
+
+						int num_puncts = rand() % 5 + 3;
+						int punctuation;
+						for (int j = 0; j < num_puncts; ++j)
+						{
+							punctuation = rand() % 6 + 33;
+							spawn_particle(rand() % TILE_WIDTH + creatures[i].phys.x, creatures[i].phys.y, 1, 1, punctuation, 9, creatures[i].board_index);
+						}
+					}
+				}
 				else if (creatures[i].mode == CREATURE_MODE_FLEE)
 				{
 					// update particles
@@ -1183,560 +1228,560 @@ static void update_creatures()
 						}
 					}
 				}
-            }
+			}
 
-            if(creatures[i].attacking)
-            {
-                if(creatures[i].weapon.weapon_props.weapon_type == WEAPON_TYPE_MELEE)
-                {
-                    creatures[i].attack_angle += creatures[i].weapon.weapon_props.attack_speed*(PI/30.0f);
+			if (creatures[i].attacking)
+			{
+				if (creatures[i].weapon.weapon_props.weapon_type == WEAPON_TYPE_MELEE)
+				{
+					creatures[i].attack_angle += creatures[i].weapon.weapon_props.attack_speed*(PI / 30.0f);
 
-                    // check for collision with player
-                    float cosa = cos(creatures[i].attack_angle);
-                    float sina = sin(creatures[i].attack_angle);
+					// check for collision with player
+					float cosa = cos(creatures[i].attack_angle);
+					float sina = sin(creatures[i].attack_angle);
 
-                    for(int j = 0; j < creatures[i].weapon.weapon_props.attack_range; ++j)
-                    {
-                        if((player.state & PLAYER_STATE_DEAD) == PLAYER_STATE_DEAD)
-                            break;
+					for (int j = 0; j < creatures[i].weapon.weapon_props.attack_range; ++j)
+					{
+						if ((player.state & PLAYER_STATE_DEAD) == PLAYER_STATE_DEAD)
+							break;
 
-                        if(creatures[i].attack_recovery)
-                            break;
+						if (creatures[i].attack_recovery)
+							break;
 
-                        int start_weapon_x = creatures[i].phys.x + TILE_WIDTH/2;
-                        int start_weapon_y = creatures[i].phys.y + TILE_HEIGHT/2;
-                    
-                        float delta_x = +cosa*j;
-                        float delta_y = -sina*j;
+						int start_weapon_x = creatures[i].phys.x + TILE_WIDTH / 2;
+						int start_weapon_y = creatures[i].phys.y + TILE_HEIGHT / 2;
 
-                        if(start_weapon_x+delta_x >= player.phys.x && start_weapon_x+delta_x <= player.phys.x+0.75*TILE_WIDTH)
-                        {
-                            if(start_weapon_y+delta_y >= player.phys.y && start_weapon_y+delta_y <= player.phys.y+0.75*TILE_HEIGHT)
-                            {
-                                int damage = (rand() % (creatures[i].weapon.weapon_props.max_damage - creatures[i].weapon.weapon_props.min_damage + 1)) + creatures[i].weapon.weapon_props.min_damage;
-                                
-                                // add floating number
-                                spawn_floating_number(start_weapon_x+delta_x,start_weapon_y+delta_y,damage,6,creatures[i].board_index);
+						float delta_x = +cosa*j;
+						float delta_y = -sina*j;
 
-                                // player hurt!
-                                player.phys.hp -= damage;
-
-                                creatures[i].attack_recovery = TRUE;
-
-                                // check if creature died
-                                if (creatures[i].phys.hp <= 0)
-                                    player_die();
-                                else
-                                    player.state |= PLAYER_STATE_HURT;
-
-                                break;
-                            }
-                        }
-                    }
-
-                }
-                else if(creatures[i].weapon.weapon_props.weapon_type == WEAPON_TYPE_RANGED)
-                {
-                    if((player.state & PLAYER_STATE_DEAD) == PLAYER_STATE_DEAD)
-                        break;
-
-                    if(creatures[i].attack_recovery)
-                        break;
-
-                    float x_diff = creatures[i].phys.x - player.phys.x;
-                    float y_diff = creatures[i].phys.y - player.phys.y;
-
-                    float angle = atan(y_diff/x_diff);
-
-
-                    float x_vel = cos(angle)*2;
-                    float y_vel = -sin(angle)*2;
-
-                    if(x_diff > 0)
-                    {
-                        x_vel *=-1.0f;
-                        y_vel *=-1.0f;
-                    }
-
-                    int projectile_index;
-
-                    switch(creatures[i].weapon.tile_index)
-                    {
-                        case BOW:
-                        case CROSSBOW:
-                            projectile_index = ARROW;
-                            break;
-                        case STAFF:
-                            projectile_index = FIREBALL;
-                            break;
-                        case POISON_SPIT:
-                            projectile_index = POISON_SPIT;
-                            break;
-                    }
-                    
-                    spawn_projectile(creatures[i].phys.x, creatures[i].phys.y, 5.0f, x_vel, -y_vel, 2.0f, projectile_index, creatures[i].attack_angle, creatures[i].weapon.weapon_props.min_damage, creatures[i].weapon.weapon_props.max_damage,FALSE);
-					projectiles[num_projectiles - 1].shot = TRUE;
-
-                    creatures[i].attack_recovery = TRUE;
-                }
-            }
-        }
-
-        else if (creatures[i].npc_props.is_npc && creatures[i].npc_props.talking)
-        {
-            // update direction to face player
-            float diff_x = player.phys.x - creatures[i].phys.x;
-            float diff_y = player.phys.y - creatures[i].phys.y;
-
-            if(diff_x <0)
-            {
-                if(diff_y < 0)
-                {
-                    if(abs(diff_x) > abs(diff_y))
-                        creatures[i].dir = DIR_LEFT;
-                    else
-                        creatures[i].dir = DIR_UP;
-                }
-                else
-                {
-                    if(abs(diff_x) > abs(diff_y))
-                        creatures[i].dir = DIR_LEFT;
-                    else
-                        creatures[i].dir = DIR_DOWN;
-                }
-            }
-            else
-            {
-                if(diff_y < 0)
-                {
-                    if(abs(diff_x) > abs(diff_y))
-                        creatures[i].dir = DIR_RIGHT;
-                    else
-                        creatures[i].dir = DIR_UP;
-                }
-                else
-                {
-                    if(abs(diff_x) > abs(diff_y))
-                        creatures[i].dir = DIR_RIGHT;
-                    else
-                        creatures[i].dir = DIR_DOWN;
-                }
-            }
-        }
-        else
-        {
-            creatures[i].action_counter++;
-
-            if(creatures[i].action_counter >= creatures[i].action_counter_max)
-            {
-                // choose an action to make
-                creatures[i].action_counter = 0;
-                creatures[i].state = CREATURE_STATE_ACTING;
-
-                switch(creatures[i].mode)
-                {
-                    case CREATURE_MODE_WANDER:
-
-                        creatures[i].action_counter_max = 60;
-                        creatures[i].action_duration_counter_max = rand() % 60 + 1;
-
-                        int d = rand() % 9;
-
-                        switch (d)
-                        {
-                            case 0:
-                                creatures[i].phys.x_vel = +0;
-                                creatures[i].phys.y_vel = +0;
-                                break;
-                            case 1: 
-                                creatures[i].dir = DIR_UP;
-                                creatures[i].phys.x_vel = +0;
-                                creatures[i].phys.y_vel = -1;
-                                break;
-                            case 2: 
-                                creatures[i].dir = DIR_DOWN;
-                                creatures[i].phys.x_vel = +0;
-                                creatures[i].phys.y_vel = +1;
-                                break;
-                            case 3: 
-                                creatures[i].dir = DIR_LEFT;
-                                creatures[i].phys.x_vel = -1;
-                                creatures[i].phys.y_vel = +0;
-                                break;
-                            case 4: 
-                                creatures[i].dir = DIR_RIGHT;
-                                creatures[i].phys.x_vel = +1;
-                                creatures[i].phys.y_vel = +0;
-                                break;
-                            case 5: 
-                                creatures[i].dir = DIR_UP;
-                                creatures[i].phys.x_vel = -1;
-                                creatures[i].phys.y_vel = -1;
-                                break;
-                            case 6: 
-                                creatures[i].dir = DIR_UP;
-                                creatures[i].phys.x_vel = +1;
-                                creatures[i].phys.y_vel = -1;
-                                break;
-                            case 7: 
-                                creatures[i].dir = DIR_DOWN;
-                                creatures[i].phys.x_vel = -1;
-                                creatures[i].phys.y_vel = +1;
-                                break;
-                            case 8: 
-                                creatures[i].dir = DIR_DOWN;
-                                creatures[i].phys.x_vel = +1;
-                                creatures[i].phys.y_vel = +1;
-                                break;
-                        }
-
-                        break;
-
-					case CREATURE_MODE_FLEE:
-
-						//creatures[i].action_counter_max = 60;
-						//creatures[i].action_duration_counter_max = rand() % 15 + 15 + 1;
-
-						creatures[i].action_counter_max = 0;
-						creatures[i].action_duration_counter_max = 10;
-
-						//float unit = 1.5;
-						int dd = (rand() % 8) + 1;
-						creatures[i].phys.speed = creatures[i].phys.speed * 1.5;
-						
-						// might use
-						//float diff_x = (creatures[i].phys.x - player.phys.x);
-						//float diff_y = (creatures[i].phys.y - player.phys.y);
-
-						switch (dd)
+						if (start_weapon_x + delta_x >= player.phys.x && start_weapon_x + delta_x <= player.phys.x + 0.75*TILE_WIDTH)
 						{
-						// should never hit this case
-						case 0:
-							creatures[i].phys.x_vel = +1;
-							creatures[i].phys.y_vel = +1;
-							break;
-						case 1:
-							creatures[i].dir = DIR_UP;
-							creatures[i].phys.x_vel = +0;
-							creatures[i].phys.y_vel = -1;
-							break;
-						case 2:
-							creatures[i].dir = DIR_DOWN;
-							creatures[i].phys.x_vel = +0;
-							creatures[i].phys.y_vel = +1;
-							break;
-						case 3:
-							creatures[i].dir = DIR_LEFT;
-							creatures[i].phys.x_vel = -1;
-							creatures[i].phys.y_vel = +0;
-							break;
-						case 4:
-							creatures[i].dir = DIR_RIGHT;
-							creatures[i].phys.x_vel = +1;
-							creatures[i].phys.y_vel = +0;
-							break;
-						case 5:
-							creatures[i].dir = DIR_UP;
-							creatures[i].phys.x_vel = -1;
-							creatures[i].phys.y_vel = -1;
-							break;
-						case 6:
-							creatures[i].dir = DIR_UP;
-							creatures[i].phys.x_vel = +1;
-							creatures[i].phys.y_vel = -1;
-							break;
-						case 7:
-							creatures[i].dir = DIR_DOWN;
-							creatures[i].phys.x_vel = -1;
-							creatures[i].phys.y_vel = +1;
-							break;
-						case 8:
-							creatures[i].dir = DIR_DOWN;
-							creatures[i].phys.x_vel = +1;
-							creatures[i].phys.y_vel = +1;
-							break;
-						}
+							if (start_weapon_y + delta_y >= player.phys.y && start_weapon_y + delta_y <= player.phys.y + 0.75*TILE_HEIGHT)
+							{
+								int damage = (rand() % (creatures[i].weapon.weapon_props.max_damage - creatures[i].weapon.weapon_props.min_damage + 1)) + creatures[i].weapon.weapon_props.min_damage;
 
+								// add floating number
+								spawn_floating_number(start_weapon_x + delta_x, start_weapon_y + delta_y, damage, 6, creatures[i].board_index);
+
+								// player hurt!
+								player.phys.hp -= damage;
+
+								creatures[i].attack_recovery = TRUE;
+
+								// check if creature died
+								if (creatures[i].phys.hp <= 0)
+									player_die();
+								else
+									player.state |= PLAYER_STATE_HURT;
+
+								break;
+							}
+						}
+					}
+
+				}
+				else if (creatures[i].weapon.weapon_props.weapon_type == WEAPON_TYPE_RANGED)
+				{
+					if ((player.state & PLAYER_STATE_DEAD) == PLAYER_STATE_DEAD)
 						break;
 
-                    case CREATURE_MODE_PURSUE:
-                        
-                        creatures[i].action_counter_max  = 0;
-                        creatures[i].action_duration_counter_max = 10; 
+					if (creatures[i].attack_recovery)
+						break;
 
-                        action_pursue_flee(i,FALSE);
+					float x_diff = creatures[i].phys.x - player.phys.x;
+					float y_diff = creatures[i].phys.y - player.phys.y;
 
-                        float diff_x = (creatures[i].phys.x - player.phys.x);
-                        float diff_y = (creatures[i].phys.y - player.phys.y);
+					float angle = atan(y_diff / x_diff);
 
-                        if(abs(diff_x) < creatures[i].weapon.weapon_props.attack_range && abs(diff_y) < creatures[i].weapon.weapon_props.attack_range)
-                        {
-                            creatures[i].action_counter_max = 15.0f / creatures[i].weapon.weapon_props.attack_speed;
-                            creatures[i].action_duration_counter_max = 15.0f/creatures[i].weapon.weapon_props.attack_speed;
-                            creatures[i].attacking = TRUE;
-                            switch(creatures[i].dir)
-                            {
-                                case DIR_LEFT:
-                                    creatures[i].attack_angle = +3*PI/4;
-                                    break;
-                                case DIR_RIGHT:
-                                    creatures[i].attack_angle = -1*PI/4;
-                                    break;
-                                case DIR_UP:
-                                    creatures[i].attack_angle = +1*PI/4;
-                                    break;
-                                case DIR_DOWN:
-                                    creatures[i].attack_angle = -3*PI/4;
-                                    break;
-                            }
-                            creatures[i].phys.x_vel = 0.0f;
-                            creatures[i].phys.y_vel = 0.0f;
-                        }
-                    break;
-                }
 
-            }
-        }
-        
-        // handle creature animation
-        if(creatures[i].phys.x_vel != 0 || creatures[i].phys.y_vel != 0)
-        {
-            creatures[i].anim.counter++;
+					float x_vel = cos(angle) * 2;
+					float y_vel = -sin(angle) * 2;
 
-            if(creatures[i].anim.counter >= 10/creatures[i].phys.speed)
-            {
-                // cycle_animation
-                creatures[i].anim.counter = 0;
-                creatures[i].anim.frame += 1;
-                if(creatures[i].anim.frame >= creatures[i].anim.num_frames)
-                    creatures[i].anim.frame = 0;
-            }
-        }
-        else
-        {
-            // clear animation frame
-            creatures[i].anim.counter = 0;
-            creatures[i].anim.frame = 0;
-        }
+					if (x_diff > 0)
+					{
+						x_vel *= -1.0f;
+						y_vel *= -1.0f;
+					}
 
-        // handle npc stuff
-        if(creatures[i].npc_props.is_npc)
-        {
-            // check if player is near
-            float distance = get_distance(player.phys.x,player.phys.y,creatures[i].phys.x,creatures[i].phys.y);
+					int projectile_index;
 
-            if(distance <= creatures[i].npc_props.talk_radius)
-            {
-                BOOL prev_talking = creatures[i].npc_props.talking;
+					switch (creatures[i].weapon.tile_index)
+					{
+					case BOW:
+					case CROSSBOW:
+						projectile_index = ARROW;
+						break;
+					case STAFF:
+						projectile_index = FIREBALL;
+						break;
+					case POISON_SPIT:
+						projectile_index = POISON_SPIT;
+						break;
+					}
 
-                if(prev_talking == FALSE)
-                {
-                    // randomly select new dialogue
-                    creatures[i].npc_props.selected_dialogue_num = rand() % creatures[i].npc_props.num_dialogue;
-                }
+					spawn_projectile(creatures[i].phys.x, creatures[i].phys.y, 5.0f, x_vel, -y_vel, 2.0f, projectile_index, creatures[i].attack_angle, creatures[i].weapon.weapon_props.min_damage, creatures[i].weapon.weapon_props.max_damage, FALSE);
+					projectiles[num_projectiles - 1].shot = TRUE;
 
-                creatures[i].npc_props.talking = TRUE;
-                creatures[i].npc_props.distance_from_player = distance;
-                creatures[i].state = CREATURE_STATE_NEUTRAL; // return to neutral state
-                creatures[i].phys.x_vel = +0;
-                creatures[i].phys.y_vel = +0;
-            }
-            else
-            {
-                creatures[i].npc_props.talking = FALSE;
-                creatures[i].npc_props.distance_from_player = -1.0f;
-            }
-            
-            // update min index
-            if(creatures[i].npc_props.talking)
-            {
-                if(creatures[i].npc_props.distance_from_player < min_distance)
-                {
-                    min_distance = creatures[i].npc_props.distance_from_player;
-                    min_index = i;
-                }
-            }
-        }
-        
-        // handle aging
-        ++creatures[i].age_counter;
-        if(creatures[i].age_counter >= 60)
-        {
-            // creature is one second older
-            creatures[i].age_counter = 0;
+					creatures[i].attack_recovery = TRUE;
+				}
+			}
+		}
 
-            ++creatures[i].age;
-            if(creatures[i].age == creatures[i].adult_age)
-            {
-                // throw a party
-                int c[5] = { 6,9,11,13,14};
+		else if (creatures[i].npc_props.is_npc && creatures[i].npc_props.talking)
+		{
+			// update direction to face player
+			float diff_x = player.phys.x - creatures[i].phys.x;
+			float diff_y = player.phys.y - creatures[i].phys.y;
 
-                for(int j = 0; j < 50; ++j)
-                    spawn_particle(creatures[i].phys.x + (rand()%TILE_WIDTH), creatures[i].phys.y + (rand()%(TILE_HEIGHT/2)), rand()%2 + 1,3,0,c[rand()%5],creatures[i].board_index);
-            }
-            
-            if(creatures[i].reproductive)
-            {
-                // @TEMP: Indicate male reproductive creatures
-                if(creatures[i].gender == MALE)
-                {
-                    spawn_particle(creatures[i].phys.x + (rand()%TILE_WIDTH), creatures[i].phys.y + (rand()%(TILE_HEIGHT/2)),1,2,CHAR_MALE_SYMBOL,8,creatures[i].board_index);
-                }
+			if (diff_x <0)
+			{
+				if (diff_y < 0)
+				{
+					if (abs(diff_x) > abs(diff_y))
+						creatures[i].dir = DIR_LEFT;
+					else
+						creatures[i].dir = DIR_UP;
+				}
+				else
+				{
+					if (abs(diff_x) > abs(diff_y))
+						creatures[i].dir = DIR_LEFT;
+					else
+						creatures[i].dir = DIR_DOWN;
+				}
+			}
+			else
+			{
+				if (diff_y < 0)
+				{
+					if (abs(diff_x) > abs(diff_y))
+						creatures[i].dir = DIR_RIGHT;
+					else
+						creatures[i].dir = DIR_UP;
+				}
+				else
+				{
+					if (abs(diff_x) > abs(diff_y))
+						creatures[i].dir = DIR_RIGHT;
+					else
+						creatures[i].dir = DIR_DOWN;
+				}
+			}
+		}
+		else
+		{
+			creatures[i].action_counter++;
 
-                // handle death
-                ++creatures[i].death_check_counter;
-                if(creatures[i].death_check_counter >= SECONDS_PER_DAY)
-                {
-                    // one day since last death check.
-                    creatures[i].death_check_counter = 0;
+			if (creatures[i].action_counter >= creatures[i].action_counter_max)
+			{
+				// choose an action to make
+				creatures[i].action_counter = 0;
+				creatures[i].state = CREATURE_STATE_ACTING;
 
-                    int death_num = rand() % 10000;
-                    int life_in_days = min(60,floor(creatures[i].age / SECONDS_PER_DAY));
+				switch (creatures[i].mode)
+				{
+				case CREATURE_MODE_WANDER:
 
-                    // min(max((rats/200)^2,1),maxq_mult) * base_rate
-                    float num_rat_rate = num_creatures/200.0f;
-                    float chance_of_death = min(max(num_rat_rate*num_rat_rate,1),25) * mortality_table[life_in_days];
+					creatures[i].action_counter_max = 60;
+					creatures[i].action_duration_counter_max = rand() % 60 + 1;
 
-                    if(death_num >= (10000 - (10000.0f*chance_of_death)))
-                    {
-                        // creature dies.
-                        creature_death(i);
-                    }
-                }
-            }
+					int d = rand() % 9;
 
-            // handle creature mating
-            if(creatures[i].reproductive && creatures[i].gender == MALE && creatures[i].age >= creatures[i].adult_age)
-            {
-                for(int grid_offset_x = -1; grid_offset_x <= +1; ++grid_offset_x)
-                {
-                    int x_bound = creatures[i].grid_index_x + grid_offset_x;
-                    if(x_bound < 0 || x_bound >= CREATURE_GRID_X_MAX) continue;
+					switch (d)
+					{
+					case 0:
+						creatures[i].phys.x_vel = +0;
+						creatures[i].phys.y_vel = +0;
+						break;
+					case 1:
+						creatures[i].dir = DIR_UP;
+						creatures[i].phys.x_vel = +0;
+						creatures[i].phys.y_vel = -1;
+						break;
+					case 2:
+						creatures[i].dir = DIR_DOWN;
+						creatures[i].phys.x_vel = +0;
+						creatures[i].phys.y_vel = +1;
+						break;
+					case 3:
+						creatures[i].dir = DIR_LEFT;
+						creatures[i].phys.x_vel = -1;
+						creatures[i].phys.y_vel = +0;
+						break;
+					case 4:
+						creatures[i].dir = DIR_RIGHT;
+						creatures[i].phys.x_vel = +1;
+						creatures[i].phys.y_vel = +0;
+						break;
+					case 5:
+						creatures[i].dir = DIR_UP;
+						creatures[i].phys.x_vel = -1;
+						creatures[i].phys.y_vel = -1;
+						break;
+					case 6:
+						creatures[i].dir = DIR_UP;
+						creatures[i].phys.x_vel = +1;
+						creatures[i].phys.y_vel = -1;
+						break;
+					case 7:
+						creatures[i].dir = DIR_DOWN;
+						creatures[i].phys.x_vel = -1;
+						creatures[i].phys.y_vel = +1;
+						break;
+					case 8:
+						creatures[i].dir = DIR_DOWN;
+						creatures[i].phys.x_vel = +1;
+						creatures[i].phys.y_vel = +1;
+						break;
+					}
 
-                    for(int grid_offset_y = -1; grid_offset_y <= +1; ++grid_offset_y)
-                    {
-                        int y_bound = creatures[i].grid_index_y + grid_offset_y;
-                        if(y_bound < 0 || y_bound >= CREATURE_GRID_X_MAX) continue;
+					break;
 
-                        for(int j = 0; j < creature_grid[x_bound][y_bound].num_creatures; ++j)
-                        {
-                            Creature* creature_j = creature_grid[x_bound][y_bound].creatures[j];
-                            
-                            // are creatures opposite gender?
-                            if(creature_j->gender == !creatures[i].gender)
-                            {
-                                // is creature reproductive and an adult and not currently pregnant?
-                                if(creature_j->reproductive && creature_j->age >= creature_j->adult_age && !creature_j->pregnant)
-                                {
-                                    // is creature not recoverying from a pregnancy?
-                                    if(!creature_j->birth_recovery)
-                                    {
-                                        // are creatures in same zone?
-                                        if(strcmp(creature_j->zone.name, creatures[i].zone.name) == 0)
-                                        {
-                                            // are creatures the same species?
-                                            if(strcmp(creature_j->species, creatures[i].species) == 0)
-                                            {
-                                                // look at x distance
-                                                if(abs(creatures[i].phys.x - creature_j->phys.x) <= creatures[i].mating_radius)
-                                                {
-                                                    // look at y distance
-                                                    if(abs(creatures[i].phys.y - creature_j->phys.y) <= creatures[i].mating_radius)
-                                                    {
-                                                        // get direct distance
-                                                        double distance = get_distance(creatures[i].phys.x,creatures[i].phys.y,creature_j->phys.x, creature_j->phys.y);
+				case CREATURE_MODE_FLEE:
 
-                                                        if(distance <= creatures[i].mating_radius)
-                                                        {
-                                                            // spawn flames
-                                                            for(int k = 0; k < 10; ++k)
-                                                                spawn_particle(creature_j->phys.x + (rand()%TILE_WIDTH), creature_j->phys.y + (rand()%(TILE_HEIGHT/2)),1,3,CHAR_FLAME,9, creature_j->board_index);
+					//creatures[i].action_counter_max = 60;
+					//creatures[i].action_duration_counter_max = rand() % 15 + 15 + 1;
 
-                                                            // calculate chance of pregnancy
-                                                            int chance_of_preg = rand()%100;
+					creatures[i].action_counter_max = 0;
+					creatures[i].action_duration_counter_max = 10;
 
-                                                            if(chance_of_preg < 100) // 100% chance of pregnancy
-                                                            {
-                                                                creature_j->pregnant = TRUE;
-                                                                creature_j->phys.base_speed /= 2.0f; // reduce speed of pregnant creature
-                                                                ++num_pregs;
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                } 
-                            }
-                        }
-                    }
-                }
-            }
+					//float unit = 1.5;
+					int dd = (rand() % 8) + 1;
+					creatures[i].phys.speed = creatures[i].phys.speed * 1.5;
 
-            // handle pregnancies
-            if(creatures[i].pregnant)
-            {
-                spawn_particle(creatures[i].phys.x + (rand()%TILE_WIDTH), creatures[i].phys.y + (rand()%(TILE_HEIGHT/2)),1,3,CHAR_HEART,6, creatures[i].board_index); 
+					// might use
+					//float diff_x = (creatures[i].phys.x - player.phys.x);
+					//float diff_y = (creatures[i].phys.y - player.phys.y);
 
-                ++creatures[i].gestation_counter;
-                if(creatures[i].gestation_counter >= creatures[i].gestation_period)
-                {
-                    creatures[i].gestation_counter = 0;
+					switch (dd)
+					{
+						// should never hit this case
+					case 0:
+						creatures[i].phys.x_vel = +1;
+						creatures[i].phys.y_vel = +1;
+						break;
+					case 1:
+						creatures[i].dir = DIR_UP;
+						creatures[i].phys.x_vel = +0;
+						creatures[i].phys.y_vel = -1;
+						break;
+					case 2:
+						creatures[i].dir = DIR_DOWN;
+						creatures[i].phys.x_vel = +0;
+						creatures[i].phys.y_vel = +1;
+						break;
+					case 3:
+						creatures[i].dir = DIR_LEFT;
+						creatures[i].phys.x_vel = -1;
+						creatures[i].phys.y_vel = +0;
+						break;
+					case 4:
+						creatures[i].dir = DIR_RIGHT;
+						creatures[i].phys.x_vel = +1;
+						creatures[i].phys.y_vel = +0;
+						break;
+					case 5:
+						creatures[i].dir = DIR_UP;
+						creatures[i].phys.x_vel = -1;
+						creatures[i].phys.y_vel = -1;
+						break;
+					case 6:
+						creatures[i].dir = DIR_UP;
+						creatures[i].phys.x_vel = +1;
+						creatures[i].phys.y_vel = -1;
+						break;
+					case 7:
+						creatures[i].dir = DIR_DOWN;
+						creatures[i].phys.x_vel = -1;
+						creatures[i].phys.y_vel = +1;
+						break;
+					case 8:
+						creatures[i].dir = DIR_DOWN;
+						creatures[i].phys.x_vel = +1;
+						creatures[i].phys.y_vel = +1;
+						break;
+					}
 
-                    // have a baby
-                    int num_babies = (rand() % creatures[i].litter_max) + 1;
+					break;
 
-                    for(int j = 0; j < num_babies; ++j)
-                    {
+				case CREATURE_MODE_PURSUE:
+
+					creatures[i].action_counter_max = 0;
+					creatures[i].action_duration_counter_max = 10;
+
+					action_pursue_flee(i, player.phys.x, player.phys.y, FALSE);
+
+					float diff_x = (creatures[i].phys.x - player.phys.x);
+					float diff_y = (creatures[i].phys.y - player.phys.y);
+
+					if (abs(diff_x) < creatures[i].weapon.weapon_props.attack_range && abs(diff_y) < creatures[i].weapon.weapon_props.attack_range)
+					{
+						creatures[i].action_counter_max = 15.0f / creatures[i].weapon.weapon_props.attack_speed;
+						creatures[i].action_duration_counter_max = 15.0f / creatures[i].weapon.weapon_props.attack_speed;
+						creatures[i].attacking = TRUE;
+						switch (creatures[i].dir)
+						{
+						case DIR_LEFT:
+							creatures[i].attack_angle = +3 * PI / 4;
+							break;
+						case DIR_RIGHT:
+							creatures[i].attack_angle = -1 * PI / 4;
+							break;
+						case DIR_UP:
+							creatures[i].attack_angle = +1 * PI / 4;
+							break;
+						case DIR_DOWN:
+							creatures[i].attack_angle = -3 * PI / 4;
+							break;
+						}
+						creatures[i].phys.x_vel = 0.0f;
+						creatures[i].phys.y_vel = 0.0f;
+					}
+					break;
+				}
+
+			}
+		}
+
+		// handle creature animation
+		if (creatures[i].phys.x_vel != 0 || creatures[i].phys.y_vel != 0)
+		{
+			creatures[i].anim.counter++;
+
+			if (creatures[i].anim.counter >= 10 / creatures[i].phys.speed)
+			{
+				// cycle_animation
+				creatures[i].anim.counter = 0;
+				creatures[i].anim.frame += 1;
+				if (creatures[i].anim.frame >= creatures[i].anim.num_frames)
+					creatures[i].anim.frame = 0;
+			}
+		}
+		else
+		{
+			// clear animation frame
+			creatures[i].anim.counter = 0;
+			creatures[i].anim.frame = 0;
+		}
+
+		// handle npc stuff
+		if (creatures[i].npc_props.is_npc)
+		{
+			// check if player is near
+			float distance = get_distance(player.phys.x, player.phys.y, creatures[i].phys.x, creatures[i].phys.y);
+
+			if (distance <= creatures[i].npc_props.talk_radius)
+			{
+				BOOL prev_talking = creatures[i].npc_props.talking;
+
+				if (prev_talking == FALSE)
+				{
+					// randomly select new dialogue
+					creatures[i].npc_props.selected_dialogue_num = rand() % creatures[i].npc_props.num_dialogue;
+				}
+
+				creatures[i].npc_props.talking = TRUE;
+				creatures[i].npc_props.distance_from_player = distance;
+				creatures[i].state = CREATURE_STATE_NEUTRAL; // return to neutral state
+				creatures[i].phys.x_vel = +0;
+				creatures[i].phys.y_vel = +0;
+			}
+			else
+			{
+				creatures[i].npc_props.talking = FALSE;
+				creatures[i].npc_props.distance_from_player = -1.0f;
+			}
+
+			// update min index
+			if (creatures[i].npc_props.talking)
+			{
+				if (creatures[i].npc_props.distance_from_player < min_distance)
+				{
+					min_distance = creatures[i].npc_props.distance_from_player;
+					min_index = i;
+				}
+			}
+		}
+
+		// handle aging
+		++creatures[i].age_counter;
+		if (creatures[i].age_counter >= 60)
+		{
+			// creature is one second older
+			creatures[i].age_counter = 0;
+
+			++creatures[i].age;
+			if (creatures[i].age == creatures[i].adult_age)
+			{
+				// throw a party
+				int c[5] = { 6,9,11,13,14 };
+
+				for (int j = 0; j < 50; ++j)
+					spawn_particle(creatures[i].phys.x + (rand() % TILE_WIDTH), creatures[i].phys.y + (rand() % (TILE_HEIGHT / 2)), rand() % 2 + 1, 3, 0, c[rand() % 5], creatures[i].board_index);
+			}
+
+			if (creatures[i].reproductive)
+			{
+				// @TEMP: Indicate male reproductive creatures
+				if (creatures[i].gender == MALE)
+				{
+					spawn_particle(creatures[i].phys.x + (rand() % TILE_WIDTH), creatures[i].phys.y + (rand() % (TILE_HEIGHT / 2)), 1, 2, CHAR_MALE_SYMBOL, 8, creatures[i].board_index);
+				}
+
+				// handle death
+				++creatures[i].death_check_counter;
+				if (creatures[i].death_check_counter >= SECONDS_PER_DAY)
+				{
+					// one day since last death check.
+					creatures[i].death_check_counter = 0;
+
+					int death_num = rand() % 10000;
+					int life_in_days = min(60, floor(creatures[i].age / SECONDS_PER_DAY));
+
+					// min(max((rats/200)^2,1),maxq_mult) * base_rate
+					float num_rat_rate = num_creatures / 200.0f;
+					float chance_of_death = min(max(num_rat_rate*num_rat_rate, 1), 25) * mortality_table[life_in_days];
+
+					if (death_num >= (10000 - (10000.0f*chance_of_death)))
+					{
+						// creature dies.
+						creature_death(i);
+					}
+				}
+			}
+
+			// handle creature mating
+			if (creatures[i].reproductive && creatures[i].gender == MALE && creatures[i].age >= creatures[i].adult_age)
+			{
+				for (int grid_offset_x = -1; grid_offset_x <= +1; ++grid_offset_x)
+				{
+					int x_bound = creatures[i].grid_index_x + grid_offset_x;
+					if (x_bound < 0 || x_bound >= CREATURE_GRID_X_MAX) continue;
+
+					for (int grid_offset_y = -1; grid_offset_y <= +1; ++grid_offset_y)
+					{
+						int y_bound = creatures[i].grid_index_y + grid_offset_y;
+						if (y_bound < 0 || y_bound >= CREATURE_GRID_X_MAX) continue;
+
+						for (int j = 0; j < creature_grid[x_bound][y_bound].num_creatures; ++j)
+						{
+							Creature* creature_j = creature_grid[x_bound][y_bound].creatures[j];
+
+							// are creatures opposite gender?
+							if (creature_j->gender == !creatures[i].gender)
+							{
+								// is creature reproductive and an adult and not currently pregnant?
+								if (creature_j->reproductive && creature_j->age >= creature_j->adult_age && !creature_j->pregnant)
+								{
+									// is creature not recoverying from a pregnancy?
+									if (!creature_j->birth_recovery)
+									{
+										// are creatures in same zone?
+										if (strcmp(creature_j->zone.name, creatures[i].zone.name) == 0)
+										{
+											// are creatures the same species?
+											if (strcmp(creature_j->species, creatures[i].species) == 0)
+											{
+												// look at x distance
+												if (abs(creatures[i].phys.x - creature_j->phys.x) <= creatures[i].mating_radius)
+												{
+													// look at y distance
+													if (abs(creatures[i].phys.y - creature_j->phys.y) <= creatures[i].mating_radius)
+													{
+														// get direct distance
+														double distance = get_distance(creatures[i].phys.x, creatures[i].phys.y, creature_j->phys.x, creature_j->phys.y);
+
+														if (distance <= creatures[i].mating_radius)
+														{
+															// spawn flames
+															for (int k = 0; k < 10; ++k)
+																spawn_particle(creature_j->phys.x + (rand() % TILE_WIDTH), creature_j->phys.y + (rand() % (TILE_HEIGHT / 2)), 1, 3, CHAR_FLAME, 9, creature_j->board_index);
+
+															// calculate chance of pregnancy
+															int chance_of_preg = rand() % 100;
+
+															if (chance_of_preg < 100) // 100% chance of pregnancy
+															{
+																creature_j->pregnant = TRUE;
+																creature_j->phys.base_speed /= 2.0f; // reduce speed of pregnant creature
+																++num_pregs;
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
+			// handle pregnancies
+			if (creatures[i].pregnant)
+			{
+				spawn_particle(creatures[i].phys.x + (rand() % TILE_WIDTH), creatures[i].phys.y + (rand() % (TILE_HEIGHT / 2)), 1, 3, CHAR_HEART, 6, creatures[i].board_index);
+
+				++creatures[i].gestation_counter;
+				if (creatures[i].gestation_counter >= creatures[i].gestation_period)
+				{
+					creatures[i].gestation_counter = 0;
+
+					// have a baby
+					int num_babies = (rand() % creatures[i].litter_max) + 1;
+
+					for (int j = 0; j < num_babies; ++j)
+					{
 						spawn_creature(creatures[i].name, creatures[i].board_name, creatures[i].phys.x, creatures[i].phys.y);
-                        creatures[num_creatures - 1].age = 0; // set age to zero (newborn)
-                        get_zone_by_name(creatures[i].zone.name,&creatures[num_creatures - 1].zone); // set zone
-                        ++num_births;
-                    }
+						creatures[num_creatures - 1].age = 0; // set age to zero (newborn)
+						get_zone_by_name(creatures[i].zone.name, &creatures[num_creatures - 1].zone); // set zone
+						++num_births;
+					}
 
-                    // have a party
-                    int c[5] = { 6,9,11,13,14 };
+					// have a party
+					int c[5] = { 6,9,11,13,14 };
 
-                    for(int j = 0; j < 50; ++j)
-                        spawn_particle(creatures[i].phys.x + (rand()%TILE_WIDTH), creatures[i].phys.y + (rand()%(TILE_HEIGHT/2)), rand()%2 + 1,3,0,c[rand()%5], creatures[i].board_index);
+					for (int j = 0; j < 50; ++j)
+						spawn_particle(creatures[i].phys.x + (rand() % TILE_WIDTH), creatures[i].phys.y + (rand() % (TILE_HEIGHT / 2)), rand() % 2 + 1, 3, 0, c[rand() % 5], creatures[i].board_index);
 
-                    creatures[i].pregnant = FALSE;
-                    creatures[i].phys.base_speed *= 2.0f; // return creature back to normal speed
-                    creatures[i].birth_recovery = TRUE;
-                    --num_pregs;
-                }
-            }
-            else if(creatures[i].birth_recovery)
-            {
-                ++creatures[i].birth_recovery_counter;
-                if(creatures[i].birth_recovery_counter >= creatures[i].birth_recovery_time)
-                {
-                    creatures[i].birth_recovery_counter = 0;
-                    creatures[i].birth_recovery = FALSE;
-                }
-            }
-            
-        }
-    }
-    
-    // update npc message
-    if(min_index > -1)
-    {
-        message.name = creatures[min_index].name;
-        message.message = creatures[min_index].npc_props.dialogue[creatures[min_index].npc_props.selected_dialogue_num];
+					creatures[i].pregnant = FALSE;
+					creatures[i].phys.base_speed *= 2.0f; // return creature back to normal speed
+					creatures[i].birth_recovery = TRUE;
+					--num_pregs;
+				}
+			}
+			else if (creatures[i].birth_recovery)
+			{
+				++creatures[i].birth_recovery_counter;
+				if (creatures[i].birth_recovery_counter >= creatures[i].birth_recovery_time)
+				{
+					creatures[i].birth_recovery_counter = 0;
+					creatures[i].birth_recovery = FALSE;
+				}
+			}
 
-        if(creatures[min_index].npc_props.is_vendor)
-            message.value = creatures[min_index].npc_props.vendor_credit;
-        else
-            message.value = -1;
+		}
+	}
 
-        message.color = 10;
-        message.active = TRUE;
-    }
-    
+	// update npc message
+	if (min_index > -1)
+	{
+		message.name = creatures[min_index].name;
+		message.message = creatures[min_index].npc_props.dialogue[creatures[min_index].npc_props.selected_dialogue_num];
+
+		if (creatures[min_index].npc_props.is_vendor)
+			message.value = creatures[min_index].npc_props.vendor_credit;
+		else
+			message.value = -1;
+
+		message.color = 10;
+		message.active = TRUE;
+	}
+
 }
-
+*/
 static void draw_creature_only(int i)
 {
     int creature_x = creatures[i].phys.x - camera.x;

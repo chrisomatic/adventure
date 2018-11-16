@@ -4,7 +4,22 @@ max_hp: 10
 xp: 2
 speed: 0.9
 gold_drop_max: 5
-behavior: 0 # Passive
+
+#behaviors
+#0=nothing
+#1=wander
+#2=flee
+#3=attack
+#4=follow
+#5=patrol
+#6=random patrol
+#7=converse
+#assign beghaviors to a creature when in a certain state
+behavior_normal: 4
+behavior_antagonized: 1 #how the creature behaves after they are hit
+behavior_near_player: 4 #how the creature behaves when they are near the player
+behavior_low_health_near: 2 #when the creature has low health and is near you
+
 untargetable: 0 # FALSE
 tileset_name: creatures
 tile_index: 32
