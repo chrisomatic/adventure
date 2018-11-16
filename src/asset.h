@@ -48,8 +48,6 @@ static void load_assets(ASSET_TYPE type)
 
 	int num_files = get_files_in_directory_with_extension(directory, file_extension, paths);
 
-
-
 	//assign some default values that might not be included in the creatiure file
 	int asset_counter = 0;
 	for (int i = 0; i < num_files; ++i)
@@ -71,8 +69,6 @@ static void load_assets(ASSET_TYPE type)
 		}
 		++asset_counter;
 	}
-
-
 
 	asset_counter = 0;
 
@@ -127,14 +123,6 @@ static void load_assets(ASSET_TYPE type)
                     case ASSET_TYPE_CREATURE:
 						
 						
-						// set some default values first
-						//creature_list[asset_counter].behaviors[CREATURE_STATE_NORMAL] = CREATURE_BEHAVIOR_WANDER;
-						//creature_list[asset_counter].behaviors[CREATURE_STATE_HIT] = CREATURE_BEHAVIOR_NOTHING;
-						//creature_list[asset_counter].behaviors[CREATURE_STATE_ANTAGONIZED] = CREATURE_BEHAVIOR_FLEE;
-						//creature_list[asset_counter].behaviors[CREATURE_STATE_NEAR_PLAYER] = CREATURE_BEHAVIOR_WANDER;
-						//creature_list[asset_counter].behaviors[CREATURE_STATE_LOW_HEALTH_NEAR] = CREATURE_BEHAVIOR_FLEE;
-						//creature_list[asset_counter].behaviors[CREATURE_STATE_DEAD] = CREATURE_BEHAVIOR_NOTHING;
-
 						if (strcmp(key, "name") == 0) creature_list[asset_counter].name = _strdup(value);
                         else if (strcmp(key, "x_offset") == 0) C_atoi(value, &creature_list[asset_counter].phys.x_offset);
                         else if (strcmp(key, "y_offset") == 0) C_atoi(value, &creature_list[asset_counter].phys.y_offset);
