@@ -24,6 +24,7 @@
 #include "floatingnumber.h"
 #include "projectile.h"
 #include "creature.h"
+#include "object.h"
 #include "portal.h"
 #include "player.h"
 #include "entity.h"
@@ -61,7 +62,7 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
 	setup_window(hinstance);
 
     generate_all_tilesets();
-    //generate_all_boards();
+    generate_all_objects();
     
     // seed PRNG
 	srand(time(NULL));
@@ -74,6 +75,7 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
 	load_all_assets();
 
     init_creatures();
+    init_objects();
     init_items();
     init_player();
 	load_player_props();

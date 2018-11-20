@@ -19,7 +19,7 @@ static void swap(SortEntity* a, SortEntity* b)
     *b = t;
 }
  
-static int partition (SortEntity arr[], int low, int high)
+static int partition(SortEntity arr[], int low, int high)
 {
     SortEntity pivot = arr[high];
     int i = (low - 1);
@@ -104,6 +104,23 @@ static void sort_entities()
         entities[num_entities].y_value = screen_y;
         num_entities++;
     }
+
+    // objects
+    for(int i = 0; i < num_objects;++i)
+    {
+        screen_x = objects[i].x - camera.x;
+        screen_y = objects[i].y - camera.y;
+        
+        if (screen_x+TILE_WIDTH < 0 || screen_x >= buffer_width)
+            continue;
+        if (screen_y+TILE_HEIGHT < 0 || screen_y >= buffer_height)
+            continue;
+
+        entities[num_entities].type = ENTITY_TYPE_OBJECT;
+        entities[num_entities].index = i;
+        entities[num_entities].y_value = screen_y;
+        num_entities++;
+    }
     
     // particles 
     for(int i = 0; i < num_particles;++i)
@@ -183,6 +200,9 @@ static void draw_entities()
                 break;
             case ENTITY_TYPE_CREATURE:
                 draw_creature(entities[i].index);
+                break;
+            case ENTITY_TYPE_OBJECT:
+                draw_object(entities[i].index,1);
                 break;
             case ENTITY_TYPE_PARTICLE:
                 draw_particle(entities[i].index);

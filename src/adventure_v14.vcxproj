@@ -112,6 +112,7 @@
     <ClInclude Include="hud.h" />
     <ClInclude Include="item.h" />
     <ClInclude Include="item_stand.h" />
+    <ClInclude Include="object.h" />
     <ClInclude Include="particle.h" />
     <ClInclude Include="player.h" />
     <ClInclude Include="portal.h" />
