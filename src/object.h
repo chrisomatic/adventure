@@ -14,6 +14,7 @@ typedef struct
 	int height;
 } Object;
 
+
 Object objects[MAX_OBJECTS] = {0};
 Object object_list[MAX_OBJECT_LIST] = {0};
 
@@ -162,6 +163,8 @@ static void init_objects()
     num_objects = 0;
 
     spawn_object("tree","Astoria",1350.0f, 1000.0f);
+	//++num_objects;
+	spawn_object("house", "Astoria", 1380.0f, 1000.0f);
 }
 
 static void remove_object(int index)
@@ -186,9 +189,9 @@ static void draw_object(int i,int shade_amount)
 
     unsigned char* p_object = object_list[object_index].data;
 
-    for(int i = 0; i < o->width; ++i)
+    for(int i = 0; i < o->height; ++i)
     {
-        for(int j = 0; j < o->height; ++j)
+        for(int j = 0; j < o->width; ++j)
         {
 			if (dst >= (unsigned char*)back_buffer + (buffer_width*buffer_height)) return;
 

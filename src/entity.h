@@ -67,7 +67,7 @@ static void sort_entities()
 
         entities[num_entities].type = ENTITY_TYPE_ITEM;
         entities[num_entities].index = i;
-        entities[num_entities].y_value = screen_y;
+        entities[num_entities].y_value = screen_y + TILE_HEIGHT;
         num_entities++;
     }
     
@@ -84,7 +84,7 @@ static void sort_entities()
 
         entities[num_entities].type = ENTITY_TYPE_COIN;
         entities[num_entities].index = i;
-        entities[num_entities].y_value = screen_y;
+        entities[num_entities].y_value = screen_y + TILE_HEIGHT;
         num_entities++;
     }
     
@@ -101,7 +101,7 @@ static void sort_entities()
 
         entities[num_entities].type = ENTITY_TYPE_CREATURE;
         entities[num_entities].index = i;
-        entities[num_entities].y_value = screen_y;
+        entities[num_entities].y_value = screen_y + TILE_HEIGHT;
         num_entities++;
     }
 
@@ -111,14 +111,14 @@ static void sort_entities()
         screen_x = objects[i].x - camera.x;
         screen_y = objects[i].y - camera.y;
         
-        if (screen_x+TILE_WIDTH < 0 || screen_x >= buffer_width)
+        if (screen_x+objects[i].width < 0 || screen_x >= buffer_width)
             continue;
-        if (screen_y+TILE_HEIGHT < 0 || screen_y >= buffer_height)
+        if (screen_y+objects[i].height < 0 || screen_y >= buffer_height)
             continue;
 
         entities[num_entities].type = ENTITY_TYPE_OBJECT;
         entities[num_entities].index = i;
-        entities[num_entities].y_value = screen_y;
+        entities[num_entities].y_value = screen_y + objects[i].height;
         num_entities++;
     }
     
@@ -135,7 +135,7 @@ static void sort_entities()
 
         entities[num_entities].type = ENTITY_TYPE_PARTICLE;
         entities[num_entities].index = i;
-        entities[num_entities].y_value = screen_y;
+        entities[num_entities].y_value = screen_y + TILE_HEIGHT;
         num_entities++;
     }
     
@@ -152,7 +152,7 @@ static void sort_entities()
 
         entities[num_entities].type = ENTITY_TYPE_PROJECTILE;
         entities[num_entities].index = i;
-        entities[num_entities].y_value = screen_y;
+        entities[num_entities].y_value = screen_y + TILE_HEIGHT;
         num_entities++;
     }
     
@@ -169,14 +169,14 @@ static void sort_entities()
 
         entities[num_entities].type = ENTITY_TYPE_FLOATING_NUMBER;
         entities[num_entities].index = i;
-        entities[num_entities].y_value = screen_y;
+        entities[num_entities].y_value = screen_y + TILE_HEIGHT;
         num_entities++;
     }
 
     // player
     entities[num_entities].type = ENTITY_TYPE_PLAYER;
     entities[num_entities].index = 0;
-    entities[num_entities].y_value = player.phys.y - camera.y;
+    entities[num_entities].y_value = player.phys.y - camera.y + TILE_HEIGHT;
     num_entities++;
 
     // sort entities
