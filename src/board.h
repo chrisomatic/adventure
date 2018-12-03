@@ -173,7 +173,7 @@ typedef struct
 } Stats;
 
 char tileset_map[16][100] = { 0 };
-int tileset_num = 0;
+char object_map[16][100]  = { 0 };
 
 typedef struct
 {
@@ -648,8 +648,6 @@ static void load_board_map()
 		else
 			board_name[board_name_counter++] = c;
 
-
-
 	} while (c != EOF);
 
 	fclose(fp_map);
@@ -693,19 +691,47 @@ static void load_board(const char* path_to_board_file, int board_index)
 			current_section = 1;
 			continue;
 		}
-		else if (str_contains(s, ":tileset_info")) {
+        else if (str_contains(s, ":object_info")) {
 			current_section = 2;
+            key = 0;
+			continue;
+        }
+        else if (str_contains(s, ":object_data")) { 
+			current_section = 3;
+			continue;
+        }
+		else if (str_contains(s, ":tileset_info")) {
+			current_section = 4;
+            key = 0;
 			continue;
 		}
 		else if (str_contains(s, ":data")) {
-			current_section = 3;
+			current_section = 5;
 		}
 
 		switch (current_section) {
 		case 1: {
 			// board info
 		} break;
-		case 2: {
+        case 2: {
+            // object_info
+			int matches = sscanf(s, "%d=%s\n", &key, value);
+			str_replace(value, 100, ".object.png", "", value);
+
+			if (matches == 2)
+				strncpy(object_map[key], value, 100);
+
+        } break;
+        case 3: {
+            // object_data
+            int index, obj_x, obj_y;
+            int matches = sscanf(s, "%d,%d,%d\n",&index,&obj_x, &obj_y);
+
+            if (matches == 3)
+                spawn_object(object_map[index],board_list[board_index].name,obj_x, obj_y);
+
+        } break;
+		case 4: {
 			// tileset info
 			int matches = sscanf(s, "%d=%s\n", &key, value);
 			str_replace(value, 100, ".tileset.png", "", value);
@@ -714,7 +740,7 @@ static void load_board(const char* path_to_board_file, int board_index)
 				strncpy(tileset_map[key], value, 100);
 
 		} break;
-		case 3: {
+		case 5: {
 			// data
 			for (int j = 0; j < BOARD_TILE_HEIGHT; ++j)
 			{

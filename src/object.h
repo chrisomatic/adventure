@@ -133,7 +133,7 @@ static BOOL get_object_by_name(const char* name,Object* object)
 	return FALSE;
 }
 
-static BOOL spawn_object(const char* object_name,const char* board_name,float x, float y)
+static BOOL spawn_object(const char* object_name,const char* board_name,int x, int y)
 {
     Object object = {0};
 
@@ -144,8 +144,8 @@ static BOOL spawn_object(const char* object_name,const char* board_name,float x,
     objects[num_objects].board_name = board_name;
     objects[num_objects].width = object.width;
     objects[num_objects].height = object.height;
-    objects[num_objects].x = x;
-    objects[num_objects].y = y;
+    objects[num_objects].x = (float)x;
+    objects[num_objects].y = (float)y;
 
     ++num_objects;
     if(num_objects > MAX_OBJECTS -1)
@@ -155,16 +155,6 @@ static BOOL spawn_object(const char* object_name,const char* board_name,float x,
     }
 
     return TRUE;
-}
-
-static void init_objects()
-{
-    // @TEMP: Test spawning some objects
-    num_objects = 0;
-
-    spawn_object("tree","Astoria",1350.0f, 1000.0f);
-	//++num_objects;
-	spawn_object("house", "Astoria", 1380.0f, 1000.0f);
 }
 
 static void remove_object(int index)

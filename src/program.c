@@ -75,7 +75,6 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpcmdline
 	load_all_assets();
 
     init_creatures();
-    init_objects();
     init_items();
     init_player();
 	load_player_props();
