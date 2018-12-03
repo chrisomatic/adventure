@@ -115,8 +115,6 @@ class Editor(QWidget):
         self.tiles[self.tile_set_name] = temp_list
         self.tiles_actual[self.tile_set_name] = temp_list2
 
-
-
     def paintEvent(self, event):
 
         self.draw_tiles()
