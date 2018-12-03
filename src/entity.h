@@ -202,7 +202,7 @@ static void draw_entities()
                 draw_creature(entities[i].index);
                 break;
             case ENTITY_TYPE_OBJECT:
-                draw_object(entities[i].index,1);
+                draw_object(entities[i].index);
                 break;
             case ENTITY_TYPE_PARTICLE:
                 draw_particle(entities[i].index);

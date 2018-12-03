@@ -163,7 +163,7 @@ static void remove_object(int index)
 	objects[index] = objects[num_objects];
 }
 
-static void draw_object(int i,int shade_amount)
+static void draw_object(int i)
 {
     Object* o = &objects[i];
 	int x = o->x - camera.x;
@@ -171,6 +171,8 @@ static void draw_object(int i,int shade_amount)
 
     unsigned char* dst = back_buffer;
 	dst = dst + (int)(buffer_width*y + x);
+
+    int shade_amount = day_cycle_shade_amount;
 
     int object_index = get_object_index_by_name(objects[i].name);
 
