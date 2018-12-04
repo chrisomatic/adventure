@@ -48,6 +48,9 @@ class MyWidget(QMainWindow):
         self.tile_set_name = ""
         self.cycle = [0,1,0,2]
         self.cycle_index = 0
+        self.scale = 3
+        self.pad = 5
+        self.spacing = .5
 
 
 
@@ -60,8 +63,11 @@ class MyWidget(QMainWindow):
 
 
         self.anim_window = QWidget()
-        self.anim_window.setMinimumWidth(400)
-        self.anim_window.setMinimumHeight(300)
+        d = self.tile_size * (self.scale*2 + self.pad*2 + self.spacing)
+        self.anim_window.setMinimumWidth(d)
+        self.anim_window.setMinimumHeight(d)
+        # self.anim_window.setMinimumWidth(400)
+        # self.anim_window.setMinimumHeight(300)
 
         self.sld = QSlider(Qt.Horizontal, self)
         self.sld.setMinimum(1)
@@ -87,6 +93,7 @@ class MyWidget(QMainWindow):
 
         self.build_tile_qlist()
         self.build_ts_combo()
+        # self.load_tileset(self.tile_set_name)
         
         self.grid = QGridLayout()
         self.grid.setSpacing(10)
@@ -121,7 +128,7 @@ class MyWidget(QMainWindow):
         
         
 
-        self.setGeometry(300, 300, 1000, 500)
+        self.setGeometry(300, 300, 500, 300)
 
         
         
@@ -205,17 +212,20 @@ class MyWidget(QMainWindow):
         self.tilesets = [x for x in os.listdir(self.ts_path) if ".tileset.png" in x]
 
         # # self.editor.tiles = {}
-        # # self.editor.tiles_actual = {}
-        # self.editor.tile_set_name = ""
-        # self.build_ts_combo()
-        # self.grid.addWidget(self.ts_combo, 4, 1)
-        # # self.setLayout(self.grid)
-        # self.widget.setLayout(self.grid)
-        # self.setCentralWidget(self.widget)
+        self.tiles_actual = {}
+        self.tile_set_name = ""
+        self.build_tile_qlist()
+        self.build_ts_combo()
+        self.load_tileset(self.tile_set_name)
+        
+        self.grid.addWidget(self.ts_combo, 2, 2)
+        self.widget.setLayout(self.grid)
+        self.setCentralWidget(self.widget)
         # # self.load_tileset("")
+
     def change_speed(self):
         
-        speed = 300/self.sld.value()
+        speed = 400/self.sld.value()
 
         self.save_timer.stop()
         self.save_timer.start(speed)
@@ -249,7 +259,7 @@ class MyWidget(QMainWindow):
         for i in range(0,self.tile_size):
             for j in range(0,self.tile_size):
                 tile_image = img.copy(self.tile_size*j,self.tile_size*i,self.tile_size,self.tile_size)
-                tile_image = tile_image.scaledToHeight(self.tile_size*3)
+                tile_image = tile_image.scaledToHeight(self.tile_size*self.scale)
 
                 color = QColor(1.0, 0.0, 1.0, 0)
                 for y in range(tile_image.height()):
@@ -327,6 +337,10 @@ class MyWidget(QMainWindow):
 
     def resizeEvent(self, event):
         # self.repaint()
+        # qr = self.frameGeometry()
+        # cp = QDesktopWidget().availableGeometry()
+        # print(qr)
+        # print(cp)
         pass
 
     
@@ -336,18 +350,19 @@ class MyWidget(QMainWindow):
         
     def draw_tiles(self):
         painter = QPainter(self)
-        xpad = self.tile_size * 5
-        ypad = self.tile_size * 5
-        painter.drawImage(xpad + 0,ypad + 0,self.tiles_actual[self.tile_set_name][self.tile_index + self.cycle[self.cycle_index % len(self.cycle)]])
+        xpad = self.tile_size * self.pad
+        ypad = self.tile_size * self.pad
+        if self.tile_set_name in self.tiles_actual.keys():
+            painter.drawImage(xpad + 0,ypad + 0,self.tiles_actual[self.tile_set_name][self.tile_index + self.cycle[self.cycle_index % len(self.cycle)]])
 
-        painter.drawImage(xpad + self.tile_size * 5,ypad + 0,self.tiles_actual[self.tile_set_name][self.tile_index-3 + self.cycle[self.cycle_index % len(self.cycle)]])
+            painter.drawImage(xpad + self.tile_size * (self.scale + self.spacing),ypad + 0,self.tiles_actual[self.tile_set_name][self.tile_index-3 + self.cycle[self.cycle_index % len(self.cycle)]])
 
-        painter.drawImage(xpad + 0,ypad + self.tile_size * 5,self.tiles_actual[self.tile_set_name][self.tile_index+3 + self.cycle[self.cycle_index % len(self.cycle)]])
+            painter.drawImage(xpad + 0,ypad + self.tile_size * (self.scale + self.spacing),self.tiles_actual[self.tile_set_name][self.tile_index+3 + self.cycle[self.cycle_index % len(self.cycle)]])
 
-        painter.drawImage(xpad + self.tile_size * 5,ypad + self.tile_size * 5,self.tiles_actual[self.tile_set_name][self.tile_index+6 + self.cycle[self.cycle_index % len(self.cycle)]])
+            painter.drawImage(xpad + self.tile_size * (self.scale + self.spacing),ypad + self.tile_size * (self.scale + self.spacing),self.tiles_actual[self.tile_set_name][self.tile_index+6 + self.cycle[self.cycle_index % len(self.cycle)]])
 
-       
         
+            
 
         
     def center(self):
