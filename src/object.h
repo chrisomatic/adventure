@@ -165,6 +165,10 @@ static void remove_object(int index)
 
 static void draw_object(int i)
 {
+	// @SPEED: Convert object "board_name" to board_index for faster compares
+	if (strcmp(objects[i].board_name, board_list[current_board_index].name) != 0)
+		return;
+
     Object* o = &objects[i];
 	int x = o->x - camera.x;
 	int y = o->y - camera.y;
