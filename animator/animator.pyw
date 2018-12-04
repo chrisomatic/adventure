@@ -142,7 +142,7 @@ class MyWidget(QMainWindow):
         self.save_timer.timeout.connect(self.repaint)
         self.save_timer.start(300)
 
-        self.sld.setValue(3)
+        self.sld.setValue(2)
 
     def build_tile_qlist(self):
 
