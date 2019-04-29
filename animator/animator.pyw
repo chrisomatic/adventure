@@ -31,13 +31,6 @@ class MyWidget(QMainWindow):
 
 
 
-
-
-
-
-
-
-
         self.root = os.path.dirname(os.path.abspath(__file__))  + "\\"
         self.tile_size = 16
         self.tiles_actual = {}
@@ -49,18 +42,11 @@ class MyWidget(QMainWindow):
         self.cycle = [0,1,0,2]
         self.cycle_index = 0
         self.scale = 3
-        self.pad = 5
-        self.spacing = .5
-
-
-
-
-
+        self.pad = 3
+        self.spacing = 3
 
 
         self.widget = QWidget()
-        
-
 
         self.anim_window = QWidget()
         d = self.tile_size * (self.scale*2 + self.pad*2 + self.spacing)

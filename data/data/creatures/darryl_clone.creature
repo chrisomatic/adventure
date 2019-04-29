@@ -1,19 +1,19 @@
-name: Darryl_Mate
+name: Darryl_Clone
 is_npc: 1 #TRUE
 hp: 100
 max_hp: 100
 xp: 1
 num_dialogue: 1
-dialogue0: "I like to mate."
+dialogue0: "I am a Darryl."
 speed: 0.5
 gold_drop_max: 12
 behavior: 0 # Passive
 untargetable: 0 # FALSE
 tileset_name: characters
-is_vendor: 0 #TRUE
+is_vendor: 0 #FALSE
 tile_index: 32
 species: Human
-reproductive: 1 #FALSE
+reproductive: 1 #TRUE
 adult_age: 5040
 width: 16
 length: 8

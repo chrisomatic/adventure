@@ -1,17 +1,17 @@
-name: Darryl
+name: Doc
 is_npc: 1 #TRUE
 hp: 100
 max_hp: 100
 xp: 1
 num_dialogue: 1
-dialogue0: "I am the one true Darryl!"
-speed: 0.5
-gold_drop_max: 12
+dialogue0: "HAHAHAHA!"
+speed: 1.5
+gold_drop_max: 9999
 behavior: 0 # Passive
-untargetable: 0 # FALSE
+untargetable: 1 # TRUE
 tileset_name: characters
-is_vendor: 0 #TRUE
-tile_index: 32
+is_vendor: 0 #FALSE
+tile_index: 80
 species: Human
 reproductive: 0 #FALSE
 adult_age: 5040

@@ -1,0 +1,11 @@
+name: Astoria_Doc
+board_name: Astoria
+num_creatures: 1
+num_creature_types: 1
+creature_type_name0: Doc
+x: 1648
+y: 208
+w: 480
+h: 704
+
+

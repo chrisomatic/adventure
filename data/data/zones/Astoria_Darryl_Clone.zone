@@ -1,8 +1,8 @@
-name: Astoria_Darryl_Mate
+name: Astoria_Darryl_Clone
 board_name: Astoria
 num_creatures: 10
 num_creature_types: 1
-creature_type_name0: Darryl_Mate
+creature_type_name0: Darryl_Clone
 x: 1504 #pixels
 y: 688 #pixels
 w: 128 #pixels
