@@ -270,6 +270,55 @@ static void setup_window(HINSTANCE hInstance)
     update_game_colors();
 
 }
+
+#define SAVE_GAME_VERSION 1
+
+static void save_game() {
+    
+    FILE* f = fopen("sav\\game.sav","wb");
+
+    // write version number
+    fprintf(f,"ver:%d\n",SAVE_GAME_VERSION);
+
+    // write out player struct
+    const int p_max = sizeof(Player);
+    char* p = &player;
+    
+    for(int i = 0; i < p_max; ++i)
+        fputc(*p++,f);
+
+    fclose(f);
+}
+
+static void load_game() {
+    
+    FILE* f = fopen("sav\\game.sav","rb");
+
+    // write version number
+    int version;
+    fscanf(f,"ver:%d\n", &version);
+
+    if(version != SAVE_GAME_VERSION) {
+        printf("Save file version is outdated and can't be loaded");
+        return;
+    }
+
+    // read in player struct
+
+    char* p = &player;
+    int c;
+
+    for(;;) {
+        c = fgetc(f);
+        if(c == EOF) 
+            break;
+        
+        *p++ = c;
+    }
+
+    fclose(f);
+}
+
 static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam)
 {
 	switch (umsg)
@@ -457,6 +506,10 @@ static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM 
                     if(inventory_selection_index == INVENTORY_SELECTION_MAX)
                         inventory_selection_index = 0;
                 }
+            } else if(wparam == VK_F5) {
+                save_game();
+            } else if(wparam == VK_F6) {
+                load_game();
             }
             
             // @DEV
